@@ -1,0 +1,366 @@
+@primary: #ffb8b8;
+@primary-dark: #ff9999;
+@primary-rose: #c0606b;
+@peach-light: #fff5f5;
+@peach-mid: #ffe0e0;
+@text: #333;
+@text-light: #666;
+@white: #fff;
+
+.contact-page-wrapper {
+  font-family: 'Inter', 'Roboto', sans-serif;
+  background: transparent;
+
+  .contact-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 5%;
+  }
+
+  /* ── HERO ── */
+  .contact-hero {
+    position: relative;
+    padding: 100px 10% 80px;
+    background: linear-gradient(135deg, rgba(255,245,245,0.7) 0%, rgba(255,240,240,0.7) 60%, rgba(255,228,228,0.7) 100%);
+    backdrop-filter: blur(12px);
+    text-align: center;
+    overflow: hidden;
+
+    .ch-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(255,184,184,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .ch-content {
+      position: relative;
+      z-index: 2;
+      max-width: 680px;
+      margin: 0 auto;
+
+      .ch-eyebrow {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 3px;
+        color: @primary-rose;
+        text-transform: uppercase;
+        background: rgba(192,96,107,0.12);
+        padding: 6px 18px;
+        border-radius: 30px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(192,96,107,0.25);
+      }
+
+      h1 {
+        font-size: 3.2rem;
+        font-weight: 900;
+        color: @text;
+        line-height: 1.2;
+        margin: 0 0 20px;
+
+        em {
+          font-style: normal;
+          background: linear-gradient(135deg, @primary-rose 0%, @primary-dark 50%, #ffb347 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+      }
+
+      p {
+        color: @text-light;
+        font-size: 1.1rem;
+        line-height: 1.75;
+        margin: 0;
+      }
+    }
+  }
+
+  /* ── INFO CARDS ── */
+  .contact-info-cards {
+    padding: 60px 0 20px;
+
+    .info-card-item {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 24px;
+      padding: 35px 25px;
+      text-align: center;
+      box-shadow: 0 16px 40px rgba(192, 96, 107, 0.12);
+      transition: all 0.35s ease;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      &:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 24px 48px rgba(192, 96, 107, 0.2);
+        border-color: @peach-mid;
+
+        .info-icon {
+          transform: scale(1.15) rotate(5deg);
+          background: @primary-rose;
+          color: @white;
+          box-shadow: 0 8px 24px rgba(192, 96, 107, 0.35);
+        }
+      }
+
+      .info-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: @peach-light;
+        color: @primary-rose;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        transition: all 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        border: 2px solid @peach-mid;
+      }
+
+      h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: @text;
+        margin: 0 0 10px;
+      }
+
+      .info-detail {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: @primary-rose;
+        margin: 0 0 6px;
+      }
+
+      .info-sub {
+        font-size: 0.85rem;
+        color: @text-light;
+        margin: 0;
+        line-height: 1.5;
+      }
+    }
+  }
+
+  /* ── CORE CONTACT FORM SECTION (Standalone Guarantee) ── */
+  .contact-form-section-wrapper {
+    margin: 40px 0;
+
+    .contact-section {
+      padding: 60px 10%;
+      position: relative;
+      background: transparent;
+
+      .contact-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        position: relative;
+        max-width: 1200px;
+        margin: 0 auto;
+        min-height: 540px;
+
+        .contact-image {
+          position: absolute;
+          right: 0;
+          top: 0;
+          bottom: 0;
+          width: 68%;
+          border-radius: 28px;
+          overflow: hidden;
+          box-shadow: 0 16px 48px rgba(192, 96, 107, 0.15);
+          z-index: 1;
+
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s ease;
+
+            &:hover {
+              transform: scale(1.03);
+            }
+          }
+        }
+
+        .contact-form {
+          position: relative;
+          z-index: 2;
+          width: 460px;
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(24px);
+          border: 1px solid rgba(255, 255, 255, 0.8);
+          padding: 50px 45px;
+          border-radius: 28px;
+          box-shadow: 0 20px 60px rgba(192, 96, 107, 0.22);
+          margin-left: 20px;
+
+          .form-title {
+            font-family: 'Brush Script MT', cursive;
+            font-size: 2.5rem;
+            color: @primary-rose;
+            text-align: center;
+            margin-bottom: -5px;
+            text-shadow: 0 2px 8px rgba(192, 96, 107, 0.15);
+          }
+
+          h3 {
+            text-align: center;
+            margin-bottom: 35px;
+            color: @text;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+          }
+
+          .ant-form-item {
+            margin-bottom: 22px;
+
+            .ant-form-item-label > label {
+              font-weight: 600;
+              color: @text-light;
+              font-size: 0.95rem;
+              padding-bottom: 4px;
+            }
+          }
+
+          .custom-input {
+            background: transparent;
+            border-bottom: 2px solid rgba(232, 160, 160, 0.4);
+            padding: 8px 0;
+            font-size: 1rem;
+            color: @text;
+            transition: all 0.3s ease;
+
+            &:focus, &:hover {
+              border-bottom: 2px solid @primary-rose;
+              box-shadow: 0 2px 0 0 rgba(192, 96, 107, 0.1);
+            }
+
+            &::placeholder {
+              color: rgba(122, 92, 90, 0.45);
+            }
+          }
+
+          .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #e8a0a0 0%, #c0606b 100%);
+            border: none;
+            height: 50px;
+            border-radius: 25px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(192, 96, 107, 0.3);
+            transition: all 0.3s ease;
+            margin-top: 15px;
+
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 10px 28px rgba(192, 96, 107, 0.45);
+              background: linear-gradient(135deg, #d4787a 0%, #a04050 100%);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* ── FAQ ── */
+  .contact-faq {
+    padding: 60px 0 100px;
+
+    .faq-header {
+      text-align: center;
+      margin-bottom: 50px;
+
+      .faq-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        color: @primary-rose;
+        background: rgba(192,96,107,0.1);
+        padding: 6px 16px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+      }
+
+      h2 {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: @text;
+        margin: 0 0 14px;
+      }
+
+      p {
+        color: @text-light;
+        font-size: 1.05rem;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.65;
+      }
+    }
+
+    .faq-collapse-wrapper {
+      max-width: 860px;
+      margin: 0 auto;
+
+      .custom-collapse {
+        background: transparent;
+
+        .custom-panel {
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.8);
+          border-radius: 20px !important;
+          margin-bottom: 20px;
+          box-shadow: 0 8px 24px rgba(192, 96, 107, 0.08);
+          overflow: hidden;
+          transition: all 0.3s ease;
+
+          &:hover {
+            box-shadow: 0 12px 32px rgba(192, 96, 107, 0.15);
+            border-color: @peach-mid;
+          }
+
+          .ant-collapse-header {
+            padding: 22px 28px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: @text;
+            display: flex;
+            align-items: center;
+
+            .ant-collapse-arrow {
+              font-size: 16px;
+              color: @primary-rose;
+            }
+          }
+
+          .ant-collapse-content {
+            background: transparent;
+            border-top: 1px solid rgba(255, 224, 224, 0.5);
+
+            .ant-collapse-content-box {
+              padding: 20px 28px 26px;
+              p {
+                color: @text-light;
+                font-size: 1rem;
+                line-height: 1.75;
+                margin: 0;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

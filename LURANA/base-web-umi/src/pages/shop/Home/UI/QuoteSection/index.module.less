@@ -1,0 +1,193 @@
+@import '~@/styles/variables.less';
+
+.quoteSection {
+  width: 100%;
+  padding: 130px 0;
+  position: relative;
+  box-sizing: border-box;
+  margin-top: -80px; 
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed; 
+  overflow: hidden;
+}
+
+.quoteOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg, 
+    rgba(54, 30, 28, 0.5) 0%, 
+    rgba(255, 142, 115, 0.3) 100%
+  );
+  backdrop-filter: blur(1px); 
+  z-index: 1;
+}
+
+.gridContainer {
+  width: 100%;
+  padding: 0 75px; 
+  box-sizing: border-box;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.quoteContent {
+  max-width: 950px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+
+  // Trạng thái ẩn ban đầu của cả khối chữ
+  .line {
+    display: block;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .authorContainer {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+
+// 🔥 Hiệu ứng chạy chữ / xuất hiện từ từ tuần tự (Staggered Reveal) khi cuộn chuột tới
+.animateReveal {
+  .line:nth-child(1) {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.2s;
+  }
+  .line:nth-child(2) {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.5s;
+  }
+  .line:nth-child(3) {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.8s;
+  }
+
+  .authorContainer {
+    opacity: 1;
+    transform: scale(1);
+    transition-delay: 1.2s;
+  }
+}
+
+.quoteText {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.9;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.5px;
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+.authorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.authorName {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  position: relative;
+  padding-bottom: 12px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0.9;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0px; // Khởi đầu bằng 0
+    height: 1.5px;
+    background-color: #ff8e73;
+    opacity: 0.8;
+    transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+
+// Khi hiệu ứng reveal chạy xong thì dãn thanh gạch chân ra giữa
+.animateReveal {
+  .authorName::after {
+    width: 50px;
+    transition-delay: 1.4s;
+  }
+}
+
+// Tương tác nhẹ nhàng khi rê chuột trực tiếp vào khối trích dẫn
+.quoteContent:hover {
+  .authorName::after {
+    width: 80px; 
+  }
+}
+
+@media (max-width: 1024px) {
+  .gridContainer {
+    padding: 0 40px;
+  }
+  
+  .quoteText {
+    font-size: 23px;
+  }
+}
+
+@media (max-width: 992px) {
+  .quoteSection {
+    padding: 100px 0;
+    margin-top: -30px;
+    background-attachment: scroll; 
+  }
+
+  .gridContainer {
+    padding: 0 20px;
+  }
+
+  .quoteText {
+    font-size: 21px;
+    line-height: 1.7;
+  }
+}
+
+@media (max-width: 576px) {
+  .quoteSection {
+    padding: 80px 0;
+    margin-top: -20px;
+  }
+
+  .gridContainer {
+    padding: 0 15px;
+  }
+
+  .quoteText {
+    font-size: 17px;
+  }
+
+  .authorName {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+  }
+}

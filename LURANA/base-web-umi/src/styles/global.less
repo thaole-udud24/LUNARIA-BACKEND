@@ -1,0 +1,84 @@
+@import './auth.less';
+@import './variables.less';
+
+
+html,
+body,
+#root {
+  width: 100%; 
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: @content-bg;
+  font-family: 'Poppins', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+// =========================
+// SCROLLBAR
+// =========================
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 10px;
+}
+
+// =========================
+// ANT DESIGN
+// =========================
+
+.ant-btn {
+  border-radius: 10px;
+}
+
+.ant-btn-primary {
+  background: @primary-color;
+  border-color: @primary-color;
+
+  &:hover,
+  &:focus {
+    background: @primary-hover !important;
+    border-color: @primary-hover !important;
+  }
+}
+
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector {
+  border-radius: 10px !important;
+}
+
+.ant-table-wrapper {
+  .ant-table {
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .ant-table-thead > tr > th {
+    background: #fff7f4;
+    font-weight: 600;
+  }
+}
+
+.ant-modal-content {
+  border-radius: 18px;
+}
+
+.ant-modal-header {
+  border-bottom: none;
+}
+
+.ant-modal-title {
+  font-size: 22px;
+  font-weight: 700;
+}
