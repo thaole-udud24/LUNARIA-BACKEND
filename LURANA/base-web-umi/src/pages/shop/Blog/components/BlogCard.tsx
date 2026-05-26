@@ -1,38 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'umi';
 import { ClockCircleOutlined, EyeOutlined, CalendarOutlined, ArrowRightOutlined, HeartFilled, HeartOutlined } from '@ant-design/icons';
 import { BlogPost } from '../data';
 
-const getImg = (name: string) => {
-  try { return require(`@/assets/images/${name}`); } catch { return null; }
-};
-
-const Thumb: React.FC<{ post: BlogPost; className?: string }> = ({ post, className }) => {
-  const imgSrc = getImg(post.img);
-  return imgSrc
-    ? <img src={imgSrc} alt={post.title} className={`blog-thumb ${className || ''}`} />
-    : <div className={`blog-thumb-fallback ${className || ''}`} style={{ background: `linear-gradient(135deg, ${post.color}, #fff0f5)` }}>
-        <span>{post.title}</span>
-      </div>;
-};
-
-interface BlogCardProps {
-  post: BlogPost;
-  isLiked: boolean;
-  toggleLike: (id: number) => void;
-}
+interface BlogCardProps { post: BlogPost; isLiked: boolean; toggleLike: (id: number) => void; }
 
 const BlogCard: React.FC<BlogCardProps> = ({ post, isLiked, toggleLike }) => {
+  const [loaded, setLoaded] = useState(false);
+
   return (
-    <div className="blog-card">
-      <div className="bc-img-wrap">
-        <Thumb post={post} />
-        {post.tag && <span className={`bc-tag ${post.tag === 'HOT' ? 'hot' : 'new'}`}>{post.tag}</span>}
-        <button className={`bc-like ${isLiked ? 'liked' : ''}`} onClick={() => toggleLike(post.id)}>
+    <div className="blog-card shine-container">
+      <div className={`bc-img-wrap ${!loaded ? 'shimmer-loading' : ''}`}>
+        <img 
+          src={post.img} 
+          alt={post.title} 
+          className="blog-thumb" 
+          onLoad={() => setLoaded(true)}
+          style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.3s ease' }}
+        />
+        {post.tag && <span className={`bc-tag ${post.tag.toUpperCase() === 'HOT' ? 'hot' : 'new'}`}>{post.tag}</span>}
+        <button className={`bc-like ${isLiked ? 'liked' : ''}`} onClick={(e) => { e.preventDefault(); toggleLike(post.id); }}>
           {isLiked ? <HeartFilled /> : <HeartOutlined />}
         </button>
         <span className="bc-cat">{post.category}</span>
       </div>
+      
       <div className="bc-body">
         <div className="bc-meta">
           <span><ClockCircleOutlined /> {post.readTime}</span>
@@ -43,12 +35,10 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, isLiked, toggleLike }) => {
         <p>{post.excerpt}</p>
         <div className="bc-footer">
           <div className="bc-author">
-            <div className="bc-ava">{post.author[0]}</div>
+            <div className="bc-ava">{post.authorAvatar}</div>
             <span>{post.author}</span>
           </div>
-          <Link to={`/blog/${post.id}`} className="bc-link">
-            Đọc thêm <ArrowRightOutlined />
-          </Link>
+          <Link to={`/blog/${post.id}`} className="bc-link">Đọc thêm <ArrowRightOutlined /></Link>
         </div>
       </div>
     </div>
