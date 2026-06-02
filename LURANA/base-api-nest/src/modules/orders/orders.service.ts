@@ -10,7 +10,6 @@ import { CheckoutDto } from './dto/checkout.dto';
 import { VouchersService } from '../vouchers/vouchers.service';
 import { VoucherUsage, VoucherUsageDocument } from '../vouchers/schemas/voucher-usage.schema';
 import { PromotionsService } from '../promotions/promotions.service';
-
 @Injectable()
 export class OrdersService {
   constructor(

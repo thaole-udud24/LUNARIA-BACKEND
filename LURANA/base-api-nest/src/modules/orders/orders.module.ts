@@ -10,10 +10,7 @@ import { QrModule } from 'src/shared/qr/qr.module';
 import { CatalogModule } from '../catalog/catalog.module';
 import { VouchersModule } from '../vouchers/vouchers.module';
 import { VoucherUsage, VoucherUsageSchema } from '../vouchers/schemas/voucher-usage.schema';
-
-// ---> THÊM IMPORT NÀY
 import { PromotionsModule } from '../promotions/promotions.module';
-
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -25,7 +22,7 @@ import { PromotionsModule } from '../promotions/promotions.module';
     QrModule,
     CatalogModule,
     VouchersModule,
-    PromotionsModule, // ---> THÊM VÀO ĐÂY ĐỂ ORDERS_SERVICE CHECK FLASH SALE
+    PromotionsModule,
   ],
   controllers: [OrdersController, OrdersAdminController],
   providers: [OrdersService],

@@ -1,27 +1,32 @@
-import { Controller, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseInterceptors, UploadedFile, Res } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import { CategoriesService } from './categories.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
-
+import 'multer';
 @Controller('admin/categories')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 export class CategoriesAdminController {
   constructor(private readonly categoriesService: CategoriesService) {}
-
-  @Post()
-  create(@Body('name') name: string, @Body('code') code: string) {
-    return this.categoriesService.create(name, code);
+  @Get()
+  async getList(@Query() query: any) {
+    return this.categoriesService.findAllWithFilter(query);
   }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body('name') name: string, @Body('code') code: string) {
-    return this.categoriesService.update(id, name, code);
+  @Post('export')
+  async export(@Body('fields') fields: string[], @Body('filters') filters: any, @Res() res: Response) {
+    const buffer = await this.categoriesService.exportExcel(fields, filters);
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="Categories.xlsx"',
+    });
+    res.send(buffer);
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoriesService.delete(id);
+  @Post('import/preview')
+  @UseInterceptors(FileInterceptor('file'))
+  async preview(@UploadedFile() file: Express.Multer.File, @Body('mapping') mappingStr: string) {
+    const mapping = JSON.parse(mappingStr);
+    return this.categoriesService.previewImportData(file.buffer, mapping);
+  }
+  @Post('import/commit')
+  async commit(@Body('data') data: any[]) {
+    return this.categoriesService.commitImportData(data);
   }
 }

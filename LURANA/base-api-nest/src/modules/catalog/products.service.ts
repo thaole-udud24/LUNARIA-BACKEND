@@ -93,8 +93,8 @@ export class ProductsService {
         const activePrice = await this.promotionsService.calculateActivePrice(productObj._id.toString(), variant.priceSell);
         return {
           ...variant,
-          originalPrice: variant.priceSell, // Giá gạch đi
-          priceSell: activePrice            // Giá đang bán
+          originalPrice: variant.priceSell, 
+          priceSell: activePrice            
         };
       })
     );
@@ -124,8 +124,6 @@ export class ProductsService {
     if (!updated) throw new NotFoundException('Update failed');
     return updated;
   }
-
-  // List danh sách hiển thị cho User xem (Có kèm giá Flash Sale)
   async findAll(query: ListProductsDto) {
     const { search, category, skinTypes, minPrice, maxPrice, page = 1, limit = 10 } = query;
     const filters: any = { isDeleted: false, isActive: true };
@@ -174,8 +172,6 @@ export class ProductsService {
             ]);
           }
         } catch (err) {}
-
-        // Gắn giá Sale vào từng variant
         const productObj = popProduct.toObject ? popProduct.toObject() : popProduct;
         productObj.variants = await Promise.all(
           productObj.variants.map(async (variant: any) => {
