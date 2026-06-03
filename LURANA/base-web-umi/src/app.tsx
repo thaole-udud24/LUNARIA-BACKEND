@@ -1,5 +1,4 @@
 import { history } from 'umi';
-
 import '@/styles/global.less';
 import '@/styles/admin.less';
 

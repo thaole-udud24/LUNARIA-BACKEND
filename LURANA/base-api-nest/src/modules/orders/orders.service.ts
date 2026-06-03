@@ -37,7 +37,7 @@ export class OrdersService {
 
       const orderItems: any[] = [];
       let cartTotal = 0; 
-      let hasFlashSaleProduct = false; // <-- Biến check khóa Voucher
+      let hasFlashSaleProduct = false; 
 
       for (const item of cart.items) {
         await this.productsService.holdStock(item.productId.toString(), item.variantName, item.quantity, session);

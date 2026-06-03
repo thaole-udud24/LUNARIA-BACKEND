@@ -1,9 +1,21 @@
-@import '@/styles/variables.less';
-
-.admin-dashboard-page {
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 40px; 
+  width: 100%;
 }
 
-.admin-dashboard-title {
-  font-size: 32px;
-  font-weight: 700;
+.topRow, .bottomRow {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  width: 100%;
+}
+
+.chartGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0; 
 }

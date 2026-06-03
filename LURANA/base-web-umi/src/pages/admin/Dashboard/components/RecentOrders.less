@@ -1,0 +1,93 @@
+.container {
+  background-color: #F0E6FF;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  height: 100%;
+
+  h3 {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 18px;
+    margin-bottom: 16px;
+    margin-top: 0;
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  background-color: white;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  img {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    background-color: #f3f4f6;
+    border: 1px solid #f9fafb;
+  }
+}
+
+.info {
+  flex: 1;
+
+  .name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1; /* Đã thêm dòng này để fix cảnh báo tương thích */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .qty {
+    font-size: 10px;
+    color: #9ca3af;
+    margin: 2px 0 4px 0;
+  }
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .price {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .time {
+    font-size: 10px;
+    color: #9ca3af;
+  }
+}
+
+.arrow {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #f9a8d4;
+}

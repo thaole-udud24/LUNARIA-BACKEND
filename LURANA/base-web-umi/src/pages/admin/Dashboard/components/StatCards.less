@@ -1,0 +1,66 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.card {
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Các biến thể màu nền */
+.cardBlue { background: linear-gradient(135deg, #BCD3FF 13%, #FFFFFF 100%); }
+.cardRed { background: linear-gradient(135deg, #FFC1C1 0%, #FFFFFF 100%); }
+.cardYellow { background: linear-gradient(135deg, #FFE8B6 0%, #FFFFFF 100%); }
+.cardGreen { background: linear-gradient(135deg, #B2F5D1 0%, #FFFFFF 100%); }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+
+  h3 {
+    color: #374151;
+    font-weight: 500;
+    font-size: 15px;
+    margin: 0;
+  }
+}
+
+.iconWrapper {
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.iconBlue { background: rgba(163, 192, 255, 0.3); color: #1d4ed8; }
+.iconRed { background: rgba(255, 163, 163, 0.3); color: #b91c1c; }
+.iconYellow { background: rgba(255, 209, 102, 0.3); color: #c2410c; }
+.iconGreen { background: rgba(142, 232, 187, 0.3); color: #15803d; }
+
+.count {
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+.footer {
+  font-size: 12px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .revenue {
+    font-weight: 500;
+    color: #374151;
+  }
+}
