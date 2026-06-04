@@ -1,26 +1,36 @@
-import { Table } from 'antd';
+import { Table, Empty } from 'antd';
+import type { TableProps } from 'antd';
+import './index.less';
 
-import type {
-  TableProps,
-} from 'antd';
-
-
-export default function DataTable<
-  T extends object,
->(props: TableProps<T>) {
+export default function DataTable<T extends object>(props: TableProps<T>) {
   const {
     bordered = false,
     pagination = false,
     size = 'middle',
+    locale,
     ...restProps
   } = props;
 
+  const customLocale = {
+    emptyText: (
+      <div className="empty-state-container">
+        <Empty 
+          image={Empty.PRESENTED_IMAGE_SIMPLE} 
+          description={<span className="empty-state-text">Chưa có dữ liệu</span>} 
+        />
+      </div>
+    ),
+    ...locale,
+  };
+
   return (
-    <div className="admin-data-table">
+    <div className="beautiful-table-wrapper">
       <Table<T>
+        className="beautiful-table"
         bordered={bordered}
         pagination={pagination}
         size={size}
+        locale={customLocale}
         {...restProps}
       />
     </div>

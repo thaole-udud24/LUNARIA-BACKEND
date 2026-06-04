@@ -50,3 +50,33 @@ export interface DashboardResponse {
     bestSellers: BestSeller[];
   };
 }
+export interface ReportsResponse {
+  success: boolean;
+  data: {
+    kpis: {
+      totalRevenue: { value: number; trend: number; type: 'up' | 'down' };
+      netProfit: { value: number; trend: number; type: 'up' | 'down' };
+      discounts: { value: number; trend: number; type: 'up' | 'down' };
+      aov: { value: number; trend: number; type: 'up' | 'down' };
+    };
+    trendData: Array<{
+      label: string;
+      revenue: number;
+      profit: number;
+    }>;
+    categoryData: Array<{
+      name: string;
+      value: number;
+      color: string;
+    }>;
+    topProducts: Array<{
+      id: string;
+      name: string;
+      sku: string;
+      sales: number;
+      revenue: number;
+      status: string;
+      image: string;
+    }>;
+  };
+}

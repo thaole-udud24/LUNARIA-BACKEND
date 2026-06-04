@@ -1,37 +1,62 @@
 import React, { useRef, useState } from 'react';
-import { Carousel, Pagination } from 'antd';
-import { HeartFilled, StarFilled, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Carousel, Pagination, message } from 'antd';
+import { HeartFilled, HeartOutlined, StarFilled, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { history } from 'umi';
 import { getImg } from '../utils';
 
+const HeartButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({ onClick }) => {
+  const [active, setActive] = useState(false);
+  const [hovered, setHovered] = useState(false);
+
+  const handleClick = (e: React.MouseEvent) => {
+    onClick(e);
+    setActive(true);
+  };
+
+  return (
+    <div 
+      className="heart-icon" 
+      onClick={handleClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ cursor: 'pointer' }}
+    >
+      {active || hovered ? <HeartFilled /> : <HeartOutlined />}
+    </div>
+  );
+};
+
 interface ProductCarouselSectionProps {
   title: string;
-  searchQuery?: string;
+  products: any[];
 }
 
 const PAGE_SIZE = 12;
 
-// Mock data pool - 20 products per category
-const generateProducts = (count: number) =>
-  Array.from({ length: count }).map((_, idx) => ({
-    id: idx,
-    name: 'Bye Bye Lines Foundation',
-    price: '320,000đ',
-    rating: (4 + Math.random()).toFixed(1),
-    img: `anh-san-pham-${(idx % 8) + 1}.png`,
-  }));
+const getProductImage = (p: any) => {
+  if (p.img) return p.img;
+  if (p.images && p.images.length > 0) return p.images[0];
+  if (p.image) return p.image;
+  return 'anh-san-pham-1.png';
+};
 
-const ProductCarouselSection: React.FC<ProductCarouselSectionProps> = ({ title, searchQuery }) => {
+const formatPrice = (price: any) => {
+  if (typeof price === 'number') {
+    return price.toLocaleString('vi-VN') + 'đ';
+  }
+  return price;
+};
+
+const ProductCarouselSection: React.FC<ProductCarouselSectionProps> = ({ title, products = [] }) => {
   const carouselRef = useRef<any>(null);
   const [viewAll, setViewAll] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const allProducts = generateProducts(20);
-  const carouselProducts = allProducts.slice(0, 5);
+  const carouselProducts = products.slice(0, 5);
 
   // Paginated grid products
   const startIdx = (currentPage - 1) * PAGE_SIZE;
-  const pageProducts = allProducts.slice(startIdx, startIdx + PAGE_SIZE);
+  const pageProducts = products.slice(startIdx, startIdx + PAGE_SIZE);
 
   const next = () => carouselRef.current?.next();
   const prev = () => carouselRef.current?.prev();
@@ -42,18 +67,50 @@ const ProductCarouselSection: React.FC<ProductCarouselSectionProps> = ({ title, 
     setCurrentPage(1);
   };
 
-  const ProductCard = ({ p }: { p: typeof allProducts[0] }) => (
+  const handleAddToCart = (e: React.MouseEvent, p: any) => {
+    e.stopPropagation();
+    try {
+      const stored = localStorage.getItem('lunaria_cart_items');
+      const cartItems: any[] = stored ? JSON.parse(stored) : [];
+      const priceNum = typeof p.price === 'number' ? p.price : parseInt(p.price.replace(/[^0-9]/g, ''), 10);
+      const imgVal = getProductImage(p);
+      const existingIdx = cartItems.findIndex((item) => item.name === p.name);
+      
+      if (existingIdx > -1) {
+        cartItems[existingIdx].qty += 1;
+      } else {
+        cartItems.push({
+          id: Date.now(),
+          name: p.name,
+          variant: 'Mặc định',
+          price: priceNum,
+          qty: 1,
+          img: imgVal,
+        });
+      }
+      
+      localStorage.setItem('lunaria_cart_items', JSON.stringify(cartItems));
+      window.dispatchEvent(new Event('cartUpdate'));
+      message.success(`Đã thêm sản phẩm "${p.name}" vào giỏ hàng!`);
+    } catch (err) {
+      message.error('Lỗi khi thêm sản phẩm vào giỏ hàng');
+    }
+  };
+
+  const ProductCard = ({ p }: { p: any }) => (
     <div className="shop2-product-card" onClick={() => history.push(`/products/${p.id}`)} style={{ cursor: 'pointer' }}>
       <div className="card-top">
-        <div className="heart-icon"><HeartFilled /></div>
-        <div className="rating-badge"><StarFilled /> {p.rating}</div>
+        <HeartButton onClick={(e) => handleAddToCart(e, p)} />
+        <div className="rating-badge">
+          <StarFilled /> {p.rating !== undefined ? Number(p.rating).toFixed(1) : (4.5 + (p.id % 6) * 0.1).toFixed(1)}
+        </div>
       </div>
       <div className="card-img-container">
-        <img src={getImg(p.img)} alt={p.name} />
+        <img src={getImg(getProductImage(p))} alt={p.name} />
       </div>
       <div className="card-info">
         <h4 className="prod-name">{p.name}</h4>
-        <div className="prod-price">{p.price}</div>
+        <div className="prod-price">{formatPrice(p.price)}</div>
       </div>
     </div>
   );
@@ -74,18 +131,20 @@ const ProductCarouselSection: React.FC<ProductCarouselSectionProps> = ({ title, 
       {!viewAll ? (
         /* ── Carousel mode ── */
         <div className="carousel-wrapper">
-          <div className="carousel-arrow left" onClick={prev}>
-            <LeftOutlined />
-          </div>
+          {products.length > 4 && (
+            <div className="carousel-arrow left" onClick={prev}>
+              <LeftOutlined />
+            </div>
+          )}
 
           <Carousel
             ref={carouselRef}
             dots={false}
-            slidesToShow={4}
+            slidesToShow={Math.min(products.length, 4) || 1}
             slidesToScroll={1}
             responsive={[
-              { breakpoint: 1024, settings: { slidesToShow: 3 } },
-              { breakpoint: 768, settings: { slidesToShow: 2 } },
+              { breakpoint: 1024, settings: { slidesToShow: Math.min(products.length, 3) || 1 } },
+              { breakpoint: 768, settings: { slidesToShow: Math.min(products.length, 2) || 1 } },
               { breakpoint: 480, settings: { slidesToShow: 1 } },
             ]}
           >
@@ -96,9 +155,11 @@ const ProductCarouselSection: React.FC<ProductCarouselSectionProps> = ({ title, 
             ))}
           </Carousel>
 
-          <div className="carousel-arrow right" onClick={next}>
-            <RightOutlined />
-          </div>
+          {products.length > 4 && (
+            <div className="carousel-arrow right" onClick={next}>
+              <RightOutlined />
+            </div>
+          )}
         </div>
       ) : (
         /* ── Grid (View All) mode ── */
@@ -113,11 +174,11 @@ const ProductCarouselSection: React.FC<ProductCarouselSectionProps> = ({ title, 
 
           <div className="grid-pagination">
             <span className="pagination-total">
-              Trang {currentPage} / {Math.ceil(allProducts.length / PAGE_SIZE)}
+              Trang {currentPage} / {Math.ceil(products.length / PAGE_SIZE)}
             </span>
             <Pagination
               current={currentPage}
-              total={allProducts.length}
+              total={products.length}
               pageSize={PAGE_SIZE}
               onChange={(page) => setCurrentPage(page)}
               showSizeChanger={false}

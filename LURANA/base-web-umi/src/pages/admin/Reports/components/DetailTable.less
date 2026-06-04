@@ -1,0 +1,62 @@
+.tableBox {
+  margin-top: 24px;
+}
+
+.tabHeader {
+  display: flex;
+  gap: 32px;
+  border-bottom: 2px solid #f3f4f6;
+  margin-bottom: 20px;
+  padding: 0 8px;
+}
+
+.tabItem {
+  cursor: pointer;
+  padding-bottom: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #9ca3af;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  margin-bottom: -2px;
+}
+
+.tabItem:hover {
+  color: #ffb8a3;
+}
+
+.tabItem.active {
+  color: #ff9a7a;
+  border-bottom-color: #ff9a7a;
+}
+
+.productCell {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  
+  img {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid #f3f4f6;
+    transition: transform 0.3s ease;
+  }
+
+  img:hover {
+    transform: scale(1.05);
+  }
+}
+
+.name {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.sku {
+  font-size: 13px;
+  color: #9ca3af;
+}

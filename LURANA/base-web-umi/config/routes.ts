@@ -55,6 +55,10 @@ export default [
         component: '@/pages/admin/Promotions',
       },
       {
+        path: '/admin/reports',
+        component: '@/pages/admin/Reports',
+      },
+      {
       path: '/admin/vouchers',
       component: '@/pages/admin/Vouchers',
       },

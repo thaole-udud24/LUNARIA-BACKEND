@@ -27,7 +27,7 @@ const masterMenus = [
     path: '/admin/products',
     icon: <AppstoreOutlined />,
     children: [
-      { title: 'Danh sách sản phẩm', path: '/admin/products/list' },
+      { title: 'Danh sách sản phẩm', path: '/admin/products' },
       { title: 'Loại sản phẩm', path: '/admin/categories' },
       { title: 'Loại da', path: '/admin/skintypes' },
     ],

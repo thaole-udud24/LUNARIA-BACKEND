@@ -10,6 +10,7 @@ import { CheckoutDto } from './dto/checkout.dto';
 import { VouchersService } from '../vouchers/vouchers.service';
 import { VoucherUsage, VoucherUsageDocument } from '../vouchers/schemas/voucher-usage.schema';
 import { PromotionsService } from '../promotions/promotions.service';
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -19,7 +20,7 @@ export class OrdersService {
     @InjectConnection() private readonly connection: Connection,
     private readonly productsService: ProductsService,
     private readonly vouchersService: VouchersService,
-    private readonly promotionsService: PromotionsService, // <-- Đã inject
+    private readonly promotionsService: PromotionsService,
   ) {}
 
   async checkout(userId: string, checkoutDto: CheckoutDto) {
@@ -46,14 +47,13 @@ export class OrdersService {
         const variant = product.variants.find(v => v.variantName === item.variantName);
         if (!variant) throw new NotFoundException('Không tìm thấy biến thể tương ứng.');
 
-        // Tính giá Flash Sale
         const currentPrice = await this.promotionsService.calculateActivePrice(
           item.productId.toString(), 
           variant.priceSell
         );
         
         if (currentPrice < variant.priceSell) {
-          hasFlashSaleProduct = true; // Có hàng Sale -> Tí nữa cấm dùng Voucher
+          hasFlashSaleProduct = true; 
         }
 
         const subTotal = currentPrice * item.quantity;
@@ -81,7 +81,7 @@ export class OrdersService {
           voucherCode: checkoutDto.voucherCode,
           cartTotal: cartTotal,
           productIds: productIds,
-          hasDirectDiscount: hasFlashSaleProduct, // <-- Tự động chặn nếu đang có Flash Sale
+          hasDirectDiscount: hasFlashSaleProduct, 
         });
 
         if (validationResult.valid) {
@@ -270,5 +270,127 @@ export class OrdersService {
     const order = await this.orderModel.findByIdAndUpdate(id, { status }, { new: true }).exec();
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
     return order;
+  }
+
+  // ==========================================
+  // DASHBOARD & REPORTING AGGREGATION
+  // ==========================================
+  async getDashboardRevenue() {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // 1. Lấy chỉ số tổng quan (KPIs)
+    const [kpiResult] = await this.orderModel.aggregate([
+      { $match: { paymentStatus: 'PAID', createdAt: { $gte: startOfMonth } } },
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          grossRevenue: { $sum: '$originalTotal' },
+          netRevenue: { $sum: { $subtract: ['$totalAmount', '$shippingFee'] } },
+          totalDiscount: { $sum: '$discountAmount' },
+          totalItemsProfit: { $sum: { $sum: '$items.profit' } }
+        }
+      }
+    ]);
+
+    const kpis = kpiResult ? {
+      totalRevenue: { value: kpiResult.netRevenue },
+      netProfit: { value: kpiResult.totalItemsProfit - kpiResult.totalDiscount, trend: 12 }, 
+      discounts: { value: kpiResult.totalDiscount },
+      aov: { value: kpiResult.totalOrders > 0 ? Math.floor(kpiResult.netRevenue / kpiResult.totalOrders) : 0 }
+    } : {
+      totalRevenue: { value: 0 }, netProfit: { value: 0, trend: 0 }, discounts: { value: 0 }, aov: { value: 0 }
+    };
+
+    // 2. Phân tích loại sản phẩm (Category Donut)
+    const categoryData = await this.orderModel.aggregate([
+      { $match: { paymentStatus: 'PAID', createdAt: { $gte: startOfMonth } } },
+      { $unwind: '$items' },
+      {
+        $lookup: {
+          from: 'products', 
+          localField: 'items.productId',
+          foreignField: '_id',
+          as: 'productInfo'
+        }
+      },
+      { $unwind: '$productInfo' },
+      {
+        $lookup: {
+          from: 'categories', 
+          localField: 'productInfo.category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$categoryInfo' },
+      {
+        $group: {
+          _id: '$categoryInfo.name', 
+          value: { $sum: { $multiply: ['$items.priceSell', '$items.quantity'] } }
+        }
+      },
+      { $sort: { value: -1 } }
+    ]);
+
+    const colors = ['#FFA78A', '#A7C7E7', '#E6E6FA', '#FFD1DC', '#B4E6B0'];
+    const formattedCategory = categoryData.map((cat, index) => ({
+      name: cat._id,
+      value: cat.value,
+      color: colors[index % colors.length]
+    }));
+
+    // 3. Top Sản phẩm
+    const topProducts = await this.orderModel.aggregate([
+      { $match: { paymentStatus: 'PAID', createdAt: { $gte: startOfMonth } } },
+      { $unwind: '$items' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.productId',
+          foreignField: '_id',
+          as: 'productInfo'
+        }
+      },
+      { $unwind: '$productInfo' },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'productInfo.category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$categoryInfo' },
+      {
+        $group: {
+          _id: '$items.productId',
+          name: { $first: '$items.name' },
+          sku: { $first: '$productInfo.sku' },
+          categoryName: { $first: '$categoryInfo.name' }, 
+          sales: { $sum: '$items.quantity' },
+          revenue: { $sum: { $multiply: ['$items.priceSell', '$items.quantity'] } },
+          profit: { $sum: '$items.profit' }
+        }
+      },
+      { $sort: { profit: -1 } },
+      { $limit: 10 }
+    ]);
+
+    return {
+      success: true,
+      data: {
+        kpis,
+        categoryData: formattedCategory,
+        topProducts: topProducts.map(p => ({ ...p, id: p._id.toString() })),
+        topVouchers: [], 
+        trendData: [
+          { label: 'Tuần 1', revenue: 15000000, profit: 5000000 },
+          { label: 'Tuần 2', revenue: 22000000, profit: 8000000 },
+        ]
+      }
+    };
   }
 }

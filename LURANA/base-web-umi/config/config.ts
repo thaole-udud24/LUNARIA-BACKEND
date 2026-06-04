@@ -2,8 +2,8 @@
 import { defineConfig } from 'umi';
 import defaultSettings from './defaultSettings';
 import routes from './routes';
-// import proxy from './proxy';
-// const { REACT_APP_ENV } = process.env;
+import proxy from './proxy';
+const { REACT_APP_ENV } = process.env;
 
 export default defineConfig({
     hash: true,
@@ -43,7 +43,10 @@ export default defineConfig({
     esbuild: {},
     title: false,
     ignoreMomentLocale: true,
-    // proxy: proxy[REACT_APP_ENV || 'dev'],
+    
+    // Đã fix ép kiểu tại đây để chiều lòng TypeScript
+    proxy: proxy[(REACT_APP_ENV || 'dev') as keyof typeof proxy],
+    
     manifest: {
         basePath: '/',
     },

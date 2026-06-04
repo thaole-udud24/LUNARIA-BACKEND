@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 
 export default {
-  'GET /api/admin/dashboard': (req: Request, res: Response) => {
+  // PHẢI KHỚP ĐƯỜNG DẪN BÊN API (Có chữ /overview)
+  'GET /api/admin/dashboard/overview': (req: Request, res: Response) => {
     setTimeout(() => {
       res.send({
         success: true,
@@ -13,46 +14,11 @@ export default {
             newCustomers: { count: 721, potentialRevenue: 16800000 },
           },
           recentOrders: [
-            {
-              id: "ORD-1",
-              productName: "Serum Phục Hồi Da B5 La Roche-Posay",
-              quantity: 2,
-              price: 420000,
-              createdAt: "23:00 12/01/2026",
-              imageUrl: "https://picsum.photos/id/10/48/48"
-            },
-            {
-              id: "ORD-2",
-              productName: "Kem Dưỡng Cấp Ẩm Vichy Normaderm",
-              quantity: 1,
-              price: 550000,
-              createdAt: "23:05 12/01/2026",
-              imageUrl: "https://picsum.photos/id/20/48/48"
-            },
-            {
-              id: "ORD-3",
-              productName: "Toner Hoa Cúc Calendula Kiehl's",
-              quantity: 3,
-              price: 980000,
-              createdAt: "23:10 12/01/2026",
-              imageUrl: "https://picsum.photos/id/30/48/48"
-            },
-            {
-              id: "ORD-4",
-              productName: "Sữa Rửa Mặt CeraVe Foaming Cleanser",
-              quantity: 1,
-              price: 390000,
-              createdAt: "23:15 12/01/2026",
-              imageUrl: "https://picsum.photos/id/40/48/48"
-            },
-            {
-              id: "ORD-5",
-              productName: "Kem Chống Nắng Anessa SPF 50+",
-              quantity: 2,
-              price: 650000,
-              createdAt: "23:20 12/01/2026",
-              imageUrl: "https://picsum.photos/id/50/48/48"
-            }
+            { id: "ORD-1", productName: "Serum Phục Hồi Da B5 La Roche-Posay", quantity: 2, price: 420000, createdAt: "23:00 12/01/2026", imageUrl: "https://picsum.photos/id/10/48/48" },
+            { id: "ORD-2", productName: "Kem Dưỡng Cấp Ẩm Vichy Normaderm", quantity: 1, price: 550000, createdAt: "23:05 12/01/2026", imageUrl: "https://picsum.photos/id/20/48/48" },
+            { id: "ORD-3", productName: "Toner Hoa Cúc Calendula Kiehl's", quantity: 3, price: 980000, createdAt: "23:10 12/01/2026", imageUrl: "https://picsum.photos/id/30/48/48" },
+            { id: "ORD-4", productName: "Sữa Rửa Mặt CeraVe Foaming Cleanser", quantity: 1, price: 390000, createdAt: "23:15 12/01/2026", imageUrl: "https://picsum.photos/id/40/48/48" },
+            { id: "ORD-5", productName: "Kem Chống Nắng Anessa SPF 50+", quantity: 2, price: 650000, createdAt: "23:20 12/01/2026", imageUrl: "https://picsum.photos/id/50/48/48" }
           ],
           revenue: {
             total: 12984000,
@@ -75,6 +41,6 @@ export default {
           ]
         }
       });
-    }, 1000);
+    }, 1000); // Trễ 1 giây để xem hiệu ứng Loading
   },
 };

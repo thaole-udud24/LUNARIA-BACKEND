@@ -64,6 +64,33 @@ const ShopLayout: React.FC = ({ children }) => {
   const [forceHide, setForceHide] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [unreadCount, setUnreadCount] = useState(2);
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    const updateCartCount = () => {
+      try {
+        const stored = localStorage.getItem('lunaria_cart_items');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const count = parsed.reduce((acc: number, item: any) => acc + item.qty, 0);
+          setCartCount(count);
+        } else {
+          setCartCount(0);
+        }
+      } catch (err) {
+        setCartCount(0);
+      }
+    };
+
+    updateCartCount();
+    window.addEventListener('storage', updateCartCount);
+    window.addEventListener('cartUpdate', updateCartCount);
+
+    return () => {
+      window.removeEventListener('storage', updateCartCount);
+      window.removeEventListener('cartUpdate', updateCartCount);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -116,7 +143,7 @@ const ShopLayout: React.FC = ({ children }) => {
         <div className="top-nav-bar">
           <nav className="nav-links">
             <Link to="/home" className={location.pathname === '/home' ? 'active' : ''}>Home</Link>
-            <Link to="/about">About</Link>
+            <Link to="/about" className={location.pathname === '/about' ? 'active' : ''}>About</Link>
             <div className="nav-item-wrapper mega-menu-wrapper">
               <Link to="/products" className={`nav-shop-link ${location.pathname === '/products' ? 'active' : ''}`}>Shop</Link>
               
@@ -247,7 +274,7 @@ const ShopLayout: React.FC = ({ children }) => {
             </div>
 
             <Link to="/blog" className={location.pathname === '/blog' ? 'active' : ''}>Blogs</Link>
-            <Link to="/contact">Contact</Link>
+            <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>Contact</Link>
           </nav>
         </div>
         <div className="shop-main-header">
@@ -265,8 +292,9 @@ const ShopLayout: React.FC = ({ children }) => {
               <BellOutlined className="action-icon" style={{ color: 'inherit' }} />
               {unreadCount > 0 && <span className="header-unread-badge">{unreadCount}</span>}
             </Link>
-            <Link to="/cart">
+            <Link to="/cart" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <ShoppingCartOutlined className="action-icon" style={{ color: 'inherit' }} />
+              {cartCount > 0 && <span className="header-unread-badge">{cartCount}</span>}
             </Link>
             <div className="user-menu-wrapper">
               <Link to={currentUser ? "/account" : "/auth/login"}>

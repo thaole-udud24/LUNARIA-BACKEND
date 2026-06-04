@@ -1,0 +1,234 @@
+@keyframes fluidEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.reportsContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  animation: fluidEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  
+  /* Giữ lại 2 cục màu mờ để trang đỡ nhàm chán */
+  &::before,
+  &::after {
+    content: '';
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: -1;
+  }
+  &::before {
+    top: -250px;
+    right: -250px;
+    background: rgba(255, 167, 138, 0.05);
+  }
+  &::after {
+    bottom: -250px;
+    left: -250px;
+    background: rgba(255, 119, 146, 0.05);
+  }
+}
+
+/* --- TÁCH KHỐI KHỎI NỀN TRẮNG BẰNG SHADOW & BORDER --- */
+.topBar,
+.trendBox,
+.donutBox {
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06); /* Viền xám siêu nhạt để tách form */
+  box-shadow: 
+    0 10px 30px rgba(15, 23, 42, 0.08), 
+    0 4px 6px rgba(15, 23, 42, 0.04);
+  transition: all 0.35s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 20px 40px rgba(15, 23, 42, 0.12),
+      0 8px 12px rgba(15, 23, 42, 0.06);
+  }
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff8c69, #ff6b81);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+
+  .separator { color: #cbd5e1; }
+  .active { color: #0f172a; font-weight: 600; }
+}
+
+/* CHỐNG VỠ BỘ LỌC */
+.filterActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap; /* Tự động xuống hàng nếu thiếu chỗ */
+  gap: 14px;
+}
+
+.exportBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff8c69, #ff6b81);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(255, 107, 129, 0.3);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 32px rgba(255, 107, 129, 0.4);
+  }
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.chartZone {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.trendBox,
+.donutBox {
+  padding: 28px;
+}
+
+/* --- RESPONSIVE TOÀN TẬP --- */
+.datePickerResponsive {
+  border-radius: 14px;
+  height: 48px;
+  min-width: 150px;
+}
+.selectResponsive {
+  min-width: 220px;
+}
+
+/* Màn hình Laptop (Dưới 1200px) */
+@media (max-width: 1200px) {
+  .chartZone {
+    grid-template-columns: 1fr; /* Các biểu đồ rớt xuống thành 1 cột */
+  }
+  .topBar {
+    padding: 24px;
+  }
+}
+
+/* Màn hình Tablet (Dưới 992px) */
+@media (max-width: 992px) {
+  .topBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .filterActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Màn hình Mobile (Dưới 768px) */
+@media (max-width: 768px) {
+  .reportsContainer {
+    gap: 20px;
+  }
+  .topBar {
+    padding: 20px;
+  }
+  .pageTitle {
+    font-size: 24px;
+  }
+  .filterActions {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch; /* Ô input giãn dài full màn hình */
+  }
+  
+  .datePickerResponsive,
+  .selectResponsive,
+  .exportBtn {
+    width: 100% !important;
+  }
+  
+  .trendBox, .donutBox {
+    padding: 16px; /* Giảm padding trên mobile */
+  }
+}
+
+/* --- OVERRIDE GLOBAL ANT DESIGN --- */
+:global {
+  .ant-picker {
+    border-radius: 14px !important;
+    border: 1px solid #edf2f7 !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
+    transition: 0.3s !important;
+  }
+  .ant-picker:hover {
+    border-color: #ff9f7d !important;
+    box-shadow: 0 8px 20px rgba(255, 160, 122, 0.1) !important;
+  }
+
+  .ant-select-selector {
+    height: 48px !important;
+    border-radius: 14px !important;
+    border: 1px solid #edf2f7 !important;
+    display: flex !important;
+    align-items: center !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
+  }
+  .ant-select:hover .ant-select-selector {
+    border-color: #ff9f7d !important;
+    box-shadow: 0 8px 20px rgba(255, 160, 122, 0.1) !important;
+  }
+}

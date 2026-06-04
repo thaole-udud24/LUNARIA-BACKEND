@@ -15,7 +15,7 @@ export class ProductsService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
     @InjectModel(SkinType.name) private skinTypeModel: Model<SkinTypeDocument>,
-    private readonly promotionsService: PromotionsService, // <-- Đã inject
+    private readonly promotionsService: PromotionsService, 
   ) {}
 
   private generateSlug(name: string): string {
@@ -46,6 +46,7 @@ export class ProductsService {
 
     return new this.productModel({ 
       ...dto, 
+      category: new Types.ObjectId(dto.category), 
       sku, 
       slug, 
       variants,
@@ -70,7 +71,6 @@ export class ProductsService {
     return product;
   }
 
-  // Lấy 1 Sản phẩm hiển thị cho User xem (Có kèm giá Flash Sale)
   async findOnePublic(id: string) {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid Product ID');
     
@@ -86,7 +86,6 @@ export class ProductsService {
       await product.populate({ path: 'skinTypes', select: 'name code', options: { strictPopulate: false } });
     } catch (err) {}
 
-    // Gắn giá Sale vào từng variant
     const productObj = product.toObject();
     productObj.variants = await Promise.all(
       productObj.variants.map(async (variant: any) => {
@@ -109,6 +108,10 @@ export class ProductsService {
 
     if (dto.name && dto.name !== existing.name) (dto as any).slug = this.generateSlug(dto.name);
     
+    if (dto.category) {
+      (dto as any).category = new Types.ObjectId(dto.category);
+    }
+
     if (dto.variants) {
       dto.variants = dto.variants.map((v: any) => {
         const oldVariant = existing.variants.find(ov => ov.variantName === v.variantName);
@@ -124,6 +127,7 @@ export class ProductsService {
     if (!updated) throw new NotFoundException('Update failed');
     return updated;
   }
+
   async findAll(query: ListProductsDto) {
     const { search, category, skinTypes, minPrice, maxPrice, page = 1, limit = 10 } = query;
     const filters: any = { isDeleted: false, isActive: true };
