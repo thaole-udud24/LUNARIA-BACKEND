@@ -1,0 +1,448 @@
+@primary-color: #ff9a7a;
+@secondary-color: #fff5f2;
+@text-color: #333333;
+@border-color: #eeeeee;
+
+.order-detail-page-wrapper {
+  background-color: #fafafa;
+  min-height: calc(100vh - 200px);
+  padding: 40px 0 80px;
+  font-family: 'Inter', sans-serif;
+  color: @text-color;
+
+  .order-detail-page-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Navigation Bar */
+  .detail-page-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .btn-back-orders, .btn-print-order {
+      height: 44px;
+      padding: 0 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-back-orders {
+      background: #ffffff;
+      border: 1px solid #d9d9d9;
+      color: #555555;
+
+      &:hover {
+        border-color: @primary-color;
+        color: @primary-color;
+        background: @secondary-color;
+      }
+    }
+
+    .btn-print-order {
+      background: #ffffff;
+      border: 1px solid @primary-color;
+      color: @primary-color;
+
+      &:hover {
+        background: @primary-color;
+        color: #ffffff;
+      }
+    }
+  }
+
+  /* Header Card */
+  .detail-header-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 28px 32px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f2f2f2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .header-meta-left {
+      h2 {
+        font-size: 24px;
+        font-weight: 800;
+        color: #222222;
+        margin: 0 0 6px;
+      }
+
+      .order-date-time {
+        font-size: 14px;
+        color: #888888;
+      }
+    }
+
+    .header-status-right {
+      .status-pill {
+        font-size: 14px;
+        font-weight: 700;
+        padding: 8px 20px;
+        border-radius: 20px;
+
+        &.pending { background: #fff7e6; color: #fa8c16; }
+        &.processing { background: #e6f7ff; color: #1890ff; }
+        &.shipping { background: #e8f0fe; color: #1a73e8; }
+        &.completed { background: #e6f4ea; color: #137333; }
+        &.cancelled { background: #fce8e6; color: #c5221f; }
+      }
+    }
+  }
+
+  /* Layout */
+  .detail-content-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    /* Common Card Styling */
+    .order-tracking-card, .order-items-detail-card, .order-summary-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.03);
+      border: 1px solid #f2f2f2;
+
+      .card-header-title {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f5f5f5;
+
+        h3 {
+          font-size: 18px;
+          font-weight: 700;
+          color: #222222;
+          margin: 0;
+        }
+      }
+    }
+
+    /* 1. Tracking Timeline */
+    .order-tracking-card {
+      .tracking-timeline-container {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        padding: 10px 0;
+
+        .tracking-step-item {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          position: relative;
+          z-index: 2;
+
+          .step-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+
+            .step-icon {
+              font-size: 20px;
+              color: #cccccc;
+            }
+          }
+
+          .step-content {
+            .step-title {
+              font-size: 15px;
+              font-weight: 700;
+              color: #444444;
+              margin: 0 0 4px;
+            }
+
+            .step-desc {
+              font-size: 13px;
+              color: #888888;
+              margin: 0 0 4px;
+              max-width: 180px;
+            }
+
+            .step-time {
+              font-size: 12px;
+              color: @primary-color;
+              font-weight: 600;
+            }
+          }
+
+          &.completed {
+            .step-icon-wrapper {
+              background: #fff5f2;
+              box-shadow: 0 0 0 4px rgba(255, 154, 122, 0.2);
+
+              .step-icon {
+                color: @primary-color;
+              }
+            }
+
+            .step-content .step-title {
+              color: @primary-color;
+            }
+          }
+
+          .step-connector {
+            position: absolute;
+            top: 22px;
+            left: calc(50% + 22px);
+            width: calc(100% - 44px);
+            height: 3px;
+            background: #eeeeee;
+            z-index: -1;
+          }
+
+          &.completed .step-connector {
+            background: @primary-color;
+          }
+        }
+      }
+    }
+
+    /* 2. Customer Info Grid */
+    .order-customer-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+
+      .info-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.03);
+        border: 1px solid #f2f2f2;
+
+        .card-heading {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 20px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid #f5f5f5;
+
+          .heading-icon {
+            font-size: 22px;
+            color: @primary-color;
+          }
+
+          h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #222222;
+            margin: 0;
+          }
+        }
+
+        .card-body-content {
+          .customer-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #222222;
+            margin: 0 0 8px;
+          }
+
+          .customer-phone, .customer-addr, .pay-method {
+            font-size: 14px;
+            color: #666666;
+            margin: 0 0 8px;
+            line-height: 1.5;
+          }
+
+          .pay-status-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #666666;
+
+            .pay-status-badge {
+              font-weight: 700;
+              padding: 4px 12px;
+              border-radius: 12px;
+              font-size: 12px;
+
+              &.paid { background: #e6f4ea; color: #137333; }
+              &.unpaid { background: #fce8e6; color: #c5221f; }
+            }
+          }
+        }
+      }
+    }
+
+    /* 3. Items List Table */
+    .order-items-detail-card {
+      .items-table-container {
+        overflow-x: auto;
+
+        .detail-items-table {
+          width: 100%;
+          border-collapse: collapse;
+
+          th {
+            text-align: left;
+            padding: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #888888;
+            background: #fafafa;
+            border-bottom: 1px solid #eeeeee;
+
+            &:last-child { text-align: right; }
+          }
+
+          td {
+            padding: 20px 16px;
+            border-bottom: 1px solid #f9f9f9;
+            vertical-align: middle;
+
+            &:last-child { text-align: right; }
+
+            .product-col-info {
+              display: flex;
+              align-items: center;
+              gap: 16px;
+
+              .p-img {
+                width: 70px;
+                height: 70px;
+                border-radius: 14px;
+                object-fit: cover;
+                border: 1px solid @border-color;
+              }
+
+              .p-details {
+                .p-name {
+                  font-size: 15px;
+                  font-weight: 600;
+                  color: #222222;
+                  margin: 0 0 4px;
+                }
+
+                .p-variant {
+                  font-size: 13px;
+                  color: #888888;
+                }
+              }
+            }
+
+            &.price-col, &.qty-col {
+              font-size: 15px;
+              color: #555555;
+              font-weight: 500;
+            }
+
+            &.subtotal-col {
+              font-size: 16px;
+              font-weight: 700;
+              color: @primary-color;
+            }
+          }
+        }
+      }
+    }
+
+    /* 4. Summary Card */
+    .order-summary-card {
+      .summary-breakdown-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        max-width: 400px;
+        margin-left: auto;
+
+        .summary-line {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 15px;
+          color: #555555;
+
+          strong {
+            color: #222222;
+            font-weight: 600;
+          }
+
+          &.discount strong {
+            color: #137333;
+          }
+
+          &.grand-total {
+            margin-top: 8px;
+            padding-top: 20px;
+            border-top: 2px dashed #eeeeee;
+            font-size: 16px;
+            color: #222222;
+            font-weight: 700;
+
+            .final-price {
+              font-size: 24px;
+              font-weight: 800;
+              color: @primary-color;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .order-detail-page-wrapper {
+    .detail-header-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .detail-content-layout {
+      .order-tracking-card .tracking-timeline-container {
+        flex-direction: column;
+        gap: 24px;
+
+        .tracking-step-item {
+          flex-direction: row;
+          text-align: left;
+          gap: 16px;
+
+          .step-connector {
+            top: 44px;
+            left: 21px;
+            width: 3px;
+            height: calc(100% - 20px);
+          }
+        }
+      }
+
+      .order-customer-info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .order-summary-card .summary-breakdown-list {
+        max-width: 100%;
+        margin-left: 0;
+      }
+    }
+  }
+}

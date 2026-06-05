@@ -1,0 +1,79 @@
+@keyframes fluidEntrance {
+  0% { 
+    opacity: 0; 
+    transform: translateY(24px) scale(0.99); 
+    filter: blur(8px);
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+    filter: blur(0);
+  }
+}
+
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  animation: fluidEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pageTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+
+  .separator {
+    font-size: 12px;
+    color: #cbd5e1;
+  }
+
+  .active {
+    color: #0f172a;
+  }
+}
+
+.topRow, .bottomRow {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+.chartGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0; 
+  width: 100%;
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  font-size: 15px;
+  color: #64748b;
+  font-weight: 500;
+  animation: fluidEntrance 0.5s ease forwards;
+}

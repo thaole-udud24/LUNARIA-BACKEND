@@ -1,0 +1,185 @@
+/* =========================================================
+   ANIMATIONS & BLOBS
+   ========================================================= */
+@keyframes fluidEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  padding: 24px;
+  animation: fluidEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  
+  /* 2 cục màu mờ background */
+  &::before,
+  &::after {
+    content: '';
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: -1;
+  }
+  &::before {
+    top: -250px;
+    right: -250px;
+    background: rgba(255, 167, 138, 0.05);
+  }
+  &::after {
+    bottom: -250px;
+    left: -250px;
+    background: rgba(255, 119, 146, 0.05);
+  }
+}
+
+/* --- TÁCH KHỐI KHỎI NỀN TRẮNG BẰNG SHADOW & BORDER --- */
+.topBar,
+.statCard {
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 
+    0 10px 30px rgba(15, 23, 42, 0.08), 
+    0 4px 6px rgba(15, 23, 42, 0.04);
+  transition: all 0.35s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 20px 40px rgba(15, 23, 42, 0.12),
+      0 8px 12px rgba(15, 23, 42, 0.06);
+  }
+}
+
+/* --- TOP BAR (HEADER) --- */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff8c69, #ff6b81);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+
+  .separator { color: #cbd5e1; }
+  .active { color: #0f172a; font-weight: 600; }
+}
+
+/* --- FILTER ACTIONS (Tìm kiếm + Nút Xuất) --- */
+.filterActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.searchInput {
+  height: 48px;
+  border-radius: 14px;
+  min-width: 300px;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  transition: 0.3s;
+  
+  &:hover, &:focus {
+    border-color: #ff9f7d;
+    box-shadow: 0 8px 20px rgba(255, 160, 122, 0.1);
+  }
+}
+
+.exportBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff8c69, #ff6b81);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(255, 107, 129, 0.3);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 32px rgba(255, 107, 129, 0.4);
+  }
+  &:active { transform: scale(0.97); }
+}
+
+/* --- STAT CARDS --- */
+.statCard {
+  padding: 28px;
+  height: 100%;
+  
+  :global {
+    .ant-statistic-title {
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 992px) {
+  .topBar { flex-direction: column; align-items: flex-start; }
+  .filterActions { width: 100%; justify-content: flex-start; }
+}
+
+@media (max-width: 768px) {
+  .container { padding: 16px; gap: 20px; }
+  .topBar { padding: 20px; }
+  .pageTitle { font-size: 24px; }
+  .filterActions { flex-direction: column; width: 100%; align-items: stretch; }
+  .searchInput, .exportBtn { width: 100% !important; }
+  .statCard { padding: 20px; }
+}

@@ -1,0 +1,106 @@
+@primary-color: #FFA78A;
+
+@keyframes spinOne {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes spinTwo {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+@keyframes flowerPulse {
+  0%, 100% { 
+    transform: scale(0.85); 
+    opacity: 0.7; 
+  }
+  50% { 
+    transform: scale(1.15); 
+    opacity: 1; 
+    filter: drop-shadow(0 0 8px rgba(255, 167, 138, 0.6)); 
+  }
+}
+
+@keyframes textGlow {
+  0%, 100% { 
+    opacity: 0.5; 
+    letter-spacing: 1px;
+  }
+  50% { 
+    opacity: 1; 
+    letter-spacing: 2.5px;
+    text-shadow: 0 0 10px rgba(255, 167, 138, 0.4); 
+  }
+}
+
+@keyframes fadeUpEntrance {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loaderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  animation: fadeUpEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.loaderCore {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.ringOne, .ringTwo {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid transparent;
+}
+
+.ringOne {
+  width: 100%;
+  height: 100%;
+  border-top-color: @primary-color;
+  border-left-color: rgba(255, 167, 138, 0.1);
+  animation: spinOne 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.ringTwo {
+  width: 70%;
+  height: 70%;
+  border-bottom-color: @primary-color;
+  border-right-color: rgba(255, 167, 138, 0.1);
+  animation: spinTwo 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.flowerCenter {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  color: @primary-color;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: flowerPulse 2s ease-in-out infinite;
+  z-index: 10;
+  
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.loadingText {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin: 0;
+  animation: textGlow 2.5s ease-in-out infinite;
+}

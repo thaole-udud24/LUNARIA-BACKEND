@@ -1,0 +1,191 @@
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.container {
+  background-color: #FFF7F5;
+  border-radius: 10px;
+  padding: 24px;
+  height: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 18px;
+  margin: 0;
+}
+
+.navButtons {
+  display: flex;
+  gap: 8px;
+
+  button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #ffcdc2;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #F88A6E;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(248, 138, 110, 0.1);
+
+    &:hover {
+      background-color: #F88A6E;
+      color: white;
+      border-color: #F88A6E;
+      transform: scale(1.1);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+.productList {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 20px;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.productCard {
+  background-color: #ffffff;
+  padding: 8px;
+  border-radius: 10px;
+  min-width: 160px; 
+  width: 160px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+  animation-delay: var(--delay, 0s);
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 28px rgba(248, 138, 110, 0.25); 
+    .imageWrapper img { transform: scale(1.15); }
+    .overlay { opacity: 1; }
+    
+    .actionBtn {
+      transform: translateY(0) rotate(0deg) scale(1);
+      opacity: 1;
+    }
+
+    .imageWrapper::after {
+      box-shadow: inset 0 0 0 3px rgba(248, 138, 110, 0.8);
+    }
+
+    .productName { 
+      background: linear-gradient(90deg, #ff6b4a, #d4492a);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(248, 138, 110, 0.3);
+    }
+  }
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f3f4f6;
+  margin-bottom: 12px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 0px transparent;
+    transition: box-shadow 0.4s ease;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.actionBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #F88A6E;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(20px) rotate(45deg) scale(0.5);
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  &:hover {
+    background-color: #e07258;
+    transform: translateY(0) rotate(0deg) scale(1.1) !important;
+  }
+}
+
+.productName {
+  font-size: 13px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #F88A6E, #e07258);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 4px 0;
+  text-align: center;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}

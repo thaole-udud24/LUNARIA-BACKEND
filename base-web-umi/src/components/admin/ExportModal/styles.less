@@ -1,0 +1,299 @@
+.exportModal {
+  :global {
+    .ant-modal-content {
+      overflow: hidden;
+      border-radius: 24px;
+
+      background: #ffffff;
+
+      box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.12),
+        0 8px 24px rgba(15, 23, 42, 0.06);
+
+      padding: 0;
+    }
+
+    .ant-modal-header {
+      padding: 24px 28px;
+
+      background: linear-gradient(
+        135deg,
+        #fff8f5 0%,
+        #ffffff 100%
+      );
+
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ant-modal-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .ant-modal-body {
+      padding: 28px;
+    }
+
+    .ant-modal-close {
+      top: 20px;
+      right: 20px;
+    }
+  }
+}
+
+.exportDesc {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.exportLayout {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.exportCol {
+  flex: 1;
+
+  border-radius: 20px;
+
+  border: 1px solid #e2e8f0;
+
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #f8fafc 100%
+  );
+
+  overflow: hidden;
+
+  transition: all .3s ease;
+
+  &:hover {
+    border-color: #ffb199;
+
+    box-shadow:
+      0 12px 30px rgba(255, 140, 105, 0.08);
+  }
+}
+
+.colHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 18px 20px;
+
+  background: rgba(255,255,255,.9);
+
+  backdrop-filter: blur(10px);
+
+  border-bottom: 1px solid #eef2f7;
+
+  h3 {
+    margin: 0;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    color: #0f172a;
+  }
+}
+
+.actionLinks {
+  display: flex;
+  gap: 14px;
+
+  span {
+    cursor: pointer;
+
+    color: #ff8c69;
+    font-size: 13px;
+    font-weight: 600;
+
+    transition: .2s;
+
+    &:hover {
+      color: #ff6b4a;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.checkboxList,
+.selectedList {
+  padding: 18px;
+
+  max-height: 340px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #dbeafe;
+    border-radius: 999px;
+  }
+}
+
+.checkboxList {
+  :global(.ant-checkbox-group) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  :global(.ant-checkbox-wrapper) {
+    width: 100%;
+
+    padding: 12px 14px;
+
+    border-radius: 12px;
+
+    background: white;
+
+    border: 1px solid transparent;
+
+    transition: all .25s ease;
+
+    &:hover {
+      border-color: #ffb199;
+      background: #fffaf8;
+    }
+  }
+
+  :global(.ant-checkbox-checked + span) {
+    color: #ff7b54;
+    font-weight: 600;
+  }
+}
+
+.selectedList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selectedItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 14px 16px;
+
+  border-radius: 14px;
+
+  background: white;
+
+  border: 1px solid #e2e8f0;
+
+  transition: .25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+
+    border-color: #ffb199;
+
+    box-shadow:
+      0 8px 20px rgba(255, 140, 105, 0.08);
+  }
+}
+
+.itemLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.itemIndex {
+  width: 28px;
+  height: 28px;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    #fff1ee,
+    #ffe2d8
+  );
+
+  color: #ff7b54;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.itemName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.deleteIcon {
+  color: #ef4444;
+  font-size: 16px;
+
+  opacity: .7;
+
+  transition: .2s;
+
+  &:hover {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.emptyState {
+  text-align: center;
+
+  padding: 60px 20px;
+
+  color: #94a3b8;
+
+  font-size: 14px;
+  font-style: italic;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid #eef2f7;
+}
+
+.cancelBtn {
+  height: 42px;
+  border-radius: 12px;
+}
+
+.exportBtn {
+  height: 42px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #ff8c69,
+    #ff6b81
+  ) !important;
+
+  box-shadow:
+    0 10px 20px rgba(255, 107, 129, 0.25);
+
+  font-weight: 600;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}

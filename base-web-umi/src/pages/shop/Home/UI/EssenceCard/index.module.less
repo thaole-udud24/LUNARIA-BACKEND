@@ -1,0 +1,161 @@
+@import '~@/styles/variables.less';
+
+.essenceSection {
+  width: 100%;
+  padding: 60px 0 80px;
+  background-color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -30px;
+}
+
+.flowerTop {
+  position: absolute;
+  top: 20px;
+  left: 5%;
+  width: 154px;
+  height: 190px;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 1;
+  animation: floatFlower 3s ease-in-out infinite;
+}
+
+.flowerBottom {
+  position: absolute;
+  bottom: 0px;
+  right: 0%;
+  width: 159px;
+  height: 130px;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 1;
+  animation: floatFlower 4s ease-in-out infinite reverse;
+}
+
+.titleWrapper {
+  margin-bottom: 50px;
+  z-index: 2;
+  
+  h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 600;
+    font-style: italic;
+    color: #4a2c2a;
+    text-align: center;
+    position: relative;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(255, 142, 115, 0.1);
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 2px;
+      background-color: #ff8e73;
+      opacity: 0.6;
+    }
+  }
+}
+
+.contentWrapper {
+  width: 100%;
+  max-width: 1200px;
+  z-index: 2;
+  padding: 0 20px;
+}
+
+.essenceCard {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 35px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 10px 30px rgba(255, 184, 184, 0.1);
+  border: 1px solid rgba(255, 237, 237, 0.5);
+  height: 100%;
+
+  .iconWrapper {
+    width: 100px;
+    height: 100px;
+    background-color: #ffeded;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    transition: all 0.4s ease;
+
+    img {
+      width: 55px;
+      height: 55px;
+      object-fit: contain;
+    }
+  }
+
+  h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #4a2c2a;
+    margin: 0;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+  }
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(255, 142, 115, 0.15);
+    background-color: #fffafb;
+
+    .iconWrapper {
+      transform: scale(1.1) rotate(5deg);
+      background-color: #ffd6d6;
+    }
+  }
+}
+
+@keyframes floatFlower {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(3deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .essenceSection {
+    padding: 40px 0 50px;
+    margin-top: -15px;
+  }
+  
+  .flowerTop, .flowerBottom {
+    width: 80px;
+    height: auto;
+  }
+
+  .essenceCard {
+    padding: 25px 15px;
+    
+    .iconWrapper {
+      width: 80px;
+      height: 80px;
+      img {
+        width: 45px;
+        height: 45px;
+      }
+    }
+  }
+}

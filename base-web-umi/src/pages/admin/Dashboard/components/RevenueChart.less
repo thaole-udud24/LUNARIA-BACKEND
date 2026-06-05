@@ -1,0 +1,103 @@
+@keyframes tooltipPop {
+  0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.container {
+  background-color: white;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+
+  .title {
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0 0 6px 0;
+  }
+
+  .amount {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+  }
+}
+
+.tabs {
+  display: flex;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  padding: 2px;
+
+  button {
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #4b5563;
+
+    &:hover { background-color: #f3f4f6; }
+    
+    &.active {
+      background-color: #F88A6E;
+      color: white;
+      box-shadow: 0 2px 6px rgba(248, 138, 110, 0.3);
+    }
+  }
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+
+  .item { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dotSales { background-color: #8ce1b2; }
+  .dotRev { background-color: #f89a9e; }
+}
+
+.chartWrapper {
+  flex: 1;
+  width: 100%;
+  min-height: 250px;
+}
+
+.customTooltip {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  animation: tooltipPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+  .ttLabel {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 6px;
+  }
+}

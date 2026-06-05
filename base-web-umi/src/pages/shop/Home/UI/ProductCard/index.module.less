@@ -1,0 +1,230 @@
+@import '~@/styles/variables.less';
+
+.bestSellerSection {
+  width: 100%;
+  padding: 40px 75px 60px; 
+  background-color: #ffffff;
+  position: relative;
+  box-sizing: border-box;
+  margin-top: -40px; 
+}
+
+.containerBox {
+  width: 100%;
+  background-color: #fff0f0;
+  border-radius: 20px;
+  padding: 40px 30px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 20px 40px rgba(255, 184, 184, 0.2);
+}
+
+.headerWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+  width: 100%;
+  padding: 0 5px;
+  position: relative;
+
+  .titleContainer {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sectionTitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 30px;
+    font-weight: 600;
+    font-style: italic;
+    color: #ff8e73;
+    margin: 0;
+    line-height: 1.2;
+    position: relative;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(255, 142, 115, 0.1);
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 2px;
+      background-color: #ff8e73;
+      opacity: 0.6;
+    }
+  }
+
+  .viewMoreLink {
+    background: #FFA78A;
+    border: none;
+    height: 36px;
+    padding: 0 28px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 18px;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(255, 167, 138, 0.3);
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    cursor: pointer;
+    position: absolute;
+    right: 5px;
+
+    &:hover {
+      background: #e28e72;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 167, 138, 0.45);
+      letter-spacing: 1px;
+      color: #ffffff;
+    }
+  }
+}
+
+.productCard {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 15px 15px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  box-sizing: border-box;
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
+  cursor: pointer;
+  border: 1px solid rgba(255, 237, 237, 0.3);
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(74, 44, 42, 0.06);
+  }
+
+  .wishlistIcon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 18px;
+    color: #ffa78a;
+    cursor: pointer;
+    z-index: 3;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+
+  .ratingBadge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4a2c2a;
+    z-index: 3;
+  }
+
+  .imageWrapper {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 15px;
+    margin-bottom: 15px;
+
+    img {
+      max-width: 85%;
+      max-height: 85%;
+      object-fit: contain;
+    }
+  }
+
+  .productInfo {
+    width: 100%;
+    text-align: center;
+
+    .productName {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #4a2c2a;
+      margin-bottom: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      height: 36px;
+      line-height: 1.4;
+    }
+
+    .productPrice {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4a2c2a;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .bestSellerSection {
+    padding: 30px 40px;
+    margin-top: -20px;
+  }
+
+  .headerWrapper {
+    margin-bottom: 35px;
+    flex-direction: column;
+    gap: 20px;
+    
+    .titleContainer {
+      width: 100%;
+    }
+
+    .sectionTitle {
+      font-size: 26px;
+    }
+
+    .viewMoreLink {
+      position: relative;
+      right: unset;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .bestSellerSection {
+    padding: 20px 15px;
+    margin-top: -10px;
+  }
+
+  .containerBox {
+    padding: 25px 15px;
+  }
+
+  .productCard {
+    padding: 12px 8px 15px;
+
+    .imageWrapper {
+      height: 100px;
+    }
+  }
+}

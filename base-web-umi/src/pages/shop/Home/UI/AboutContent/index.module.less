@@ -1,0 +1,171 @@
+@import '~@/styles/variables.less';
+
+.aboutContainer {
+  display: flex;
+  width: 1015px;
+  height: 379px;
+  margin: 0 auto; 
+  position: relative;
+  z-index: 10;
+  margin-top: -140px; 
+  border-radius: 20px; 
+  overflow: visible;
+  box-shadow: 0 20px 40px rgba(255, 184, 184, 0.2);
+}
+
+.aboutContainer::before {
+  content: '';
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  top: -80px;
+  left: -80px;
+  z-index: 11;
+  background: conic-gradient(from 0deg, transparent 0deg 15deg, #ffe1b3 16deg, transparent 17deg 45deg, #ffb38a 46deg, transparent 47deg 90deg, #ffe1b3 91deg, transparent 92deg 135deg, #ffb38a 136deg, transparent 137deg 220deg, #ffe1b3 221deg, transparent 222deg);
+  -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0) 70%);
+  mask-image: radial-gradient(circle, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0) 70%);
+  opacity: 0.6;
+  animation: premiumSparkle 6s linear infinite;
+}
+
+.aboutContainer::after {
+  content: '';
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  bottom: -90px;
+  right: -90px;
+  z-index: 11;
+  background: conic-gradient(from 45deg, transparent 0deg 30deg, #ffe1b3 31deg, transparent 32deg 75deg, #ffa78a 76deg, transparent 77deg 120deg, #ffe1b3 121deg, transparent 122deg 180deg, #ffa78a 181deg, transparent 182deg 270deg, #ffe1b3 271deg, transparent 272deg);
+  -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 25%, rgba(0,0,0,0) 70%);
+  mask-image: radial-gradient(circle, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 25%, rgba(0,0,0,0) 70%);
+  opacity: 0.55;
+  animation: premiumSparkle 8s linear infinite reverse;
+}
+
+.aboutImg {
+  width: 508px;
+  height: 379px;
+  display: flex;
+  overflow: hidden;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+
+.aboutContainer:hover .aboutImg img {
+  transform: scale(1.04);
+}
+
+.aboutTextWrapper {
+  width: 507px;
+  height: 379px;
+  background: rgba(255, 237, 237, 0.85); 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  padding: 40px 50px;
+  box-sizing: border-box;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+
+  .aboutText {
+    width: 100%;
+
+    h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px;
+      font-weight: 600;
+      font-style: italic;
+      color: #ff8e73; 
+      margin-bottom: 18px;
+      line-height: 1.2;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px rgba(255, 142, 115, 0.1);
+    }
+
+    p {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13.5px;
+      line-height: 1.8;
+      color: #4a2c2a;
+      margin-bottom: 12px;
+      text-align: justify;
+      opacity: 0.85;
+      letter-spacing: 0.2px;
+      
+      &:last-of-type {
+        margin-bottom: 24px;
+      }
+    }
+  }
+
+  .readMoreBtn {
+    background: #FFA78A;
+    border: none;
+    height: 38px;
+    padding: 0 32px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 19px;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(255, 167, 138, 0.3);
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    cursor: pointer;
+
+    &:hover {
+      background: #e28e72;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 167, 138, 0.45);
+      letter-spacing: 1px;
+    }
+  }
+}
+
+@keyframes premiumSparkle {
+  0% {
+    transform: rotate(0deg) scale(0.96);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.04);
+  }
+  100% {
+    transform: rotate(360deg) scale(0.96);
+  }
+}
+
+@media (max-width: 1040px) {
+  .aboutContainer {
+    width: calc(100% - 40px);
+    height: auto;
+    flex-direction: column;
+    margin-top: -40px;
+  }
+
+  .aboutImg {
+    width: 100%;
+    height: 300px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .aboutTextWrapper {
+    width: 100%;
+    height: auto;
+    padding: 35px 24px;
+    border-radius: 0 0 20px 20px;
+  }
+}

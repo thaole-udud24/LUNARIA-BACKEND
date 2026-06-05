@@ -1,0 +1,141 @@
+@primary-color: #FFA78A;
+@primary-hover: #f39a7d;
+@sidebar-bg: #FEF6F6;
+@content-bg: #ffffff;
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.card {
+  position: relative;
+  border-radius: 16px;
+  padding: 24px;
+  
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  background: @content-bg;
+  border: 1px solid rgba(255, 167, 138, 0.15);
+  box-shadow: 0 4px 12px rgba(255, 167, 138, 0.04);
+  
+  transition: all 0.3s ease;
+  cursor: default;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(255, 167, 138, 0.12);
+  }
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2d3748;
+  line-height: 1.4;
+  padding-top: 4px;
+}
+
+.iconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: #1a202c;
+    stroke-width: 2.5px;
+  }
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.valueRow {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  color: #1a202c;
+  
+  display: flex;
+  align-items: baseline;
+  white-space: nowrap;
+  
+  .currency {
+    font-size: 16px;
+    font-weight: 600;
+    margin-left: 4px;
+    color: #4a5568;
+  }
+}
+
+.trendBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e65c00;
+  background: rgba(255, 167, 138, 0.18);
+  padding: 4px 10px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+/* =========================================
+   PHỐI MÀU GRADIENT ĐỒNG BỘ THEO TÔNG CHỦ ĐẠO
+   ========================================= */
+
+/* Ô 1: Sắc Peach đậm (Đại diện cho Doanh thu chủ đạo) */
+.cardOne {
+  background: linear-gradient(135deg, #ffebe3 7%, @content-bg 100%);
+  border-color: rgba(255, 167, 138, 0.4);
+  .iconWrap { background: #ffd1c1; }
+}
+
+/* Ô 2: Sắc Cam Hổ Phách nhẹ (Ấm áp, đại diện cho Lợi nhuận) */
+.cardTwo {
+  background: linear-gradient(135deg, #fff3e6 7%, @content-bg 100%);
+  border-color: rgba(255, 211, 167, 0.4);
+  .iconWrap { background: #ffe4ca; }
+}
+
+/* Ô 3: Sắc Hồng San Hô nhẹ (Xinh xắn, đại diện cho Khuyến mãi) */
+.cardThree {
+  background: linear-gradient(135deg, #fff0f2 7%, @content-bg 100%);
+  border-color: rgba(255, 194, 202, 0.3);
+  .iconWrap { background: #ffd4da; }
+}
+
+/* Ô 4: Sắc Kem Ấm / Nền Sidebar nhẹ (Đơn giản, tinh tế cho Đơn trung bình) */
+.cardFour {
+  background: linear-gradient(135deg, @sidebar-bg 7%, @content-bg 100%);
+  border-color: rgba(255, 167, 138, 0.2);
+  .iconWrap { background: #fceae9; }
+}
+
+@media (max-width: 1400px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .grid { grid-template-columns: 1fr; }
+  .valueRow { font-size: 26px; }
+}

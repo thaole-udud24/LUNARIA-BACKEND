@@ -1,0 +1,171 @@
+@primary: #FFA78A;
+@primary-hover: #F39A7D;
+@bg: #FFF8F6;
+@surface: #FFFFFF;
+@text-primary: #1F2937;
+@text-secondary: #6B7280;
+@border: #F3E5DF;
+
+/* --- ANIMATIONS --- */
+@keyframes fluidEntrance {
+  0% { opacity: 0; transform: translateY(20px); filter: blur(8px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes pulseBlob {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+/* --- LAYOUT GỐC --- */
+.detailContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  min-height: 100vh;
+  background: @bg;
+  animation: fluidEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 1;
+  overflow: hidden;
+
+  /* 2 Cục Blobs mờ trôi nổi */
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: -1;
+    animation: pulseBlob 10s ease-in-out infinite;
+  }
+  &::before {
+    top: -150px; right: -100px;
+    width: 600px; height: 600px;
+    background: rgba(255, 167, 138, 0.12);
+  }
+  &::after {
+    top: 40%; left: -200px;
+    width: 500px; height: 500px;
+    background: rgba(255, 190, 169, 0.12);
+    animation-delay: -5s;
+  }
+}
+
+/* --- HEADER --- */
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  .backBtn {
+    padding: 0;
+    color: @text-secondary;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    
+    &:hover { 
+      color: @primary; 
+      transform: translateX(-4px); 
+      background: transparent; 
+    }
+  }
+
+  .pageTitle {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(135deg, #FFA78A 0%, #FFBEA9 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+}
+
+/* --- GRID & CARDS --- */
+.gridLayout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.card {
+  background: @surface;
+  padding: 28px;
+  border-radius: 20px;
+  border: 1px solid @border;
+  box-shadow: 0 10px 40px rgba(255, 167, 138, 0.05);
+  margin-bottom: 24px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(255, 167, 138, 0.15);
+  }
+
+  .cardTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: @text-primary;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    /* Vạch màu gradient siêu sang ở đầu Tiêu đề */
+    &::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 20px;
+      background: linear-gradient(135deg, #FFA78A 0%, #FFBEA9 100%);
+      border-radius: 4px;
+    }
+  }
+}
+
+/* --- OVERRIDE GLOBAL ANTD (Đồng bộ màu Timeline) --- */
+:global {
+  .ant-steps-item-finish .ant-steps-item-icon {
+    border-color: @primary !important;
+    background-color: @surface !important;
+  }
+  .ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon {
+    color: @primary !important;
+  }
+  .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: @text-primary !important;
+    font-weight: 600;
+  }
+  .ant-steps-item-process .ant-steps-item-icon {
+    background-color: @primary !important;
+    border-color: @primary !important;
+  }
+  .ant-steps-item-title::after {
+    background-color: fade(@border, 80%) !important;
+  }
+  .ant-steps-item-finish .ant-steps-item-title::after {
+    background-color: @primary !important;
+  }
+}
+
+.errorText {
+  text-align: center;
+  padding: 100px;
+  color: #ef4444;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+@media (max-width: 1024px) {
+  .gridLayout { grid-template-columns: 1fr; }
+}

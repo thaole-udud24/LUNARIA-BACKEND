@@ -1,0 +1,105 @@
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fillProgress {
+  to { stroke-dashoffset: var(--offset); }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.card {
+  border-radius: 10px;
+  padding: 16px 20px;
+  position: relative;
+  overflow: hidden;
+  height: 131px; 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUpFade 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.card:nth-child(1) { animation-delay: 100ms; }
+.card:nth-child(2) { animation-delay: 150ms; }
+.card:nth-child(3) { animation-delay: 200ms; }
+.card:nth-child(4) { animation-delay: 250ms; }
+
+.cardBlue { background: linear-gradient(135deg, #BCD3FF 13%, #FFFFFF 100%); }
+.cardRed { background: linear-gradient(135deg, #FFC1C1 13%, #FFFFFF 100%); }
+.cardYellow { background: linear-gradient(135deg, #FFE8B6 13%, #FFFFFF 100%); }
+.cardGreen { background: linear-gradient(135deg, #B2F5D1 13%, #FFFFFF 100%); }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  h3 {
+    color: #1f2937;
+    font-weight: 500;
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+.ringWrapper {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svgRing {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+}
+
+.progressCircle {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  stroke-linecap: round;
+  animation: fillProgress 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: 400ms; 
+}
+
+.ringIcon {
+  position: relative;
+  z-index: 2;
+  display: flex;
+}
+
+.count {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1f2937; 
+  line-height: 1;
+}
+
+.footer {
+  font-size: 11px;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .revenue {
+    color: #1f2937;
+  }
+}

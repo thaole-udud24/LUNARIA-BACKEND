@@ -1,0 +1,29 @@
+import { request } from 'umi';
+
+// Báo cáo doanh thu
+export async function getReportsData(params?: { month?: string; categoryId?: string }) {
+  return request('/api/admin/dashboard/revenue', {
+    method: 'GET',
+    params,
+  });
+}
+
+// ĐÃ FIX: Thêm fields?: string[] vào đây
+export async function exportRevenueReport(params?: { month?: string; fields?: string[] }) {
+  return request('/api/admin/dashboard/revenue/export', {
+    method: 'GET',
+    params: {
+      month: params?.month,
+      fields: params?.fields?.join(','), // Biến mảng thành chuỗi (vd: 'SKU,Ten_San_Pham')
+    },
+    responseType: 'blob',
+  });
+}
+
+// API TỔNG QUAN (DASHBOARD) - Chú ý đường dẫn có chữ /overview
+export async function getDashboardData(params?: any) {
+  return request('/api/admin/dashboard/overview', {
+    method: 'GET',
+    params,
+  });
+}

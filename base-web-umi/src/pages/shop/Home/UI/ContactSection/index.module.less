@@ -1,0 +1,322 @@
+@import '~@/styles/variables.less';
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes badgeExpand {
+  from {
+    opacity: 0;
+    width: 0;
+  }
+  to {
+    opacity: 1;
+    width: calc(75px + 100px + 307px);
+  }
+}
+
+.contactSection {
+  width: 100%;
+  padding: 60px 0 100px 0;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  margin-top: -90px;
+  position: relative;
+  overflow: hidden;
+}
+
+.gridContainer {
+  width: 100%;
+  padding: 0 75px;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+.asymmetricLayout {
+  width: 100%;
+  max-width: 1114px;
+  margin: 0 auto;
+  position: relative;
+  height: 542px; 
+}
+
+.purpleBaseBadge {
+  position: absolute;
+  left: -75px; 
+  top: 429px;  
+  width: calc(75px + 100px + 307px); 
+  height: 113px; 
+  background-color: #69577e;
+  z-index: 1;
+  animation: badgeExpand 1.2s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+.floatingFormCard {
+  position: absolute;
+  left: 120px; 
+  top: 60px; 
+  width: 380px;
+  height: 482px;
+  background: #ffffff;
+  box-sizing: border-box;
+  padding: 40px 35px;
+  box-shadow: 0 12px 40px rgba(74, 44, 42, 0.04), 0 2px 10px rgba(0, 0, 0, 0.02);
+  z-index: 3; 
+  animation: fadeInUp 1s cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation-delay: 0.2s;
+  transition: box-shadow 0.4s ease, transform 0.4s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 50px rgba(74, 44, 42, 0.08);
+  }
+}
+
+.imageLayerWrapper {
+  position: absolute;
+  right: -150px; 
+  top: 0; 
+  width: 928px;
+  height: 412px;
+  z-index: 2; 
+  animation: fadeInRight 1.2s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+.strokeOuterFrame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 928px;
+  height: 412px;
+  border: 1px solid #ea596e;
+  pointer-events: none;
+  z-index: 1;
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+
+  .imageLayerWrapper:hover & {
+    transform: translate(-6px, -6px);
+  }
+}
+
+.productImageFrame {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 904px; 
+  height: 390px;
+  background-color: #ffffff;
+  overflow: hidden;
+  z-index: 2;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .imageLayerWrapper:hover & img {
+    transform: scale(1.04);
+  }
+}
+
+.brandSubtitle {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ff8e73;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.mainFormTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 19px;
+  font-weight: 600;
+  font-style: italic;
+  color: #4a2c2a;
+  text-align: center;
+  margin: 0 0 25px 0;
+  letter-spacing: 0.2px;
+}
+
+.antdFormFormat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  :global(.ant-form-item-label) > label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4a2c2a;
+    padding: 0;
+    height: auto;
+    transition: color 0.3s ease;
+  }
+  
+  .formItemRow:focus-within :global(.ant-form-item-label) > label {
+    color: #ff8e73;
+  }
+}
+
+.formItemRow {
+  margin-bottom: 12px !important;
+  border-bottom: 1.5px solid #ffbfa3;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1.5px;
+    left: 50%;
+    width: 0;
+    height: 1.5px;
+    background-color: #ff8e73;
+    transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  &:focus-within {
+    border-bottom-color: #ffbfa3;
+    &::after {
+      width: 100%;
+      left: 0;
+    }
+  }
+}
+
+.lineInput {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  color: #4a2c2a;
+  padding: 4px 0 6px 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: padding-left 0.3s ease;
+
+  &::placeholder {
+    color: #b0a09e;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+  }
+
+  &:focus::placeholder {
+    opacity: 0.3;
+    padding-left: 4px;
+  }
+}
+
+.btnCenterWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+}
+
+.accentSubmitBtn {
+  width: 160px;
+  height: 36px;
+  border-radius: 4px;
+  border: none;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ff9e85 0%, #ff8e73 100%) !important;
+  box-shadow: 0 4px 12px rgba(255, 142, 115, 0.2);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
+
+  &:hover, &:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 142, 115, 0.45) !important;
+    background: linear-gradient(135deg, #ffae98 0%, #ff7d5f 100%) !important;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(255, 142, 115, 0.3) !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .gridContainer {
+    padding: 0 40px;
+  }
+
+  .asymmetricLayout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+  }
+
+  .purpleBaseBadge, .strokeOuterFrame {
+    display: none;
+  }
+
+  .floatingFormCard {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    margin-top: 20px;
+    left: unset;
+    animation: fadeInUp 0.8s ease both;
+  }
+
+  .imageLayerWrapper {
+    position: relative;
+    right: unset;
+    margin-top: 30px;
+    width: 100%;
+    max-width: 750px;
+    height: 360px;
+    animation: fadeInUp 0.8s ease both;
+    animation-delay: 0.1s;
+  }
+
+  .productImageFrame {
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .gridContainer {
+    padding: 0 15px;
+  }
+
+  .floatingFormCard {
+    padding: 25px 20px;
+    height: 482px;
+  }
+
+  .imageLayerWrapper {
+    height: 240px;
+  }
+}
