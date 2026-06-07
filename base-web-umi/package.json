@@ -3,7 +3,8 @@
   "version": "5.0.0",
   "private": true,
   "resolutions": {
-    "commander": "13.1.0"
+    "mockjs/commander": "13.1.0",
+    "cheerio": "1.0.0-rc.12"
   },
   "description": "An out-of-box UI solution for enterprise applications",
   "scripts": {

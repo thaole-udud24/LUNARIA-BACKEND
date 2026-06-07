@@ -5,6 +5,7 @@
 [build.environment]
   NODE_VERSION = "18"
   NODE_OPTIONS = "--openssl-legacy-provider"
+  YARN_IGNORE_ENGINES = "true"
 
 [[redirects]]
   from = "/*"
