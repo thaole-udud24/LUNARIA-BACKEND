@@ -23,6 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('Token không hợp lệ hoặc thiếu quyền hạn');
     }
     return {
+      sub: payload.sub,
       userId: payload.sub,
       email: payload.email,
       roles: payload.roles,

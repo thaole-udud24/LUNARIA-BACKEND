@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { message } from 'antd';
 import {
   LoadingOutlined,
   UserOutlined,
@@ -14,12 +15,15 @@ import {
   formatPhoneDisplay,
   parsePhoneInput,
 } from '@/pages/shop/Checkout/validators';
-import { AccountProfile } from '../account.utils';
+import { uploadAvatar } from '@/services/TaiKhoan/users.api';
+import { resolveMediaUrl } from '@/utils/apiUrl';
+import { AccountProfile, normalizeApiResponse } from '../account.utils';
 
 interface ProfileTabProps {
   profile: AccountProfile;
   saving?: boolean;
   onSave: (profile: AccountProfile) => Promise<void>;
+  onAvatarUploaded?: () => Promise<void>;
 }
 
 const GENDER_OPTIONS = [
@@ -28,12 +32,13 @@ const GENDER_OPTIONS = [
   { value: 'other', label: 'Khác' },
 ];
 
-const ProfileTab: React.FC<ProfileTabProps> = ({ profile, saving, onSave }) => {
+const ProfileTab: React.FC<ProfileTabProps> = ({ profile, saving, onSave, onAvatarUploaded }) => {
   const [form, setForm] = useState(() => ({
     ...profile,
     phone: parsePhoneInput(profile.phone || ''),
   }));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const phoneFocusedRef = useRef(false);
 
@@ -58,12 +63,32 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, saving, onSave }) => {
     setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
-  const handleAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => update('avatar', String(reader.result));
-    reader.readAsDataURL(file);
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      message.error('Vui lòng chọn file ảnh (JPG, PNG)');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      message.error('Ảnh không được vượt quá 2MB');
+      return;
+    }
+
+    setAvatarUploading(true);
+    try {
+      const res = await uploadAvatar(file);
+      const data = normalizeApiResponse<{ url?: string; avatar_url?: string }>(res);
+      const path = data?.url || data?.avatar_url || '';
+      update('avatar', path);
+      message.success('Đã cập nhật ảnh đại diện');
+      await onAvatarUploaded?.();
+    } catch {
+      message.error('Không thể tải ảnh lên, vui lòng thử lại');
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = '';
+    }
   };
 
   const validate = () => {
@@ -88,13 +113,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, saving, onSave }) => {
     update('phone', parsePhoneInput(raw));
   };
 
+  const avatarSrc = resolveMediaUrl(form.avatar) || form.avatar;
+
   return (
     <div className="account-card profile-tab-card">
       <div className="profile-hero">
         <div className="profile-hero__avatar-wrap">
           <div className="profile-hero__ring">
-            {form.avatar ? (
-              <img src={form.avatar} alt="Avatar" className="profile-hero__avatar" />
+            {avatarSrc ? (
+              <img src={avatarSrc} alt="Avatar" className="profile-hero__avatar" />
             ) : (
               <div className="profile-hero__avatar profile-hero__avatar--empty">
                 <UserOutlined />
@@ -105,8 +132,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, saving, onSave }) => {
               className="profile-hero__camera"
               onClick={() => fileRef.current?.click()}
               title="Đổi ảnh đại diện"
+              disabled={avatarUploading}
             >
-              <CameraOutlined />
+              {avatarUploading ? <LoadingOutlined spin /> : <CameraOutlined />}
             </button>
           </div>
           <input ref={fileRef} type="file" accept="image/*" hidden onChange={handleAvatar} />
@@ -129,9 +157,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, saving, onSave }) => {
         </div>
 
         <div className="profile-hero__action">
-          <button type="button" className="btn-outline" onClick={() => fileRef.current?.click()}>
-            <CameraOutlined /> Đổi avatar
+          <button
+            type="button"
+            className="btn-outline"
+            onClick={() => fileRef.current?.click()}
+            disabled={avatarUploading}
+          >
+            {avatarUploading ? <LoadingOutlined spin /> : <CameraOutlined />} Đổi avatar
           </button>
+          <p className="profile-hero__upload-hint">JPG, PNG · tối đa 2MB</p>
         </div>
       </div>
 
@@ -211,12 +245,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, saving, onSave }) => {
             <input
               type="date"
               value={form.birthday}
-              disabled={!form.birthday}
-              className={!form.birthday ? 'disabled-input' : ''}
+              onChange={(e) => update('birthday', e.target.value)}
+              max={new Date().toISOString().slice(0, 10)}
             />
-            {!form.birthday && (
-              <span className="input-hint">Chưa có trên hệ thống</span>
-            )}
           </div>
         </div>
       </div>

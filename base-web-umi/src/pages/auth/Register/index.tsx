@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { history } from 'umi';
-import { Form, Input, message } from 'antd';
+import { Form, message } from 'antd';
 import { UserOutlined, MailOutlined, LockOutlined, LoadingOutlined } from '@ant-design/icons';
 import { register as registerApi } from '@/services/TaiKhoan/auth.api';
 import AuthShell from '../components/AuthShell';
+import AuthFieldInput from '../components/AuthFieldInput';
 import { extractAuthError, parseApiData } from '../auth.utils';
 
 interface RegisterFormValues {
@@ -56,10 +57,7 @@ export default function RegisterPage() {
           label={<span className="auth-field-label">Họ và tên</span>}
           rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
         >
-          <div className="auth-input-wrap">
-            <UserOutlined />
-            <Input className="auth-input" placeholder="Nguyễn Văn A" autoComplete="name" />
-          </div>
+          <AuthFieldInput icon={<UserOutlined />} placeholder="Nguyễn Văn A" autoComplete="name" />
         </Form.Item>
 
         <Form.Item
@@ -70,10 +68,7 @@ export default function RegisterPage() {
             { type: 'email', message: 'Email không hợp lệ' },
           ]}
         >
-          <div className="auth-input-wrap">
-            <MailOutlined />
-            <Input className="auth-input" placeholder="email@example.com" autoComplete="email" />
-          </div>
+          <AuthFieldInput icon={<MailOutlined />} placeholder="email@example.com" autoComplete="email" />
         </Form.Item>
 
         <Form.Item
@@ -84,10 +79,7 @@ export default function RegisterPage() {
             { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
           ]}
         >
-          <div className="auth-input-wrap">
-            <LockOutlined />
-            <Input.Password className="auth-input" placeholder="Tối thiểu 6 ký tự" autoComplete="new-password" />
-          </div>
+          <AuthFieldInput password icon={<LockOutlined />} placeholder="Tối thiểu 6 ký tự" autoComplete="new-password" />
         </Form.Item>
 
         <Form.Item
@@ -106,10 +98,7 @@ export default function RegisterPage() {
             }),
           ]}
         >
-          <div className="auth-input-wrap">
-            <LockOutlined />
-            <Input.Password className="auth-input" placeholder="Nhập lại mật khẩu" autoComplete="new-password" />
-          </div>
+          <AuthFieldInput password icon={<LockOutlined />} placeholder="Nhập lại mật khẩu" autoComplete="new-password" />
         </Form.Item>
 
         <button type="submit" className="auth-submit" disabled={loading}>

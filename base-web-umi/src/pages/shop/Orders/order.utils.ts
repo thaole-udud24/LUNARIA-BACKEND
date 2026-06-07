@@ -31,18 +31,11 @@ export const parseOrderDetail = (res: unknown): ApiOrder => {
 };
 
 export const mapApiStatusToUi = (status: string): OrderData['status'] => {
-  switch (status) {
-    case 'CONFIRMED':
-      return 'PROCESSING';
-    case 'PROCESSING':
-      return 'SHIPPING';
-    case 'PENDING':
-    case 'COMPLETED':
-    case 'CANCELLED':
-      return status;
-    default:
-      return 'PENDING';
+  const known: OrderData['status'][] = ['PENDING', 'CONFIRMED', 'PROCESSING', 'COMPLETED', 'CANCELLED'];
+  if (known.includes(status as OrderData['status'])) {
+    return status as OrderData['status'];
   }
+  return 'PENDING';
 };
 
 export const matchesOrderTab = (order: OrderData, tab: OrderStatus): boolean => {

@@ -152,6 +152,11 @@ export default [
         path: '/contact', 
         component: '@/pages/shop/Contact' 
       },
+      { path: '/policy/shipping', component: '@/pages/shop/Policy' },
+      { path: '/policy/return', component: '@/pages/shop/Policy' },
+      { path: '/policy/privacy', component: '@/pages/shop/Policy' },
+      { path: '/faq', component: '@/pages/shop/Policy' },
+      { path: '/loyalty', component: '@/pages/shop/Policy' },
       { 
         path: '/cart', 
         component: '@/pages/shop/Cart' 

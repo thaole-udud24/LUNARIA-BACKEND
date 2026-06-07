@@ -1,7 +1,10 @@
-import { useEffect } from 'react';
-import { Modal, Form, Input, Button, message } from 'antd';
-import type { SkinTypeType } from '@/types/catalog';
+import { useEffect, useState } from 'react';
+import { Form, Input, Row, Col, message } from 'antd';
 import { createSkinType, updateSkinType } from '@/services/LoaiDa/skin-types.api';
+import type { SkinTypeType } from '@/types/catalog';
+import { FormModal, FormSection } from '@/components/admin/FormModal';
+
+const { TextArea } = Input;
 
 interface Props {
   open: boolean;
@@ -13,6 +16,7 @@ interface Props {
 
 export default function SkinTypeModal({ open, mode, skinType, onClose, onSuccess }: Props) {
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -26,53 +30,74 @@ export default function SkinTypeModal({ open, mode, skinType, onClose, onSuccess
 
   const onFinish = async (values: any) => {
     try {
+      setLoading(true);
+      const skinTypeId = skinType?._id || skinType?.id;
+
       if (mode === 'create') {
         await createSkinType(values);
         message.success('Thêm loại da thành công!');
-      } else {
-        const id = (skinType as any)?._id || skinType?.id;
-        await updateSkinType(id, values);
+      } else if (skinTypeId) {
+        await updateSkinType(String(skinTypeId), values);
         message.success('Cập nhật loại da thành công!');
       }
       onSuccess();
     } catch (error: any) {
       const msg = error?.response?.data?.message;
-      message.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Có lỗi xảy ra');
+      message.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Có lỗi xảy ra khi lưu dữ liệu!');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Modal
-      title={
-        <div style={{ fontSize: 17, fontWeight: 800, color: '#1F2937' }}>
-          {mode === 'create' ? 'Thêm loại da' : 'Chỉnh sửa loại da'}
-        </div>
+    <FormModal
+      open={open}
+      mode={mode}
+      loading={loading}
+      title={mode === 'create' ? 'Thêm mới loại da' : 'Chỉnh sửa loại da'}
+      subtitle={
+        mode === 'create'
+          ? 'Điền thông tin để tạo loại da mới vào hệ thống'
+          : `Đang tiến hành chỉnh sửa: ${skinType?.name || ''}`
       }
-      visible={open}
       onCancel={onClose}
-      destroyOnClose
-      maskClosable={false}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <Button onClick={onClose}>Hủy</Button>
-          <Button type="primary" onClick={() => form.submit()}
-            style={{ background: '#FFA78A', border: 'none', fontWeight: 600 }}>
-            {mode === 'create' ? 'Tạo mới' : 'Lưu thay đổi'}
-          </Button>
-        </div>
-      }
+      onSubmit={() => form.submit()}
+      width={700}
     >
-      <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item name="code" label="Mã loại da" rules={[{ required: true, message: 'Vui lòng nhập mã!' }]}>
-          <Input placeholder="VD: DA_DAU" style={{ textTransform: 'uppercase' }} />
-        </Form.Item>
-        <Form.Item name="name" label="Tên loại da" rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}>
-          <Input placeholder="VD: Da dầu" />
-        </Form.Item>
-        <Form.Item name="description" label="Mô tả">
-          <Input.TextArea rows={3} placeholder="Mô tả loại da..." />
-        </Form.Item>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        onFinishFailed={() => message.warning('Vui lòng điền đầy đủ các trường bắt buộc!')}
+      >
+        <FormSection title="Thông tin cơ bản">
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="code"
+                label="Mã loại da"
+                rules={[{ required: true, message: 'Vui lòng nhập mã loại da!' }]}
+              >
+                <Input size="large" placeholder="VD: DA_DAU" style={{ textTransform: 'uppercase' }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="name"
+                label="Tên loại da"
+                rules={[{ required: true, message: 'Vui lòng nhập tên loại da!' }]}
+              >
+                <Input size="large" placeholder="VD: Da dầu" />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="description" label="Mô tả" className="mb-0">
+                <TextArea rows={4} placeholder="Mô tả chi tiết loại da..." />
+              </Form.Item>
+            </Col>
+          </Row>
+        </FormSection>
       </Form>
-    </Modal>
+    </FormModal>
   );
 }

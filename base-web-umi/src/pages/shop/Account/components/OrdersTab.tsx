@@ -22,18 +22,29 @@ import { resolveMongoId } from '../../Orders/order.utils';
 interface OrdersTabProps {
   orders: ApiOrder[];
   loading?: boolean;
+  loadingMore?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  ordersTotal?: number;
 }
 
 const FILTER_TABS: { key: OrderFilterKey; label: string }[] = [
   { key: 'ALL', label: 'Tất cả' },
   { key: 'PENDING', label: 'Chờ xác nhận' },
-  { key: 'PROCESSING', label: 'Đang xử lý' },
-  { key: 'SHIPPING', label: 'Đang giao' },
+  { key: 'CONFIRMED', label: 'Đã xác nhận' },
+  { key: 'PROCESSING', label: 'Đang giao' },
   { key: 'COMPLETED', label: 'Hoàn thành' },
   { key: 'CANCELLED', label: 'Đã hủy' },
 ];
 
-const OrdersTab: React.FC<OrdersTabProps> = ({ orders, loading }) => {
+const OrdersTab: React.FC<OrdersTabProps> = ({
+  orders,
+  loading,
+  loadingMore,
+  hasMore,
+  onLoadMore,
+  ordersTotal,
+}) => {
   const [filter, setFilter] = useState<OrderFilterKey>('ALL');
   const [reorderingId, setReorderingId] = useState<string | null>(null);
 
@@ -43,8 +54,8 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders, loading }) => {
     const counts: Record<OrderFilterKey, number> = {
       ALL: orders.length,
       PENDING: 0,
+      CONFIRMED: 0,
       PROCESSING: 0,
-      SHIPPING: 0,
       COMPLETED: 0,
       CANCELLED: 0,
     };
@@ -70,7 +81,7 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders, loading }) => {
         if (!productId) continue;
         await addToCart({
           productId,
-          variantName: item.variantName || 'Default',
+          variantName: item.variantName || item.variant || 'Mặc định',
           quantity: item.quantity,
         });
       }
@@ -89,9 +100,11 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders, loading }) => {
         <div>
           <h2>Đơn hàng của tôi</h2>
           <p>
-            {orders.length > 0
-              ? `Bạn có ${orders.length} đơn hàng`
-              : 'Theo dõi trạng thái đơn hàng tại Lunaria'}
+            {ordersTotal && ordersTotal > orders.length
+              ? `Hiển thị ${orders.length}/${ordersTotal} đơn hàng`
+              : orders.length > 0
+                ? `Bạn có ${orders.length} đơn hàng`
+                : 'Theo dõi trạng thái đơn hàng tại Lunaria'}
           </p>
         </div>
         {orders.length > 0 && (
@@ -197,6 +210,19 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders, loading }) => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {hasMore && onLoadMore && (
+        <div className="orders-load-more">
+          <button
+            type="button"
+            className="btn-outline"
+            onClick={onLoadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? <LoadingOutlined spin /> : 'Xem thêm đơn hàng'}
+          </button>
         </div>
       )}
     </div>

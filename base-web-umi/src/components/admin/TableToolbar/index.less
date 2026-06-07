@@ -1,10 +1,10 @@
-@primary-color: #FFA78A;
-@primary-hover: #F39A7D;
-@background: #FFF8F6;
-@surface: #FFFFFF;
-@text-primary: #1F2937;
-@text-secondary: #6B7280;
-@border: #F3E5DF;
+@primary-color: var(--admin-primary, #ffa78a);
+@primary-hover: var(--admin-primary-hover, #f39a7d);
+@background: var(--admin-bg-subtle, #fff8f6);
+@surface: var(--admin-surface, #ffffff);
+@text-primary: var(--admin-text-strong, #1f2937);
+@text-secondary: var(--admin-text-muted, #6b7280);
+@border: var(--admin-border-strong, #f3e5df);
 
 .toolbarWrapper {
   display: flex;
@@ -17,39 +17,24 @@
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-
   padding: 16px 20px;
-
   background: @background;
-
-  border: 1px solid rgba(255, 167, 138, 0.08);
-
+  border: 1px solid var(--admin-primary-soft, rgba(255, 167, 138, 0.08));
   border-radius: 20px;
-
-  box-shadow:
-    0 8px 24px rgba(255, 167, 138, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.03);
-
+  box-shadow: var(--admin-shadow-md, 0 8px 24px rgba(255, 167, 138, 0.08), 0 2px 8px rgba(0, 0, 0, 0.03));
   position: relative;
   overflow: hidden;
 
   &::before {
     content: '';
-
     position: absolute;
-
     top: -80px;
     right: -80px;
-
     width: 180px;
     height: 180px;
-
     border-radius: 50%;
-
-    background: rgba(255, 167, 138, 0.1);
-
+    background: var(--admin-primary-soft, rgba(255, 167, 138, 0.1));
     filter: blur(70px);
-
     pointer-events: none;
   }
 }
@@ -71,25 +56,16 @@
   position: relative;
   width: 40px;
   height: 40px;
-
   border: none;
-
   border-radius: 12px;
-
-  background: #fff;
-
+  background: var(--admin-input-bg, #fff);
   color: @text-secondary;
-
   font-size: 16px;
-
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-
+  box-shadow: var(--admin-shadow-sm, 0 4px 12px rgba(0, 0, 0, 0.05));
   transition: all 0.25s ease;
 
   svg {
@@ -98,11 +74,8 @@
 
   &:hover {
     color: @primary-color;
-
     transform: translateY(-2px);
-
-    box-shadow:
-      0 8px 18px rgba(255, 167, 138, 0.15);
+    box-shadow: 0 8px 18px rgba(255, 167, 138, 0.15);
 
     svg {
       transform: scale(1.1);
@@ -112,8 +85,8 @@
 
 .iconBtnActive {
   color: @primary-color;
-  background: rgba(255, 167, 138, 0.12);
-  box-shadow: 0 0 0 2px rgba(255, 167, 138, 0.25);
+  background: var(--admin-primary-soft, rgba(255, 167, 138, 0.12));
+  box-shadow: 0 0 0 2px var(--admin-primary-ring, rgba(255, 167, 138, 0.25));
 }
 
 .filterBadge {
@@ -124,7 +97,7 @@
   height: 8px;
   border-radius: 50%;
   background: @primary-color;
-  border: 2px solid #fff;
+  border: 2px solid var(--admin-surface, #fff);
 }
 
 .toolbarContainerExpanded {
@@ -140,7 +113,7 @@
   border: 1px solid @border;
   border-top: none;
   border-radius: 0 0 20px 20px;
-  box-shadow: 0 8px 20px rgba(255, 167, 138, 0.08);
+  box-shadow: var(--admin-shadow-md, 0 8px 20px rgba(255, 167, 138, 0.08));
   animation: filterSlideDown 0.25s ease;
 }
 
@@ -158,86 +131,58 @@
 .refreshBtn {
   width: 40px;
   height: 40px;
-
   border: none;
-
   border-radius: 12px;
-
-  background: #fff;
-
+  background: var(--admin-input-bg, #fff);
   color: @text-secondary;
-
   font-size: 16px;
-
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-
+  box-shadow: var(--admin-shadow-sm, 0 4px 12px rgba(0, 0, 0, 0.05));
   transition: all 0.25s ease;
 
   &:hover {
     color: @primary-color;
-
     transform: translateY(-2px);
-
-    box-shadow:
-      0 8px 18px rgba(255, 167, 138, 0.15);
+    box-shadow: 0 8px 18px rgba(255, 167, 138, 0.15);
   }
 }
 
 .searchInput {
   flex: 1;
-
   display: flex;
   align-items: center;
-
   min-width: 260px;
-
   height: 42px;
-
   padding: 0 14px;
-
   border-radius: 14px;
-
-  background: #fff;
-
+  background: var(--admin-input-bg, #fff);
   border: 1px solid @border;
-
   transition: all 0.25s ease;
 
   &:focus-within {
     border-color: @primary-color;
-
-    box-shadow:
-      0 0 0 3px rgba(255, 167, 138, 0.12);
+    box-shadow: 0 0 0 3px var(--admin-primary-soft, rgba(255, 167, 138, 0.12));
   }
 
   .searchIcon {
     color: @primary-color;
-
     font-size: 15px;
-
     margin-right: 8px;
   }
 
   input {
     flex: 1;
-
     border: none;
     outline: none;
-
     background: transparent;
-
     color: @text-primary;
-
     font-size: 13px;
 
     &::placeholder {
-      color: #9CA3AF;
+      color: var(--admin-text-subtle, #9ca3af);
     }
   }
 }
@@ -246,11 +191,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-
   margin-left: 4px;
-
   color: @text-secondary;
-
   font-size: 13px;
   font-weight: 500;
 
@@ -273,33 +215,23 @@
 .divider {
   width: 1px;
   height: 28px;
-
   background: @border;
 }
 
 .outlineBtn {
   height: 42px;
-
   padding: 0 18px;
-
   border-radius: 14px;
-
-  border: 1px solid #f4d6cc;
-
-  background: #fff;
-
+  border: 1px solid var(--admin-border-strong, #f4d6cc);
+  background: var(--admin-input-bg, #fff);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
   color: @text-secondary;
-
   font-size: 13px;
   font-weight: 600;
-
   cursor: pointer;
-
   transition: all 0.25s ease;
 
   svg {
@@ -308,45 +240,27 @@
 
   &:hover {
     border-color: @primary-color;
-
     color: @primary-color;
-
     transform: translateY(-2px);
   }
 }
 
 .secondaryBtn {
   height: 42px;
-
   padding: 0 18px;
-
   min-width: 140px;
-
   border: none;
-
   border-radius: 14px;
-
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
-  background: linear-gradient(
-    135deg,
-    #ff8b72 0%,
-    #f96f86 100%
-  );
-
+  background: linear-gradient(135deg, #ff8b72 0%, #f96f86 100%);
   color: #fff;
-
   font-size: 13px;
   font-weight: 600;
-
   cursor: pointer;
-
-  box-shadow:
-    0 8px 18px rgba(249, 111, 134, 0.18);
-
+  box-shadow: 0 8px 18px rgba(249, 111, 134, 0.18);
   transition: all 0.25s ease;
 
   svg {
@@ -355,47 +269,27 @@
 
   &:hover {
     transform: translateY(-2px);
-
-    box-shadow:
-      0 12px 24px rgba(249, 111, 134, 0.25);
+    box-shadow: 0 12px 24px rgba(249, 111, 134, 0.25);
   }
 }
 
 .primaryBtn {
   position: relative;
-
   height: 42px;
-
   min-width: 140px;
-
   padding: 0 18px;
-
   border: none;
-
   border-radius: 14px;
-
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
   color: #fff;
-
   font-size: 13px;
   font-weight: 600;
-
   cursor: pointer;
-
-  background: linear-gradient(
-    135deg,
-    #ff916d 0%,
-    #ff7d83 55%,
-    #ff6d9f 100%
-  );
-
-  box-shadow:
-    0 8px 18px rgba(255, 122, 122, 0.2);
-
+  background: linear-gradient(135deg, @primary-color 0%, @primary-hover 55%, #ff6d9f 100%);
+  box-shadow: 0 8px 18px rgba(255, 122, 122, 0.2);
   transition: all 0.25s ease;
 
   svg {
@@ -404,9 +298,7 @@
 
   &:hover {
     transform: translateY(-2px);
-
-    box-shadow:
-      0 12px 24px rgba(255, 122, 122, 0.3);
+    box-shadow: 0 12px 24px rgba(255, 122, 122, 0.3);
   }
 }
 

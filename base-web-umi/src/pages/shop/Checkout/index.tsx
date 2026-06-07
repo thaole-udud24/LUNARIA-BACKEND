@@ -24,12 +24,12 @@ import {
   calcPromotionSaving,
   calcSubtotal,
   calcTotal,
-  CHECKOUT_SHIPPING_FEE,
   clearCheckoutMeta,
   hasFlashSaleItems,
   normalizeOrderResponse,
   parseCheckoutMeta,
 } from './utils';
+import { calcShippingFee } from '@/constants/shipping';
 import {
   formatPhoneDisplay,
   normalizePhoneDigits,
@@ -86,7 +86,7 @@ const Checkout: React.FC = () => {
   const summaryItems = useMemo(() => buildSummaryItems(items), [items]);
   const subtotal = useMemo(() => calcSubtotal(items), [items]);
   const promotionSaving = useMemo(() => calcPromotionSaving(summaryItems), [summaryItems]);
-  const shippingFee = CHECKOUT_SHIPPING_FEE;
+  const shippingFee = useMemo(() => calcShippingFee(subtotal), [subtotal]);
   const total = useMemo(
     () => calcTotal(subtotal, shippingFee, discount),
     [subtotal, shippingFee, discount],

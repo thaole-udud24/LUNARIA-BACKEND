@@ -1,10 +1,10 @@
-@primary-color: #FFA78A;
-@primary-hover: #f39a7d;
-@primary-light: rgba(255, 167, 138, 0.15);
-@border-color: #f1f5f9;
-@bg-section: #ffffff;
-@text-main: #0f172a;
-@text-muted: #64748b;
+@primary-color: var(--admin-primary, #ffa78a);
+@primary-hover: var(--admin-primary-hover, #f39a7d);
+@primary-light: var(--admin-primary-soft, rgba(255, 167, 138, 0.15));
+@border-color: var(--admin-input-border, #f1f5f9);
+@bg-section: var(--admin-surface, #ffffff);
+@text-main: var(--admin-text-strong, #0f172a);
+@text-muted: var(--admin-text-muted, #64748b);
 
 // 🌀 Định nghĩa các hàm chuyển động vật lý chuẩn Enterprise
 @spring-easing: cubic-bezier(0.34, 1.56, 0.64, 1); // Hiệu ứng nảy nhẹ chuyển động mượt
@@ -38,18 +38,18 @@
   :global {
     // 1. Hiệu ứng làm mờ nền (Mask Layer)
     .ant-modal-mask {
-      background: rgba(15, 23, 42, 0.3) !important;
+      background: var(--admin-modal-mask, rgba(15, 23, 42, 0.3)) !important;
       animation: maskFadeIn 0.4s @fluid-easing forwards !important;
     }
 
     // 2. Khung nội dung chính Modal
     .ant-modal-content {
       padding: 0;
-      border-radius: 24px; // Bo góc mạnh mẽ, trẻ trung
+      border-radius: 24px;
       overflow: hidden;
-      box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.16);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      animation: modalEntrance 0.5s @spring-easing forwards !important; // Bật lên dạng lò xo nhẹ
+      box-shadow: var(--admin-shadow-lg, 0 30px 60px -15px rgba(15, 23, 42, 0.16));
+      border: 1px solid var(--admin-border, rgba(255, 255, 255, 0.7));
+      animation: modalEntrance 0.5s @spring-easing forwards !important;
     }
     
     // Nút Close góc phải
@@ -60,9 +60,9 @@
       transition: all 0.3s @fluid-easing;
       
       &:hover {
-        color: #ef4444;
-        background-color: #fef2f2;
-        transform: rotate(90deg); // Xoay nhẹ tinh tế khi di chuột vào
+        color: var(--admin-danger, #ef4444);
+        background-color: var(--admin-danger-soft, #fef2f2);
+        transform: rotate(90deg);
         border-radius: 50%;
       }
     }
@@ -73,7 +73,7 @@
       max-height: calc(100vh - 240px);
       overflow-y: auto;
       overflow-x: hidden;
-      background-color: #f8fafc;
+      background-color: var(--admin-modal-body, #f8fafc);
       
       &::-webkit-scrollbar {
         width: 6px;
@@ -82,11 +82,11 @@
         background: transparent;
       }
       &::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: var(--admin-scrollbar, #cbd5e1);
         border-radius: 10px;
         transition: all 0.3s;
         &:hover {
-          background: #94a3b8;
+          background: var(--admin-text-subtle, #94a3b8);
         }
       }
     }
@@ -95,15 +95,16 @@
     .ant-form-item-label > label {
       font-size: 13.5px;
       font-weight: 600;
-      color: #334155;
+      color: var(--admin-text, #334155);
     }
 
     .ant-input,
     .ant-input-number,
     .ant-select-selector {
-      border-radius: 12px !important; // Bo góc form items đồng bộ
-      border-color: #e2e8f0 !important;
-      background: #ffffff !important;
+      border-radius: 12px !important;
+      border-color: @border-color !important;
+      background: var(--admin-input-bg, #ffffff) !important;
+      color: var(--admin-text, #334155) !important;
       transition: all 0.25s @fluid-easing !important;
       
       &:hover {
@@ -164,7 +165,7 @@
 /* SECTION CHUYỂN ĐỘNG THEO LỚP */
 .section {
   background: @bg-section;
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid var(--admin-border, rgba(226, 232, 240, 0.8));
   border-radius: 20px;
   padding: 28px;
   margin-bottom: 24px;
@@ -185,7 +186,7 @@
   .sectionHeader {
     margin-bottom: 24px;
     padding-bottom: 14px;
-    border-bottom: 1px dashed #f1f5f9;
+    border-bottom: 1px dashed var(--admin-border, #f1f5f9);
     
     .sectionTitle {
       font-size: 13.5px;
@@ -215,21 +216,21 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 20px 36px;
-  background: #ffffff;
+  background: var(--admin-surface, #ffffff);
 
   .btnCancel {
     border-radius: 12px;
     height: 46px;
     min-width: 110px;
     font-weight: 600;
-    color: #475569;
-    border-color: #cbd5e1;
+    color: var(--admin-text-muted, #475569);
+    border-color: var(--admin-input-border, #cbd5e1);
     transition: all 0.2s ease;
-    
+
     &:hover {
       color: @text-main;
-      border-color: #94a3b8;
-      background: #f8fafc;
+      border-color: var(--admin-text-subtle, #94a3b8);
+      background: var(--admin-modal-body, #f8fafc);
       transform: translateY(-1px);
     }
     &:active { transform: translateY(0); }

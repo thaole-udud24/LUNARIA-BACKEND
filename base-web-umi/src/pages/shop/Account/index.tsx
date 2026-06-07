@@ -12,6 +12,7 @@ import PasswordTab from './components/PasswordTab';
 import AccountSkeleton from './components/AccountSkeleton';
 import useAccount from '@/hooks/useAccount';
 import { ACCOUNT_TABS, AccountTabType, buildVoucherViews } from './account.utils';
+import { AUTH_SESSION_EVENT } from '@/pages/auth/auth.utils';
 import './index.less';
 
 const Account: React.FC = () => {
@@ -26,12 +27,16 @@ const Account: React.FC = () => {
     addresses,
     orders,
     ordersLoading,
+    ordersLoadingMore,
+    hasMoreOrders,
+    loadMoreOrders,
+    ordersTotal,
     savedVouchers,
-    setSavedVouchers,
     savingProfile,
     refresh,
     fetchOrders,
     saveProfile,
+    saveVoucher,
     handleSetDefaultAddress,
     handleDeleteAddress,
     handleSaveAddress,
@@ -72,6 +77,8 @@ const Account: React.FC = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('user');
+    localStorage.removeItem('refreshToken');
+    window.dispatchEvent(new CustomEvent(AUTH_SESSION_EVENT));
     message.success('Đã đăng xuất thành công');
     history.push('/home');
   };
@@ -84,10 +91,24 @@ const Account: React.FC = () => {
         return <DashboardTab orders={orders} savedVouchers={savedVouchers} />;
       case 'PROFILE':
         return (
-          <ProfileTab profile={profile} saving={savingProfile} onSave={saveProfile} />
+          <ProfileTab
+            profile={profile}
+            saving={savingProfile}
+            onSave={saveProfile}
+            onAvatarUploaded={refresh}
+          />
         );
       case 'ORDERS':
-        return <OrdersTab orders={orders} loading={ordersLoading} />;
+        return (
+          <OrdersTab
+            orders={orders}
+            loading={ordersLoading}
+            loadingMore={ordersLoadingMore}
+            hasMore={hasMoreOrders}
+            onLoadMore={loadMoreOrders}
+            ordersTotal={ordersTotal}
+          />
+        );
       case 'ADDRESSES':
         return (
           <AddressTab
@@ -102,11 +123,11 @@ const Account: React.FC = () => {
           <VouchersTab
             orders={orders}
             savedVouchers={savedVouchers}
-            onVouchersChange={setSavedVouchers}
+            onSaveVoucher={saveVoucher}
           />
         );
       case 'CHANGE_PASSWORD':
-        return <PasswordTab email={profile.email} />;
+        return <PasswordTab />;
       default:
         return null;
     }

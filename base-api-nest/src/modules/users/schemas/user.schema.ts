@@ -22,6 +22,9 @@ export class User {
   @Prop({ default: false })
   isEmailVerified!: boolean;
 
+  @Prop({ enum: ['active', 'blocked'], default: 'active' })
+  status!: 'active' | 'blocked';
+
   // Khai báo method cho TS
   comparePassword!: (password: string) => Promise<boolean>;
 }

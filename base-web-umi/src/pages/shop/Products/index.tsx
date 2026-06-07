@@ -56,7 +56,19 @@ const Products: React.FC = () => {
     const params = new URLSearchParams(location.search);
     const q = params.get('q') || '';
     setSearchKeyword(q);
-  }, [location.search]);
+
+    const tab = params.get('tab');
+    if (tab) {
+      const match = dynamicCategories.find(
+        (c) =>
+          (c.name || c.title || '').toLowerCase() === tab.toLowerCase() ||
+          (c.slug || c.code || '').toLowerCase() === tab.toLowerCase(),
+      );
+      if (match) {
+        setSelectedCategories([(match.name || match.title || tab).toLowerCase()]);
+      }
+    }
+  }, [location.search, dynamicCategories]);
 
   const handleReload = () => {
     setReloadKey((k) => k + 1);

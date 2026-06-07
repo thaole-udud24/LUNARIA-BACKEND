@@ -12,6 +12,8 @@ import { VoucherUsage, VoucherUsageDocument } from '../vouchers/schemas/voucher-
 import { PromotionsService } from '../promotions/promotions.service';
 import { ExcelBaseService } from 'src/shared/csv/excel.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { UsersService } from '../users/users.service';
+import { calcShippingFee } from 'src/common/constants/shipping.constant';
 
 @Injectable()
 export class OrdersService {
@@ -25,6 +27,7 @@ export class OrdersService {
     private readonly promotionsService: PromotionsService,
     private readonly excelService: ExcelBaseService,
     private readonly notificationsService: NotificationsService,
+    private readonly usersService: UsersService,
   ) {}
 
   async checkout(userId: string, checkoutDto: CheckoutDto) {
@@ -76,7 +79,7 @@ export class OrdersService {
 
       let discountAmount = 0;
       let appliedVoucherCode: string | null = null;
-      const shippingFee = 40000;
+      const shippingFee = calcShippingFee(cartTotal);
 
       if (checkoutDto.voucherCode) {
         const productIds = cart.items.map(item => item.productId.toString());
@@ -334,6 +337,19 @@ export class OrdersService {
         message: `Đơn hàng${productHint} đã được tạo. Vui lòng hoàn tất thanh toán trong 15 phút để LURANA xử lý đơn của bạn.`,
         actionLink: `/orderdetail?id=${order._id.toString()}`,
       });
+
+      const adminIds = await this.usersService.findAdminUserIdsForNotification('newOrderAlerts');
+      if (adminIds.length) {
+        const customerName = order.shippingAddress?.fullName || 'Khách hàng';
+        await this.notificationsService.notifyAdminsOrderEvent({
+          adminUserIds: adminIds,
+          orderId: order._id.toString(),
+          orderCode: order.orderCode,
+          title: `Đơn mới #${order.orderCode} cần xử lý`,
+          message: `${customerName} vừa đặt đơn ${new Intl.NumberFormat('vi-VN').format(order.totalAmount || 0)}đ. Trạng thái: Chờ xác nhận.`,
+          actionLink: `/admin/orders/${order._id.toString()}`,
+        });
+      }
     } catch (error) {
       console.error('[Orders] Tạo thông báo đặt hàng thất bại:', error);
     }
@@ -366,6 +382,20 @@ export class OrdersService {
           : 'Đơn hàng của bạn đã bị hủy. Liên hệ LURANA nếu bạn cần hỗ trợ thêm.',
         actionLink: `/account?tab=ORDERS`,
       });
+
+      const adminIds = await this.usersService.findAdminUserIdsForNotification('cancelOrderAlerts');
+      if (adminIds.length) {
+        await this.notificationsService.notifyAdminsOrderEvent({
+          adminUserIds: adminIds,
+          orderId: order._id.toString(),
+          orderCode: order.orderCode,
+          title: `Đơn #${order.orderCode} đã hủy`,
+          message: reason
+            ? `Đơn hàng đã bị hủy. Lý do: ${reason}`
+            : 'Một đơn hàng vừa được hủy trên hệ thống.',
+          actionLink: `/admin/orders/${order._id.toString()}`,
+        });
+      }
     } catch (error) {
       console.error('[Orders] Tạo thông báo hủy đơn thất bại:', error);
     }

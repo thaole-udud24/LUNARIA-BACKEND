@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsString()
@@ -15,9 +15,17 @@ export class UpdateProfileDto {
 
   @IsString()
   @IsOptional()
-  bio?: string; // ✅ Đón dữ liệu tiểu sử
+  banner_url?: string;
 
   @IsString()
   @IsOptional()
-  phone?: string; // ✅ Đón số điện thoại trực tiếp từ Form Settings
+  bio?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsOptional()
+  @IsDateString()
+  date_of_birth?: string;
 }

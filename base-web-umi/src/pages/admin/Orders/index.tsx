@@ -221,16 +221,6 @@ export default function AdminOrders() {
         </Col>
       </Row>
 
-      <div className={styles.filterRow}>
-        <Select
-          value={statusFilter}
-          onChange={(val) => { setStatusFilter(val); setPage(1); }}
-          options={STATUS_OPTIONS}
-          style={{ minWidth: 200 }}
-          placeholder="Lọc trạng thái"
-        />
-      </div>
-
       <TableToolbar
         total={total}
         searchValue={search}
@@ -240,6 +230,19 @@ export default function AdminOrders() {
         onRefresh={() => { fetchOrders(true); fetchKpi(); }}
         loading={loading}
         onExport={() => setExportModalVisible(true)}
+        filterActiveCount={statusFilter ? 1 : 0}
+        filterContent={
+          <div className={styles.extendedFilters}>
+            <label className={styles.filterLabel}>Trạng thái đơn</label>
+            <Select
+              value={statusFilter}
+              onChange={(val) => { setStatusFilter(val); setPage(1); }}
+              options={STATUS_OPTIONS}
+              style={{ minWidth: 220 }}
+              placeholder="Tất cả trạng thái"
+            />
+          </div>
+        }
       />
 
       <OrderTable

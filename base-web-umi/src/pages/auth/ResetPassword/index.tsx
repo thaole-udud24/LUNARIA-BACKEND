@@ -4,6 +4,7 @@ import { Form, Input, message } from 'antd';
 import { LockOutlined, LoadingOutlined } from '@ant-design/icons';
 import { resetPassword } from '@/services/TaiKhoan/auth.api';
 import AuthShell from '../components/AuthShell';
+import AuthFieldInput from '../components/AuthFieldInput';
 import { extractAuthError, parseApiData } from '../auth.utils';
 
 export default function ResetPasswordPage() {
@@ -24,7 +25,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
     try {
       const res = await resetPassword({
-        email,
+        email: email.trim(),
         code,
         newPassword: values.newPassword,
         confirmNewPassword: values.confirmNewPassword,
@@ -60,10 +61,7 @@ export default function ResetPasswordPage() {
             { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
           ]}
         >
-          <div className="auth-input-wrap">
-            <LockOutlined />
-            <Input.Password className="auth-input" placeholder="Tối thiểu 6 ký tự" autoComplete="new-password" />
-          </div>
+          <AuthFieldInput password icon={<LockOutlined />} placeholder="Tối thiểu 6 ký tự" autoComplete="new-password" />
         </Form.Item>
 
         <Form.Item
@@ -82,10 +80,7 @@ export default function ResetPasswordPage() {
             }),
           ]}
         >
-          <div className="auth-input-wrap">
-            <LockOutlined />
-            <Input.Password className="auth-input" placeholder="Nhập lại mật khẩu" autoComplete="new-password" />
-          </div>
+          <AuthFieldInput password icon={<LockOutlined />} placeholder="Nhập lại mật khẩu" autoComplete="new-password" />
         </Form.Item>
 
         <button type="submit" className="auth-submit" disabled={loading}>

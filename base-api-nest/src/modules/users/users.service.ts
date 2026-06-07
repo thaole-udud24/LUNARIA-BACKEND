@@ -11,6 +11,7 @@ import { UpdatePhoneDto } from './dto/update-phone.dto';
 import { AddAddressDto } from './dto/add-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
+import { SaveVoucherDto } from './dto/save-voucher.dto';
 import { UserProfile, UserProfileDocument } from './schemas/user-profile.schema';
 import { UserPhone, UserPhoneDocument } from './schemas/user-phone.schema';
 import { UserAddress, UserAddressDocument } from './schemas/user-address.schema';
@@ -47,6 +48,11 @@ export class UsersService {
     return new Types.ObjectId(id);
   }
 
+  /** Địa chỉ chưa xóa mềm — schema default deleted_at: null nên phải dùng null, không dùng $exists: false */
+  private activeAddressFilter(userId: Types.ObjectId, extra: Record<string, unknown> = {}) {
+    return { user_id: userId, deleted_at: null, ...extra };
+  }
+
   // ================= PROFILE (LẤY & CẬP NHẬT THÔNG TIN CÁ NHÂN) =================
   
   // ✅ FIX: HÀM NÀY SẼ LẤY FULL DATA TỪ 4 BẢNG ĐỂ FRONTEND HIỂN THỊ ĐỦ EMAIL, ROLE, NGÀY TẠO
@@ -57,12 +63,20 @@ export class UsersService {
       this.userModel.findById(objectId).select('-password').exec(), // Lấy tài khoản gốc (Email, Role, CreatedAt)
       this.userProfileModel.findOne({ user_id: objectId }).exec(),   // Lấy Bio, Avatar, Banner
       this.userPhoneModel.find({ user_id: objectId, status: 'active' }).exec(),
-      this.userAddressModel.find({ user_id: objectId, status: 'active', deleted_at: { $exists: false } }).exec(),
+      this.userAddressModel
+        .find(this.activeAddressFilter(objectId, { status: 'active' }))
+        .exec(),
     ]);
 
     if (!user) throw new NotFoundException('Không tìm thấy tài khoản người dùng');
 
-    return { account: user, profile, phones, addresses };
+    return {
+      account: user,
+      profile,
+      phones,
+      addresses,
+      savedVouchers: profile?.saved_vouchers || [],
+    };
   }
 
   async updateProfile(userId: string, dto: any) {
@@ -74,7 +88,10 @@ export class UsersService {
     if (dto.avatar_url !== undefined) payload.avatar_url = dto.avatar_url;
     if (dto.banner_url !== undefined) payload.banner_url = dto.banner_url; 
     if (dto.bio !== undefined) payload.bio = dto.bio; 
-    if (dto.phone !== undefined) payload.phone = dto.phone; 
+    if (dto.phone !== undefined) payload.phone = dto.phone;
+    if (dto.date_of_birth !== undefined) {
+      payload.date_of_birth = dto.date_of_birth ? new Date(dto.date_of_birth) : null;
+    }
 
     return this.userProfileModel
       .findOneAndUpdate({ user_id: objectId }, { $set: payload }, { new: true, upsert: true })
@@ -136,6 +153,34 @@ export class UsersService {
       .exec();
 
     return this.normalizePreferences(profile);
+  }
+
+  async findAdminUserIdsForNotification(
+    prefKey: 'newOrderAlerts' | 'cancelOrderAlerts',
+  ): Promise<string[]> {
+    const admins = await this.userModel
+      .find({ roles: { $in: ['ADMIN'] }, status: { $ne: 'blocked' } })
+      .select('_id')
+      .lean()
+      .exec();
+
+    if (!admins.length) return [];
+
+    const adminIds = admins.map((a) => a._id);
+    const profiles = await this.userProfileModel
+      .find({ user_id: { $in: adminIds } })
+      .lean()
+      .exec();
+
+    const profileMap = new Map(profiles.map((p) => [p.user_id.toString(), p]));
+
+    return admins
+      .filter((admin) => {
+        const profile = profileMap.get(admin._id.toString()) ?? null;
+        const prefs = this.normalizePreferences(profile as UserProfileDocument | null);
+        return prefs.notification_prefs[prefKey] !== false;
+      })
+      .map((admin) => admin._id.toString());
   }
 
   // ================= ADMIN: QUẢN LÝ KHÁCH HÀNG =================
@@ -513,10 +558,7 @@ export class UsersService {
     const objectId = this.toObjectId(userId);
     if (dto.is_default === true) {
       await this.userAddressModel
-        .updateMany(
-          { user_id: objectId, deleted_at: { $exists: false } },
-          { $set: { is_default: false } },
-        )
+        .updateMany(this.activeAddressFilter(objectId), { $set: { is_default: false } })
         .exec();
     }
     const address = await this.userAddressModel.create({
@@ -535,15 +577,13 @@ export class UsersService {
   async updateAddress(userId: string, addressId: string, dto: UpdateAddressDto) {
     const objectId = this.toObjectId(userId);
     const addressObjectId = this.toObjectId(addressId);
-    const address = await this.userAddressModel.findOne({
-      _id: addressObjectId,
-      user_id: objectId,
-      deleted_at: null,
-    });
+    const address = await this.userAddressModel.findOne(
+      this.activeAddressFilter(objectId, { _id: addressObjectId }),
+    );
     if (!address) throw new NotFoundException('Không tìm thấy address');
     if (dto.is_default === true) {
       await this.userAddressModel.updateMany(
-        { user_id: objectId, deleted_at: null },
+        this.activeAddressFilter(objectId),
         { $set: { is_default: false } },
       );
     }
@@ -567,15 +607,13 @@ export class UsersService {
   async setDefaultAddress(userId: string, addressId: string) {
     const objectId = this.toObjectId(userId);
     const addressObjectId = this.toObjectId(addressId);
-    const address = await this.userAddressModel.findOne({
-      _id: addressObjectId,
-      user_id: objectId,
-      deleted_at: null,
-    });
+    const address = await this.userAddressModel.findOne(
+      this.activeAddressFilter(objectId, { _id: addressObjectId }),
+    );
     if (!address) throw new NotFoundException('Không tìm thấy address');
     if (address.is_default) return address;
     await this.userAddressModel.updateMany(
-      { user_id: objectId, deleted_at: null },
+      this.activeAddressFilter(objectId),
       { $set: { is_default: false } },
     );
     address.is_default = true;
@@ -591,7 +629,7 @@ export class UsersService {
     const objectId = this.toObjectId(userId);
     const addressObjectId = this.toObjectId(addressId);
     const address = await this.userAddressModel
-      .findOne({ _id: addressObjectId, user_id: objectId, deleted_at: { $exists: false } })
+      .findOne(this.activeAddressFilter(objectId, { _id: addressObjectId }))
       .exec();
     if (!address) throw new NotFoundException('Không tìm thấy address');
     await this.userAddressModel
@@ -601,7 +639,7 @@ export class UsersService {
       )
       .exec();
     const remaining = await this.userAddressModel
-      .find({ user_id: objectId, status: 'active', deleted_at: { $exists: false } })
+      .find(this.activeAddressFilter(objectId, { status: 'active' }))
       .exec();
     if (remaining.length === 0) {
       await this.userProfileModel
@@ -620,5 +658,64 @@ export class UsersService {
         .exec();
     }
     return { message: 'Đã xóa address' };
+  }
+
+  // ================= SAVED VOUCHERS (VÍ VOUCHER KHÁCH HÀNG) =================
+
+  async addSavedVoucher(userId: string, dto: SaveVoucherDto) {
+    const objectId = this.toObjectId(userId);
+    const code = dto.code.trim().toUpperCase();
+    const entry = {
+      code,
+      name: dto.name || `Voucher ${code}`,
+      discount_amount: dto.discount_amount ?? 0,
+      expires_at: dto.expires_at ? new Date(dto.expires_at) : null,
+      min_order: dto.min_order ?? 0,
+      saved_at: new Date(),
+    };
+
+    const profile = await this.userProfileModel.findOne({ user_id: objectId }).exec();
+    const list = [...(profile?.saved_vouchers || [])];
+    const idx = list.findIndex((v) => v.code === code);
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...entry };
+    } else {
+      list.unshift(entry);
+    }
+
+    const updated = await this.userProfileModel
+      .findOneAndUpdate(
+        { user_id: objectId },
+        { $set: { saved_vouchers: list } },
+        { new: true, upsert: true },
+      )
+      .exec();
+
+    return updated?.saved_vouchers || list;
+  }
+
+  async removeSavedVoucher(userId: string, code: string) {
+    const objectId = this.toObjectId(userId);
+    const normalized = code.trim().toUpperCase();
+    const profile = await this.userProfileModel.findOne({ user_id: objectId }).exec();
+    if (!profile) throw new NotFoundException('Không tìm thấy hồ sơ');
+
+    const list = (profile.saved_vouchers || []).filter((v) => v.code !== normalized);
+    await this.userProfileModel
+      .updateOne({ user_id: objectId }, { $set: { saved_vouchers: list } })
+      .exec();
+
+    return { message: 'Đã xóa voucher khỏi ví' };
+  }
+
+  async updateAvatarUrl(userId: string, avatarUrl: string) {
+    const objectId = this.toObjectId(userId);
+    return this.userProfileModel
+      .findOneAndUpdate(
+        { user_id: objectId },
+        { $set: { avatar_url: avatarUrl } },
+        { new: true, upsert: true },
+      )
+      .exec();
   }
 }

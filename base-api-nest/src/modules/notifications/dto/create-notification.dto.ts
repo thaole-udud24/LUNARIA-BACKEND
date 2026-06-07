@@ -1,9 +1,16 @@
 import { IsEnum, IsMongoId, IsOptional, IsString, MaxLength } from 'class-validator';
-import { NotificationCategory } from 'src/common/constants/notification.constant';
+import {
+  NotificationAudience,
+  NotificationCategory,
+} from 'src/common/constants/notification.constant';
 
 export class CreateNotificationDto {
   @IsMongoId()
   userId!: string;
+
+  @IsOptional()
+  @IsEnum(NotificationAudience)
+  audience?: NotificationAudience;
 
   @IsEnum(NotificationCategory)
   category!: NotificationCategory;

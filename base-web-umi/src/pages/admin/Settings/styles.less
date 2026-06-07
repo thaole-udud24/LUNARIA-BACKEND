@@ -116,6 +116,7 @@
   width: 100%;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   position: relative;
   
   &::after {
@@ -124,6 +125,10 @@
     inset: 0;
     background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%);
   }
+}
+
+.bannerZoneDefault {
+  background: linear-gradient(135deg, #ffd4c4 0%, #ffb4a2 45%, #ff9a8b 100%);
 }
 
 .editBannerBtn {
@@ -290,17 +295,124 @@
   }
 }
 
+// ================= THEME PICKER =================
+
+.themeSectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--admin-text-strong, @text-primary);
+  margin-bottom: 24px;
+}
+
+.themeSubTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--admin-text-strong, @text-primary);
+  margin-bottom: 16px;
+}
+
+.themeOption {
+  border: 1px solid var(--admin-border-strong, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  text-align: center;
+  background: var(--admin-bg-subtle, #fafafa);
+  color: var(--admin-text, @text-primary);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--admin-primary, @primary);
+  }
+}
+
+.themeOptionActive {
+  border: 2px solid var(--admin-primary, @primary) !important;
+  background: var(--admin-primary-soft, rgba(255, 167, 138, 0.12)) !important;
+}
+
+.themePreviewLight {
+  height: 60px;
+  background: #ffffff;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.themePreviewDark {
+  height: 60px;
+  background: #18181b;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.themePreviewSystem {
+  height: 60px;
+  background: linear-gradient(90deg, #fff 50%, #18181b 50%);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.localeList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.localeOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--admin-border-strong, #e5e7eb);
+  border-radius: 12px;
+  background: var(--admin-surface, @surface);
+  color: var(--admin-text, @text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--admin-primary, @primary);
+  }
+}
+
+.localeOptionActive {
+  border-color: var(--admin-primary, @primary) !important;
+  background: var(--admin-primary-soft, rgba(255, 167, 138, 0.12)) !important;
+}
+
+.typographyToggle {
+  display: flex;
+  background: var(--admin-bg-subtle, #fafafa);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border-strong, #e5e7eb);
+  width: max-content;
+}
+
+.typographyBtn {
+  border-radius: 6px !important;
+}
+
+.typographyBtnActive {
+  background: var(--admin-primary, @primary) !important;
+  border-color: var(--admin-primary, @primary) !important;
+  color: #fff !important;
+}
+
 // ================= RESPONSIVE (MOBILE OPTIMIZATION) =================
 
 @media (max-width: 992px) {
   .topBar { flex-direction: column; align-items: flex-start; gap: 16px; }
   .pageTitle { font-size: 28px; }
   .bannerZone { height: 200px; }
-  .fbProfileInfo { 
-    flex-direction: column; 
-    align-items: center; 
-    text-align: center; 
-    margin-top: -75px; 
+  .fbProfileInfo {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: -75px;
     padding: 0 16px;
   }
   .fbMetaData { margin-bottom: 0; }
@@ -327,6 +439,19 @@
     .btnCancel,
     :global(.ant-btn-primary) {
       width: 100%;
+    }
+  }
+
+  .themeOption {
+    padding: 12px;
+  }
+
+  .typographyToggle {
+    width: 100%;
+    justify-content: stretch;
+
+    .typographyBtn {
+      flex: 1;
     }
   }
 

@@ -1,4 +1,4 @@
-import { request } from 'umi';
+import request from '@/services/base/request';
 
 export interface ListProductsParams {
   search?: string;

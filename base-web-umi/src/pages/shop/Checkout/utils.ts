@@ -1,7 +1,9 @@
 import { CartItemViewModel } from '@/services/GioHang/cart.utils';
 import { PaymentMethod } from '@/services/DonHang/orders.customer.api';
+import { calcShippingFee, SHIPPING_FEE } from '@/constants/shipping';
 
-export const CHECKOUT_SHIPPING_FEE = 40000;
+/** @deprecated dùng calcShippingFee — giữ alias tương thích */
+export const CHECKOUT_SHIPPING_FEE = SHIPPING_FEE;
 
 export interface CheckoutFormState {
   fullName: string;

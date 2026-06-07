@@ -15,6 +15,9 @@ export interface Voucher {
   repeatType: 'NONE' | 'WEEKLY' | 'MONTHLY';
   repeatDays?: string[];
   applicableProductIds?: string[];
+  minOrderValue?: number;
+  usageLimit?: number;
+  description?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -33,4 +36,7 @@ export interface CreateVoucherPayload {
   repeatType: 'NONE' | 'WEEKLY' | 'MONTHLY';
   repeatDays?: string[];
   applicableProductIds?: string[];
+  minOrderValue?: number;
+  usageLimit?: number;
+  description?: string;
 }

@@ -1,0 +1,84 @@
+// Hệ token CSS cho admin Light / Dark — dùng var(--admin-*) trong component
+
+html[data-admin-theme='light'],
+html:not([data-admin-theme]) {
+  color-scheme: light;
+
+  --admin-bg: #fafafa;
+  --admin-bg-subtle: #fff8f6;
+  --admin-surface: #ffffff;
+  --admin-surface-elevated: #ffffff;
+  --admin-surface-soft: #f8fafc;
+  --admin-sidebar-bg: #fef6f6;
+  --admin-text: #334155;
+  --admin-text-strong: #1f2937;
+  --admin-text-muted: #64748b;
+  --admin-text-subtle: #94a3b8;
+  --admin-border: rgba(0, 0, 0, 0.06);
+  --admin-border-strong: #f3e5df;
+  --admin-primary: #ffa78a;
+  --admin-primary-hover: #f39a7d;
+  --admin-primary-soft: rgba(255, 167, 138, 0.12);
+  --admin-primary-ring: rgba(255, 167, 138, 0.25);
+  --admin-danger: #ef4444;
+  --admin-danger-soft: #fef2f2;
+  --admin-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --admin-shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08), 0 4px 6px rgba(15, 23, 42, 0.04);
+  --admin-shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.1);
+  --admin-table-head: #fff6f6;
+  --admin-table-row-hover: #fffafb;
+  --admin-table-border: #ffd0c0;
+  --admin-input-bg: #ffffff;
+  --admin-input-border: #e2e8f0;
+  --admin-modal-body: #f8fafc;
+  --admin-modal-mask: rgba(15, 23, 42, 0.3);
+  --admin-overlay: rgba(0, 0, 0, 0.4);
+  --admin-scrollbar: #cbd5e1;
+  --admin-chart-grid: #f3f4f6;
+  --admin-chart-text: #6b7280;
+  --admin-tooltip-bg: rgba(255, 255, 255, 0.95);
+  --admin-tooltip-text: #1f2937;
+  --admin-topbar-bg: rgba(255, 255, 255, 0.85);
+  --admin-gradient-topbar: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
+}
+
+html[data-admin-theme='dark'] {
+  color-scheme: dark;
+
+  --admin-bg: #18181b;
+  --admin-bg-subtle: #18181b;
+  --admin-surface: #27272a;
+  --admin-surface-elevated: #3f3f46;
+  --admin-surface-soft: #27272a;
+  --admin-sidebar-bg: #18181b;
+  --admin-text: #f4f4f5;
+  --admin-text-strong: #fafafa;
+  --admin-text-muted: #a1a1aa;
+  --admin-text-subtle: #71717a;
+  --admin-border: rgba(255, 255, 255, 0.08);
+  --admin-border-strong: rgba(255, 255, 255, 0.12);
+  --admin-primary: #ffa78a;
+  --admin-primary-hover: #f39a7d;
+  --admin-primary-soft: rgba(255, 167, 138, 0.15);
+  --admin-primary-ring: rgba(255, 167, 138, 0.35);
+  --admin-danger: #f87171;
+  --admin-danger-soft: rgba(248, 113, 113, 0.12);
+  --admin-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
+  --admin-shadow-md: 0 10px 30px rgba(0, 0, 0, 0.32);
+  --admin-shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+  --admin-table-head: #3f3f46;
+  --admin-table-row-hover: rgba(255, 167, 138, 0.06);
+  --admin-table-border: rgba(255, 255, 255, 0.06);
+  --admin-input-bg: #27272a;
+  --admin-input-border: rgba(255, 255, 255, 0.12);
+  --admin-modal-body: #27272a;
+  --admin-modal-mask: rgba(0, 0, 0, 0.65);
+  --admin-overlay: rgba(0, 0, 0, 0.6);
+  --admin-scrollbar: #52525b;
+  --admin-chart-grid: rgba(255, 255, 255, 0.06);
+  --admin-chart-text: #a1a1aa;
+  --admin-tooltip-bg: rgba(39, 39, 42, 0.96);
+  --admin-tooltip-text: #f4f4f5;
+  --admin-topbar-bg: rgba(39, 39, 42, 0.92);
+  --admin-gradient-topbar: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+}

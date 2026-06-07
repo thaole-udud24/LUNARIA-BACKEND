@@ -100,3 +100,11 @@ export async function changePassword(data: {
     data,
   });
 }
+
+export async function refreshAccessToken(refreshToken: string) {
+  return request('/api/auth/refresh', {
+    method: 'POST',
+    data: { refreshToken },
+    skipErrorHandler: true,
+  } as any);
+}

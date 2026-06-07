@@ -1,4 +1,4 @@
-import { FileText, CheckCircle, Truck, UserPlus } from 'lucide-react';
+import { FileText, CheckCircle, PackageCheck, UserPlus } from 'lucide-react';
 import type { DashboardStats } from '@/services/Admin/types';
 import AnimatedNumber from '@/components/common/AnimatedNumber';
 import styles from './StatCards.less';
@@ -54,32 +54,32 @@ export default function StatCards({ stats }: StatCardsProps) {
         </div>
         <div className={styles.count}><AnimatedNumber value={stats.newOrders.count} /></div>
         <div className={styles.footer}>
-          <span>Tiềm năng</span>
-          <span className={styles.revenue}>+ <AnimatedNumber value={stats.newOrders.potentialRevenue} formatter={formatMoney} /></span>
+          <span>Doanh thu đã TT</span>
+          <span className={styles.revenue}><AnimatedNumber value={stats.newOrders.potentialRevenue} formatter={formatMoney} /></span>
         </div>
       </div>
 
       <div className={`${styles.card} ${styles.cardRed}`}>
         <div className={styles.header}>
-          <h3>Đơn đã xử lý</h3>
+          <h3>Đơn đang xử lý</h3>
           <ProgressRing percent={stats.processedOrders.ringPercent || 0} color="#dc2626"><CheckCircle size={16} /></ProgressRing>
         </div>
         <div className={styles.count}><AnimatedNumber value={stats.processedOrders.count} /></div>
         <div className={styles.footer}>
-          <span>Tiềm năng</span>
-          <span className={styles.revenue}>+ <AnimatedNumber value={stats.processedOrders.potentialRevenue} formatter={formatMoney} /></span>
+          <span>Doanh thu đã TT</span>
+          <span className={styles.revenue}><AnimatedNumber value={stats.processedOrders.potentialRevenue} formatter={formatMoney} /></span>
         </div>
       </div>
 
       <div className={`${styles.card} ${styles.cardYellow}`}>
         <div className={styles.header}>
-          <h3>Đơn đã giao</h3>
-          <ProgressRing percent={stats.deliveredOrders.ringPercent || 0} color="#d97706"><Truck size={16} /></ProgressRing>
+          <h3>Hoàn thành</h3>
+          <ProgressRing percent={stats.deliveredOrders.ringPercent || 0} color="#d97706"><PackageCheck size={16} /></ProgressRing>
         </div>
         <div className={styles.count}><AnimatedNumber value={stats.deliveredOrders.count} /></div>
         <div className={styles.footer}>
-          <span>Tiềm năng</span>
-          <span className={styles.revenue}>+ <AnimatedNumber value={stats.deliveredOrders.potentialRevenue} formatter={formatMoney} /></span>
+          <span>Doanh thu đã TT</span>
+          <span className={styles.revenue}><AnimatedNumber value={stats.deliveredOrders.potentialRevenue} formatter={formatMoney} /></span>
         </div>
       </div>
 

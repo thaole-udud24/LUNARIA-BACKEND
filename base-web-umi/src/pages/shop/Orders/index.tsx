@@ -58,7 +58,7 @@ const OrdersPage: React.FC = () => {
         if (!item.productId) continue;
         await addToCart({
           productId: item.productId,
-          variantName: item.variant || 'Default',
+          variantName: item.variantName || item.variant || 'Mặc định',
           quantity: item.quantity,
         });
       }

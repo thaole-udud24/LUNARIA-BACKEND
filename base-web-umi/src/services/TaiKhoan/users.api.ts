@@ -57,10 +57,40 @@ export async function updateProfile(data: {
   banner_url?: string;
   bio?: string;
   phone?: string;
+  date_of_birth?: string;
 }) {
   return request('/api/users/profile', {
     method: 'PATCH',
     data,
+  });
+}
+
+export async function uploadAvatar(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return request('/api/users/avatar', {
+    method: 'POST',
+    data: formData,
+    requestType: 'form',
+  });
+}
+
+export async function saveVoucherToWallet(data: {
+  code: string;
+  name?: string;
+  discount_amount?: number;
+  expires_at?: string;
+  min_order?: number;
+}) {
+  return request('/api/users/me/vouchers', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function removeVoucherFromWallet(code: string) {
+  return request(`/api/users/me/vouchers/${encodeURIComponent(code)}`, {
+    method: 'DELETE',
   });
 }
 

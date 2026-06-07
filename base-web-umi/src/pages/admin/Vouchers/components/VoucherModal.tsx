@@ -1,13 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Form, Input, InputNumber, Select, DatePicker, Row, Col, message } from 'antd';
+import { Form, Input, InputNumber, Select, DatePicker, TimePicker, Row, Col, message } from 'antd';
 import dayjs from 'dayjs';
 import { createVoucher, updateVoucher } from '@/services/UuDai/vouchers.api';
 import { getAdminProducts } from '@/services/SanPham/products.api';
+import { unwrapListResponse } from '@/utils/adminApi';
 import type { Voucher } from '@/types/voucher';
 import { FormModal, FormSection } from '@/components/admin/FormModal';
 
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
+
+const WEEKDAY_OPTIONS = [
+  { label: 'Thứ 2', value: 'MONDAY' },
+  { label: 'Thứ 3', value: 'TUESDAY' },
+  { label: 'Thứ 4', value: 'WEDNESDAY' },
+  { label: 'Thứ 5', value: 'THURSDAY' },
+  { label: 'Thứ 6', value: 'FRIDAY' },
+  { label: 'Thứ 7', value: 'SATURDAY' },
+  { label: 'Chủ nhật', value: 'SUNDAY' },
+];
 
 interface Props {
   open: boolean;
@@ -24,6 +35,7 @@ export default function VoucherModal({ open, mode, voucher, onClose, onSuccess }
   const [loadingProducts, setLoadingProducts] = useState(false);
   const discountType = Form.useWatch('discountType', form);
   const applyScope = Form.useWatch('applyScope', form);
+  const repeatType = Form.useWatch('repeatType', form);
 
   useEffect(() => {
     if (open) {
@@ -31,30 +43,33 @@ export default function VoucherModal({ open, mode, voucher, onClose, onSuccess }
         form.setFieldsValue({
           ...voucher,
           dateRange: [dayjs(voucher.startDate), dayjs(voucher.endDate)],
+          goldenHourStart: voucher.goldenHourStart ? dayjs(voucher.goldenHourStart, 'HH:mm') : undefined,
+          goldenHourEnd: voucher.goldenHourEnd ? dayjs(voucher.goldenHourEnd, 'HH:mm') : undefined,
         });
       } else {
         form.resetFields();
         form.setFieldsValue({
           discountType: 'PERCENTAGE',
           applyScope: 'ALL_PRODUCTS',
-          customerScope: 'ALL_CUSTOMERS', // ✅ bắt buộc
-          repeatType: 'NONE',             // ✅ bắt buộc
-          usageLimit: 100,
+          customerScope: 'ALL_CUSTOMERS',
+          repeatType: 'NONE',
         });
       }
     }
   }, [open, voucher, mode, form]);
 
-  // Load sản phẩm khi chọn SPECIFIC_PRODUCTS
   useEffect(() => {
     if (applyScope === 'SPECIFIC_PRODUCTS' && products.length === 0) {
       setLoadingProducts(true);
-      getAdminProducts({ page: 1, limit: 100, search: '' })
-        .then((res: any) => setProducts(res.data || []))
+      getAdminProducts({ page: 1, limit: 500 })
+        .then((res) => {
+          const { list } = unwrapListResponse<any>(res);
+          setProducts(list);
+        })
         .catch(() => message.error('Không thể tải danh sách sản phẩm'))
         .finally(() => setLoadingProducts(false));
     }
-  }, [applyScope]);
+  }, [applyScope, products.length]);
 
   const onFinish = async (values: any) => {
     try {
@@ -63,11 +78,14 @@ export default function VoucherModal({ open, mode, voucher, onClose, onSuccess }
         ...values,
         startDate: values.dateRange[0].toISOString(),
         endDate: values.dateRange[1].toISOString(),
+        goldenHourStart: values.goldenHourStart?.format('HH:mm') || undefined,
+        goldenHourEnd: values.goldenHourEnd?.format('HH:mm') || undefined,
+        repeatDays: values.repeatType === 'WEEKLY' ? values.repeatDays || [] : [],
       };
       delete payload.dateRange;
       delete payload.status;
 
-      const voucherId = voucher?.id || (voucher as any)?._id;
+      const voucherId = voucher?.id || voucher?._id;
 
       if (mode === 'create') {
         await createVoucher(payload);
@@ -87,50 +105,96 @@ export default function VoucherModal({ open, mode, voucher, onClose, onSuccess }
 
   return (
     <FormModal
-      open={open} mode={mode} loading={loading}
+      open={open}
+      mode={mode}
+      loading={loading}
       title={mode === 'create' ? 'Thêm mới Voucher' : 'Chỉnh sửa Voucher'}
-      subtitle={mode === 'create' ? 'Tạo mã giảm giá cho khách hàng nhập lúc thanh toán' : `Đang chỉnh sửa: ${voucher?.voucherCode || ''}`}
-      onCancel={onClose} onSubmit={() => form.submit()} width={750}
+      subtitle={
+        mode === 'create'
+          ? 'Tạo mã giảm giá cho khách hàng nhập lúc thanh toán'
+          : `Đang chỉnh sửa: ${voucher?.voucherCode || ''}`
+      }
+      onCancel={onClose}
+      onSubmit={() => form.submit()}
+      width={750}
     >
       <Form form={form} layout="vertical" onFinish={onFinish}>
         <FormSection title="Thông tin cơ bản">
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="voucherCode" label="Mã Voucher"
-                rules={[{ required: true, message: 'Vui lòng nhập mã!' }]}>
-                <Input size="large" placeholder="VD: LUNARIA2026"
+              <Form.Item
+                name="voucherCode"
+                label="Mã Voucher"
+                rules={[{ required: true, message: 'Vui lòng nhập mã!' }]}
+              >
+                <Input
+                  size="large"
+                  placeholder="VD: LUNARIA2026"
                   style={{ textTransform: 'uppercase' }}
-                  onChange={e => form.setFieldsValue({ voucherCode: e.target.value.toUpperCase() })} />
+                  onChange={(e) => form.setFieldsValue({ voucherCode: e.target.value.toUpperCase() })}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="voucherName" label="Tên hiển thị"
-                rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}>
+              <Form.Item
+                name="voucherName"
+                label="Tên hiển thị"
+                rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
+              >
                 <Input size="large" placeholder="VD: Giảm 20% cho thành viên mới" />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="customerScope" label="Đối tượng khách hàng" rules={[{ required: true }]}>
-                <Select size="large" options={[
-                  { label: 'Tất cả khách hàng', value: 'ALL_CUSTOMERS' },
-                  { label: 'Khách hàng mới', value: 'NEW_CUSTOMERS' },
-                  { label: 'Khách hàng thân thiết', value: 'LOYAL_CUSTOMERS' },
-                ]} />
+                <Select
+                  size="large"
+                  options={[
+                    { label: 'Tất cả khách hàng', value: 'ALL_CUSTOMERS' },
+                    { label: 'Khách hàng cụ thể', value: 'SPECIFIC_CUSTOMERS' },
+                  ]}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="repeatType" label="Lặp lại" rules={[{ required: true }]}>
-                <Select size="large" options={[
-                  { label: 'Không lặp', value: 'NONE' },
-                  { label: 'Hàng ngày', value: 'DAILY' },
-                  { label: 'Hàng tuần', value: 'WEEKLY' },
-                ]} />
+                <Select
+                  size="large"
+                  options={[
+                    { label: 'Không lặp', value: 'NONE' },
+                    { label: 'Hàng tuần', value: 'WEEKLY' },
+                    { label: 'Hàng tháng', value: 'MONTHLY' },
+                  ]}
+                />
               </Form.Item>
             </Col>
+            {repeatType === 'WEEKLY' && (
+              <Col span={24}>
+                <Form.Item
+                  name="repeatDays"
+                  label="Ngày áp dụng trong tuần"
+                  rules={[{ required: true, message: 'Chọn ít nhất một ngày!' }]}
+                >
+                  <Select mode="multiple" size="large" options={WEEKDAY_OPTIONS} placeholder="Chọn ngày..." />
+                </Form.Item>
+              </Col>
+            )}
             <Col span={24}>
-              <Form.Item name="dateRange" label="Thời gian hiệu lực"
-                rules={[{ required: true, message: 'Vui lòng chọn thời gian!' }]}>
+              <Form.Item
+                name="dateRange"
+                label="Thời gian hiệu lực"
+                rules={[{ required: true, message: 'Vui lòng chọn thời gian!' }]}
+              >
                 <RangePicker showTime size="large" style={{ width: '100%' }} format="DD/MM/YYYY HH:mm" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="goldenHourStart" label="Giờ vàng bắt đầu (tùy chọn)">
+                <TimePicker size="large" style={{ width: '100%' }} format="HH:mm" placeholder="VD: 09:00" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="goldenHourEnd" label="Giờ vàng kết thúc (tùy chọn)">
+                <TimePicker size="large" style={{ width: '100%' }} format="HH:mm" placeholder="VD: 12:00" />
               </Form.Item>
             </Col>
           </Row>
@@ -140,20 +204,31 @@ export default function VoucherModal({ open, mode, voucher, onClose, onSuccess }
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="discountType" label="Loại giảm giá" rules={[{ required: true }]}>
-                <Select size="large" options={[
-                  { label: 'Giảm theo phần trăm (%)', value: 'PERCENTAGE' },
-                  { label: 'Giảm số tiền cố định (VNĐ)', value: 'FIXED_AMOUNT' },
-                ]} />
+                <Select
+                  size="large"
+                  options={[
+                    { label: 'Giảm theo phần trăm (%)', value: 'PERCENTAGE' },
+                    { label: 'Giảm số tiền cố định (VNĐ)', value: 'FIXED_AMOUNT' },
+                  ]}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="discountValue" label="Giá trị giảm"
-                rules={[{ required: true, message: 'Vui lòng nhập giá trị!' }]}>
+              <Form.Item
+                name="discountValue"
+                label="Giá trị giảm"
+                rules={[{ required: true, message: 'Vui lòng nhập giá trị!' }]}
+              >
                 <InputNumber
-                  size="large" style={{ width: '100%' }} min={1}
+                  size="large"
+                  style={{ width: '100%' }}
+                  min={1}
                   max={discountType === 'PERCENTAGE' ? 100 : undefined}
-                  formatter={value => discountType === 'FIXED_AMOUNT'
-                    ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : `${value}`}
+                  formatter={(value) =>
+                    discountType === 'FIXED_AMOUNT'
+                      ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                      : `${value}`
+                  }
                   parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
                   addonAfter={discountType === 'PERCENTAGE' ? '%' : 'VNĐ'}
                 />
@@ -161,28 +236,33 @@ export default function VoucherModal({ open, mode, voucher, onClose, onSuccess }
             </Col>
             <Col span={12}>
               <Form.Item name="minOrderValue" label="Đơn hàng tối thiểu">
-                <InputNumber size="large" style={{ width: '100%' }} min={0} addonAfter="VNĐ"
-                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                <InputNumber
+                  size="large"
+                  style={{ width: '100%' }}
+                  min={0}
+                  addonAfter="VNĐ"
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
                 />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="usageLimit" label="Số lượt tối đa">
-                <InputNumber size="large" style={{ width: '100%' }} min={1}
-                  placeholder="Để trống = không giới hạn" />
+                <InputNumber size="large" style={{ width: '100%' }} min={1} placeholder="Để trống = không giới hạn" />
               </Form.Item>
             </Col>
             <Col span={24}>
               <Form.Item name="applyScope" label="Phạm vi áp dụng" rules={[{ required: true }]}>
-                <Select size="large" options={[
-                  { label: 'Tất cả sản phẩm', value: 'ALL_PRODUCTS' },
-                  { label: 'Sản phẩm cụ thể', value: 'SPECIFIC_PRODUCTS' },
-                ]} />
+                <Select
+                  size="large"
+                  options={[
+                    { label: 'Tất cả sản phẩm', value: 'ALL_PRODUCTS' },
+                    { label: 'Sản phẩm cụ thể', value: 'SPECIFIC_PRODUCTS' },
+                  ]}
+                />
               </Form.Item>
             </Col>
 
-            {/* ✅ Hiện khi chọn SPECIFIC_PRODUCTS */}
             {applyScope === 'SPECIFIC_PRODUCTS' && (
               <Col span={24}>
                 <Form.Item
@@ -190,7 +270,7 @@ export default function VoucherModal({ open, mode, voucher, onClose, onSuccess }
                   label="Chọn sản phẩm áp dụng"
                   rules={[{ required: true, message: 'Vui lòng chọn ít nhất 1 sản phẩm!' }]}
                 >
-                <Select
+                  <Select
                     mode="multiple"
                     size="large"
                     loading={loadingProducts}
@@ -199,7 +279,7 @@ export default function VoucherModal({ open, mode, voucher, onClose, onSuccess }
                     filterOption={(input, option) =>
                       (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
                     }
-                    options={products.map(p => ({
+                    options={products.map((p) => ({
                       label: `${p.name} — SKU: ${p.sku}`,
                       value: p._id || p.id,
                     }))}

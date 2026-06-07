@@ -47,6 +47,15 @@ export class Voucher {
 
   @Prop({ type: [Types.ObjectId], ref: 'Product', default: [] })
   applicableProductIds?: Types.ObjectId[];
+
+  @Prop({ type: Number, min: 0, default: 0 })
+  minOrderValue?: number;
+
+  @Prop({ type: Number, min: 0 })
+  usageLimit?: number;
+
+  @Prop({ default: '' })
+  description?: string;
 }
 
 export const VoucherSchema = SchemaFactory.createForClass(Voucher);

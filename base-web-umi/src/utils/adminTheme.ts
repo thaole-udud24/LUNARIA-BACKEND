@@ -31,6 +31,14 @@ const resolveTheme = (mode: AdminThemeMode): 'light' | 'dark' => {
   return mode;
 };
 
+export const ADMIN_THEME_CHANGE_EVENT = 'lurana:admin-theme-change';
+
+export type AdminThemeChangeDetail = {
+  mode: AdminThemeMode;
+  resolved: 'light' | 'dark';
+  typography: AdminTypography;
+};
+
 export const applyAdminTheme = (mode?: AdminThemeMode, typography?: AdminTypography) => {
   if (typeof document === 'undefined') return;
 
@@ -46,6 +54,12 @@ export const applyAdminTheme = (mode?: AdminThemeMode, typography?: AdminTypogra
     layout.setAttribute('data-admin-theme', resolved);
     layout.setAttribute('data-admin-typography', typo);
   }
+
+  window.dispatchEvent(
+    new CustomEvent<AdminThemeChangeDetail>(ADMIN_THEME_CHANGE_EVENT, {
+      detail: { mode: themeMode, resolved, typography: typo },
+    }),
+  );
 };
 
 export const setStoredTheme = (mode: AdminThemeMode) => {

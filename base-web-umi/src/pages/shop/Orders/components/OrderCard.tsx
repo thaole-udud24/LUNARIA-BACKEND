@@ -14,10 +14,10 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, reordering, onReorder }) =
     switch (status) {
       case 'PENDING':
         return <span className="order-status-badge pending">Chờ xác nhận</span>;
+      case 'CONFIRMED':
+        return <span className="order-status-badge processing">Đã xác nhận</span>;
       case 'PROCESSING':
-        return <span className="order-status-badge processing">Đang xử lý</span>;
-      case 'SHIPPING':
-        return <span className="order-status-badge shipping">Đang vận chuyển</span>;
+        return <span className="order-status-badge shipping">Đang giao hàng</span>;
       case 'COMPLETED':
         return <span className="order-status-badge completed">Đã giao hàng</span>;
       case 'CANCELLED':

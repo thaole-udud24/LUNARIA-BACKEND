@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { message } from 'antd';
+import { useCallback, useEffect, useState } from 'react';
+import { message, Tooltip } from 'antd';
+import { SyncOutlined } from '@ant-design/icons';
 import { getDashboardData } from '@/services/Admin/dashboard.api';
 import type { DashboardResponse } from '@/services/Admin/types';
 import { unwrapDashboardOverview, resolveMediaUrl } from '@/utils/adminApi';
@@ -14,43 +15,60 @@ import styles from './styles.less';
 export default function Dashboard() {
   const [data, setData] = useState<DashboardResponse['data'] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  useEffect(() => {
+  const fetchData = useCallback(async (showMsg = false) => {
     setLoading(true);
-    getDashboardData()
-      .then((res) => {
-        const parsed = unwrapDashboardOverview<DashboardResponse['data']>(res);
-        if (parsed) {
-          setData(parsed);
-        } else {
-          message.error('Dữ liệu Tổng quan bị rỗng hoặc sai cấu trúc!');
-        }
-      })
-      .catch(() => {
-        message.error('Không thể kết nối đến máy chủ API.');
-      })
-      .finally(() => setLoading(false));
+    try {
+      const res = await getDashboardData();
+      const parsed = unwrapDashboardOverview<DashboardResponse['data']>(res);
+      if (parsed) {
+        setData(parsed);
+        setLastUpdated(new Date());
+        if (showMsg) message.success('Đã cập nhật dữ liệu tổng quan!');
+      } else {
+        message.error('Dữ liệu Tổng quan bị rỗng hoặc sai cấu trúc!');
+      }
+    } catch {
+      message.error('Không thể kết nối đến máy chủ API.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) return <Loading />;
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  if (loading && !data) return <Loading />;
 
   if (!data) {
     return (
-      <div className={styles.errorState}>
-        <h2>Không thể tải dữ liệu Dashboard</h2>
-        <p>Vui lòng kiểm tra lại kết nối Backend hoặc thử lại sau.</p>
+      <div className={styles.container}>
+        <div className={styles.errorState}>
+          <h2>Không thể tải dữ liệu Dashboard</h2>
+          <p>Vui lòng kiểm tra lại kết nối Backend hoặc thử lại sau.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.dashboardContainer}>
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Dashboard</h1>
-        <div className={styles.breadcrumb}>
-          <span>Home</span>
-          <span className={styles.separator}>/</span>
-          <span className={styles.active}>Dashboard</span>
+    <div className={styles.container}>
+      <div className={styles.topBar}>
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Tổng quan</h1>
+          <div className={styles.breadcrumb}>
+            <span>Trang chủ</span>
+            <span className={styles.separator}>/</span>
+            <span className={styles.active}>Tổng quan</span>
+          </div>
+        </div>
+        <div className={styles.metaRow}>
+          Cập nhật lúc: {lastUpdated.toLocaleTimeString('vi-VN')}
+          <Tooltip title="Làm mới">
+            <SyncOutlined spin={loading} className={styles.refreshIcon} onClick={() => fetchData(true)} />
+          </Tooltip>
         </div>
       </div>
 

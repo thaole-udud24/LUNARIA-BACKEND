@@ -16,9 +16,9 @@ const OrderTabs: React.FC<OrderTabsProps> = ({ activeTab, onTabChange, orders })
   const tabs: { key: OrderStatus; label: string }[] = [
     { key: 'ALL', label: 'Tất cả đơn' },
     { key: 'PENDING', label: 'Chờ xác nhận' },
-    { key: 'PROCESSING', label: 'Đang xử lý' },
-    { key: 'SHIPPING', label: 'Đang vận chuyển' },
-    { key: 'COMPLETED', label: 'Đã giao' },
+    { key: 'CONFIRMED', label: 'Đã xác nhận' },
+    { key: 'PROCESSING', label: 'Đang giao' },
+    { key: 'COMPLETED', label: 'Hoàn thành' },
     { key: 'CANCELLED', label: 'Đã hủy' },
   ];
 

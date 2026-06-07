@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SkinType, SkinTypeDocument } from './schemas/skin-type.schema';
+import { Product, ProductDocument } from './schemas/product.schema';
 import { ExcelBaseService } from '../../shared/csv/excel.service';
 import { QueryBuilder } from '../../common/utils/pagination.util';
 
@@ -9,6 +10,7 @@ import { QueryBuilder } from '../../common/utils/pagination.util';
 export class SkinTypesService {
   constructor(
     @InjectModel(SkinType.name) private skinTypeModel: Model<SkinTypeDocument>,
+    @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private readonly excelService: ExcelBaseService,
   ) {}
 
@@ -44,6 +46,9 @@ export class SkinTypesService {
 
     const existingCode = await this.skinTypeModel.findOne({ code: code.toUpperCase(), isDeleted: false });
     if (existingCode) throw new BadRequestException(`Mã loại da "${code.toUpperCase()}" đã tồn tại`);
+
+    const existingSlug = await this.skinTypeModel.findOne({ slug, isDeleted: false });
+    if (existingSlug) throw new BadRequestException(`Tên loại da "${name}" bị trùng slug với loại da khác`);
 
     const skinType = new this.skinTypeModel({
       name,
@@ -85,10 +90,20 @@ export class SkinTypesService {
   }
 
   async delete(id: string) {
-    const res = await this.skinTypeModel.findByIdAndUpdate(
-      id, { isDeleted: true }, { new: true }
-    );
-    if (!res) throw new NotFoundException('Không tìm thấy loại da');
+    const skinType = await this.skinTypeModel.findOne({ _id: id, isDeleted: false });
+    if (!skinType) throw new NotFoundException('Không tìm thấy loại da');
+
+    const productCount = await this.productModel.countDocuments({
+      skinTypes: id,
+      isDeleted: false,
+    });
+    if (productCount > 0) {
+      throw new BadRequestException(
+        `Không thể xóa loại da "${skinType.name}" vì còn ${productCount} sản phẩm đang sử dụng.`,
+      );
+    }
+
+    await this.skinTypeModel.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
     return { message: 'Đã xóa loại da' };
   }
 

@@ -28,13 +28,37 @@ export const buildApiUrl = (path: string): string => {
   return base ? `${base}${normalizedPath}` : normalizedPath;
 };
 
+/** Chuẩn hóa path ảnh từ DB (relative hoặc full URL) */
+export const normalizeMediaPath = (raw?: string | null): string => {
+  if (!raw?.trim()) return '';
+  const value = raw.trim();
+  if (value.startsWith('blob:') || value.startsWith('data:')) return value;
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    try {
+      const pathname = new URL(value).pathname;
+      if (pathname.startsWith('/uploads/')) return pathname;
+      return value;
+    } catch {
+      return value;
+    }
+  }
+  return value.startsWith('/') ? value : `/${value}`;
+};
+
 /** URL ảnh/upload từ BE — path tương đối sẽ nối với API_URL */
 export const resolveMediaUrl = (raw?: string | null): string => {
-  if (!raw) return '/images/placeholder-product.png';
-  if (raw.startsWith('blob:') || raw.startsWith('data:')) return raw;
-  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+  const path = normalizeMediaPath(raw);
+  if (!path) return '';
+  if (path.startsWith('blob:') || path.startsWith('data:') || path.startsWith('http')) {
+    return path;
+  }
 
   const base = isLocalDev() ? '' : getApiBaseUrl();
-  const path = raw.startsWith('/') ? raw : `/${raw}`;
   return base ? `${base}${path}` : path;
+};
+
+/** Resolve URL ảnh, fallback khi rỗng hoặc lỗi */
+export const resolveMediaUrlWithFallback = (raw?: string | null, fallback = ''): string => {
+  const resolved = resolveMediaUrl(raw);
+  return resolved || fallback;
 };

@@ -20,6 +20,7 @@ import { message } from 'antd';
 import useCart from '@/hooks/useCart';
 import useNotificationUnread from '@/hooks/useNotificationUnread';
 import ShopChatWidget from '@/components/ShopChatWidget';
+import { AUTH_SESSION_EVENT } from '@/pages/auth/auth.utils';
 import './ShopLayout.less';
 
 const getImg = (name: string) => {
@@ -70,16 +71,22 @@ const ShopLayout: React.FC = ({ children }) => {
   const { unreadCount, refreshUnreadCount } = useNotificationUnread(location.pathname);
 
   useEffect(() => {
-    try {
-      const u = localStorage.getItem('user');
-      if (u) {
-        setCurrentUser(JSON.parse(u));
-      } else {
+    const syncUserFromStorage = () => {
+      try {
+        const u = localStorage.getItem('user');
+        if (u) {
+          setCurrentUser(JSON.parse(u));
+        } else {
+          setCurrentUser(null);
+        }
+      } catch {
         setCurrentUser(null);
       }
-    } catch (e) {
-      setCurrentUser(null);
-    }
+    };
+
+    syncUserFromStorage();
+    window.addEventListener(AUTH_SESSION_EVENT, syncUserFromStorage);
+    return () => window.removeEventListener(AUTH_SESSION_EVENT, syncUserFromStorage);
   }, [location.pathname]);
 
   useEffect(() => {

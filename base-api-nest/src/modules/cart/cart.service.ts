@@ -44,6 +44,10 @@ export class CartService {
     return cartObj;
   }
 
+  private getAvailableQty(variant: { stockQty: number; reservedQty?: number }) {
+    return variant.stockQty - (variant.reservedQty || 0);
+  }
+
   async addToCart(userId: string, dto: AddToCartDto) {
     const { productId, variantName, quantity } = dto;
 
@@ -54,7 +58,8 @@ export class CartService {
       throw new NotFoundException(`Biến thể "${variantName}" không tồn tại`);
     }
 
-    if (variant.stockQty < quantity) {
+    const available = this.getAvailableQty(variant);
+    if (available < quantity) {
       throw new BadRequestException('Sản phẩm không đủ tồn kho');
     }
 
@@ -69,7 +74,7 @@ export class CartService {
 
     if (itemIndex > -1) {
       const newQuantity = cart.items[itemIndex].quantity + quantity;
-      if (variant.stockQty < newQuantity) {
+      if (this.getAvailableQty(variant) < newQuantity) {
         throw new BadRequestException('Tổng số lượng vượt quá tồn kho');
       }
       cart.items[itemIndex].quantity = newQuantity;
@@ -99,7 +104,7 @@ export class CartService {
       } else {
         const product = await this.productService.findOne(productId);
         const variant = product.variants.find(v => v.variantName === variantName);
-        if (!variant || variant.stockQty < quantity) {
+        if (!variant || this.getAvailableQty(variant) < quantity) {
           throw new BadRequestException('Kho không đủ số lượng hoặc biến thể lỗi');
         }
         cart.items[itemIndex].quantity = quantity;

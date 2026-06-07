@@ -40,6 +40,9 @@ export class User {
 
   @Prop({ default: '' })
   fullName?: string;
+
+  @Prop({ enum: ['active', 'blocked'], default: 'active' })
+  status?: 'active' | 'blocked';
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

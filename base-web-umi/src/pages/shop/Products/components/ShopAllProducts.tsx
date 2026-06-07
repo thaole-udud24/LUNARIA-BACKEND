@@ -12,6 +12,7 @@ import {
   TagOutlined,
 } from '@ant-design/icons';
 import { history } from 'umi';
+import { resolveMediaUrl } from '@/utils/apiUrl';
 import './ShopAllProducts.less';
 
 interface ShopAllProductsProps {
@@ -27,11 +28,8 @@ const hasValidImage = (p: any) => {
 };
 
 const getProductImage = (p: any) => {
-  if (p.mainImage) return p.mainImage;
-  if (p.images && p.images.length > 0) return p.images[0];
-  if (p.avatar_url) return p.avatar_url;
-  if (p.img) return p.img;
-  return '';
+  const raw = p.mainImage || p.images?.[0] || p.avatar_url || p.img || '';
+  return resolveMediaUrl(raw) || '';
 };
 
 const getProductPrices = (p: any) => {

@@ -14,7 +14,7 @@ export default function ImportPromotionModal({ open, onClose, onSuccess }: Props
       title="Nhập Dữ Liệu Khuyến Mãi"
       fields={[
         { label: 'Tên chương trình', key: 'name', required: true },
-        { label: 'Loại giảm (PERCENTAGE/FIXED_AMOUNT)', key: 'discountType', required: true },
+        { label: 'Loại giảm (PERCENTAGE/FIXED)', key: 'discountType', required: true },
         { label: 'Giá trị giảm', key: 'discountValue', required: true },
         { label: 'Phạm vi', key: 'applyScope', required: true },
         { label: 'Ngày bắt đầu', key: 'startDate', required: true },

@@ -80,13 +80,7 @@ const OrderDetailPage: React.FC = () => {
   }
 
   const subtotal = order.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const statusMeta = getOrderStatusMeta(
-    order.status === 'PROCESSING'
-      ? 'CONFIRMED'
-      : order.status === 'SHIPPING'
-        ? 'PROCESSING'
-        : order.status,
-  );
+  const statusMeta = getOrderStatusMeta(order.status);
 
   return (
     <div className="order-detail-page-wrapper">

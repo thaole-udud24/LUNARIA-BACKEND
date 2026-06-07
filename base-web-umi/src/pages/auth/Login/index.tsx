@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { history } from 'umi';
-import { Form, Input, message } from 'antd';
+import { Form, message } from 'antd';
 import { MailOutlined, LockOutlined, LoadingOutlined } from '@ant-design/icons';
 import { login as loginApi } from '@/services/TaiKhoan/auth.api';
 import AuthShell from '../components/AuthShell';
+import AuthFieldInput from '../components/AuthFieldInput';
 import {
   extractAuthError,
   getAuthRedirectPath,
@@ -68,10 +69,11 @@ export default function LoginPage() {
             { type: 'email', message: 'Email không hợp lệ' },
           ]}
         >
-          <div className="auth-input-wrap">
-            <MailOutlined />
-            <Input className="auth-input" placeholder="email@example.com" autoComplete="email" />
-          </div>
+          <AuthFieldInput
+            icon={<MailOutlined />}
+            placeholder="email@example.com"
+            autoComplete="email"
+          />
         </Form.Item>
 
         <Form.Item
@@ -82,14 +84,12 @@ export default function LoginPage() {
             { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
           ]}
         >
-          <div className="auth-input-wrap">
-            <LockOutlined />
-            <Input.Password
-              className="auth-input"
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
-          </div>
+          <AuthFieldInput
+            password
+            icon={<LockOutlined />}
+            placeholder="••••••••"
+            autoComplete="current-password"
+          />
         </Form.Item>
 
         <div className="auth-link-row">

@@ -47,7 +47,9 @@ export default function VoucherTable(props: Props) {
         return (
           <Dropdown overlay={
             <Menu>
-              <Menu.Item key="edit" icon={<EditOutlined />} onClick={() => props.onEdit(record)}>Chỉnh sửa</Menu.Item>
+              {record.status !== 'ACTIVE' && (
+                <Menu.Item key="edit" icon={<EditOutlined />} onClick={() => props.onEdit(record)}>Chỉnh sửa</Menu.Item>
+              )}
               {record.status !== 'ACTIVE' && <Menu.Item key="activate" icon={<CheckCircleOutlined />} onClick={() => props.onActivate(id)}>Kích hoạt</Menu.Item>}
               {record.status === 'ACTIVE' && <Menu.Item key="disable" icon={<StopOutlined />} onClick={() => props.onDisable(id)}>Tắt</Menu.Item>}
               <Menu.Item key="delete" danger icon={<DeleteOutlined />}>

@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 import { User, UserDocument } from './schemas/user.schema';
 import {
@@ -66,20 +67,20 @@ export class AuthService implements OnModuleInit {
     if (!admin) {
       admin = new this.userModel({
         email: adminEmail,
-        password: adminPassword,
+        password: await this.hashPassword(adminPassword),
         name: 'Super Admin',
-      fullName: 'Super Admin',
+        fullName: 'Super Admin',
         roles: ['ADMIN'],
         isEmailVerified: true,
       });
       await admin.save();
       console.log(`[SEED] Đã tạo tài khoản Admin xịn: ${adminEmail} / ${adminPassword}`);
     } else {
-      // Đã tắt bcrypt hook ở schema, nên giờ gán plain text thoải mái
-      if (admin.password !== adminPassword) {
-        admin.password = adminPassword;
-        await admin.save(); 
-        console.log('[SEED] Đã cập nhật lại mật khẩu Admin thành chuỗi trần!');
+      const valid = await this.verifyPassword(adminPassword, admin.password);
+      if (!valid) {
+        admin.password = await this.hashPassword(adminPassword);
+        await admin.save();
+        console.log('[SEED] Đã cập nhật lại mật khẩu Admin (bcrypt).');
       }
     }
   }
@@ -92,6 +93,18 @@ export class AuthService implements OnModuleInit {
 
   private generateRandomToken(): string {
     return crypto.randomBytes(64).toString('hex');
+  }
+
+  private async hashPassword(plain: string): Promise<string> {
+    return bcrypt.hash(plain, 10);
+  }
+
+  private async verifyPassword(plain: string, stored?: string | null): Promise<boolean> {
+    if (!stored) return false;
+    if (stored.startsWith('$2a$') || stored.startsWith('$2b$')) {
+      return bcrypt.compare(plain, stored);
+    }
+    return plain === stored;
   }
 
   private async createAndSendVerifyCode(userId: Types.ObjectId, email: string) {
@@ -128,7 +141,7 @@ export class AuthService implements OnModuleInit {
 
     const user = new this.userModel({
       email,
-      password: dto.password,
+      password: await this.hashPassword(dto.password),
       fullName: dto.name || 'New User',
       isEmailVerified: false,
       roles: [Role.USER],
@@ -205,37 +218,19 @@ export class AuthService implements OnModuleInit {
   async login(dto: LoginDto) {
     const email = dto.email.toLowerCase().trim();
 
-    if (email === 'boss@luranashop.com' && dto.password === 'Password123@') {
-      const adminDb = await this.userModel.findOne({ email }).exec();
-      const admin: any = adminDb || { _id: new Types.ObjectId(), email, roles: ['ADMIN'] };
-
-      const accessToken = this.jwtService.sign(
-        { sub: admin._id, email: admin.email, roles: admin.roles },
-        { expiresIn: '1d' },
-      );
-      const refreshToken = this.generateRandomToken();
-
-      return {
-        success: true,
-        accessToken,
-        refreshToken,
-        user: {
-          id: admin._id,
-          email: admin.email,
-          roles: admin.roles,
-          name: admin.fullName || admin.name,
-        },
-      };
-    }
-
     const user = await this.userModel.findOne({ email }).select('+password').exec();
 
     if (!user) {
       throw new UnauthorizedException('Sai email hoặc mật khẩu');
     }
 
-    if (user.password !== dto.password) {
+    const passwordOk = await this.verifyPassword(dto.password, user.password);
+    if (!passwordOk) {
       throw new UnauthorizedException('Sai email hoặc mật khẩu');
+    }
+
+    if (user.status === 'blocked') {
+      throw new UnauthorizedException('Tài khoản đã bị khóa. Vui lòng liên hệ hỗ trợ.');
     }
 
     if (!user.isEmailVerified && !(user.roles || []).includes(Role.ADMIN)) {
@@ -338,13 +333,13 @@ export class AuthService implements OnModuleInit {
 
   async resetPassword(dto: ResetPasswordDto) {
     if (dto.newPassword !== dto.confirmNewPassword) throw new BadRequestException('Mật khẩu xác nhận không khớp');
-    const token = await this.resetModel.findOne({ email: dto.email, code: dto.code, used: false, expiresAt: { $gt: new Date() } });
+    const email = dto.email.toLowerCase().trim();
+    const token = await this.resetModel.findOne({ email, code: dto.code, used: false, expiresAt: { $gt: new Date() } });
     if (!token) throw new BadRequestException('Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
-    const user = await this.userModel.findOne({ email: dto.email }).select('+password');
+    const user = await this.userModel.findOne({ email }).select('+password');
     if (!user) throw new BadRequestException('Email không tồn tại');
     
-    // Gán chuỗi trần
-    user.password = dto.newPassword;
+    user.password = await this.hashPassword(dto.newPassword);
     await user.save();
     token.used = true;
     await token.save();
@@ -360,11 +355,11 @@ export class AuthService implements OnModuleInit {
     const user = await this.userModel.findById(userId).select('+password').exec();
     if (!user) throw new BadRequestException('Không tìm thấy tài khoản');
 
-    if (user.password !== dto.currentPassword) {
+    if (!(await this.verifyPassword(dto.currentPassword, user.password))) {
       throw new BadRequestException('Mật khẩu hiện tại không đúng');
     }
 
-    user.password = dto.newPassword;
+    user.password = await this.hashPassword(dto.newPassword);
     await user.save();
     await this.refreshModel.updateMany({ userId: user._id }, { revoked: true });
 

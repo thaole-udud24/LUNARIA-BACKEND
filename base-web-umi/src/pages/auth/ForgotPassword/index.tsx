@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { history } from 'umi';
-import { Form, Input, message } from 'antd';
+import { Form, message } from 'antd';
 import { MailOutlined, LoadingOutlined } from '@ant-design/icons';
 import { forgotPassword } from '@/services/TaiKhoan/auth.api';
 import AuthShell from '../components/AuthShell';
+import AuthFieldInput from '../components/AuthFieldInput';
 import { extractAuthError, parseApiData } from '../auth.utils';
 
 export default function ForgotPasswordPage() {
@@ -41,10 +42,7 @@ export default function ForgotPasswordPage() {
             { type: 'email', message: 'Email không hợp lệ' },
           ]}
         >
-          <div className="auth-input-wrap">
-            <MailOutlined />
-            <Input className="auth-input" placeholder="email@example.com" autoComplete="email" />
-          </div>
+          <AuthFieldInput icon={<MailOutlined />} placeholder="email@example.com" autoComplete="email" />
         </Form.Item>
 
         <button type="submit" className="auth-submit" disabled={loading}>

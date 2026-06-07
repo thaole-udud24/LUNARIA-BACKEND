@@ -6,6 +6,7 @@ import { UpdateVoucherDto } from './dto/update-voucher.dto';
 import { ListVouchersDto } from './dto/list-vouchers.dto';
 import { ApplyVoucherDto } from './dto/apply-voucher.dto';
 import { Voucher, VoucherDocument } from './schemas/voucher.schema';
+import { VoucherUsage, VoucherUsageDocument } from './schemas/voucher-usage.schema';
 import {
   VoucherStatus,
   VoucherCustomerScope,
@@ -21,7 +22,8 @@ import { ExcelBaseService } from '../../shared/csv/excel.service';
 export class VouchersService {
   constructor(
     @InjectModel(Voucher.name) private voucherModel: Model<VoucherDocument>,
-    private readonly excelService: ExcelBaseService, // ✅ Đưa vào đúng constructor
+    @InjectModel(VoucherUsage.name) private voucherUsageModel: Model<VoucherUsageDocument>,
+    private readonly excelService: ExcelBaseService,
   ) {}
 
   private normalizeCode(code: string) {
@@ -84,6 +86,12 @@ export class VouchersService {
   async findAll(query: ListVouchersDto) {
     const { page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
+
+    await this.voucherModel.updateMany(
+      { status: VoucherStatus.ACTIVE, endDate: { $lt: new Date() } },
+      { $set: { status: VoucherStatus.EXPIRED } },
+    );
+
     const filter = this.buildFilter(query);
 
     const [data, total] = await Promise.all([
@@ -103,6 +111,12 @@ export class VouchersService {
 
   async update(id: string, updateVoucherDto: UpdateVoucherDto) {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Mã voucher không hợp lệ.');
+
+    const existing = await this.voucherModel.findById(id).exec();
+    if (!existing) throw new NotFoundException('Không tìm thấy voucher.');
+    if (existing.status === VoucherStatus.ACTIVE) {
+      throw new BadRequestException('Không thể chỉnh sửa voucher đang chạy. Hãy tắt trước.');
+    }
 
     if (updateVoucherDto.voucherCode && !VOUCHER_CODE_REGEX.test(this.normalizeCode(updateVoucherDto.voucherCode))) {
       throw new BadRequestException(VoucherErrorMessage.INVALID_FORMAT);
@@ -215,6 +229,20 @@ export class VouchersService {
       throw new BadRequestException('Voucher không thể áp dụng cho sản phẩm đã có giảm giá trực tiếp.');
     }
 
+    const cartTotal = applyVoucherDto.cartTotal ?? 0;
+    if (voucher.minOrderValue && cartTotal < voucher.minOrderValue) {
+      throw new BadRequestException(
+        `Đơn hàng tối thiểu ${voucher.minOrderValue.toLocaleString('vi-VN')}đ để dùng voucher này.`,
+      );
+    }
+
+    if (voucher.usageLimit && voucher.usageLimit > 0) {
+      const usedCount = await this.voucherUsageModel.countDocuments({ voucherId: voucher._id });
+      if (usedCount >= voucher.usageLimit) {
+        throw new BadRequestException('Voucher đã hết lượt sử dụng.');
+      }
+    }
+
     if (voucher.applyScope === VoucherApplyScope.SPECIFIC_PRODUCTS) {
       if (!applyVoucherDto.productIds?.length) {
         throw new BadRequestException('Cần cung cấp danh sách sản phẩm để xác thực voucher.');
@@ -283,6 +311,9 @@ export class VouchersService {
           repeatType: item.repeatType || 'NONE',
           startDate: new Date(item.startDate),
           endDate: new Date(item.endDate),
+          minOrderValue: item.minOrderValue ? Number(item.minOrderValue) : undefined,
+          usageLimit: item.usageLimit ? Number(item.usageLimit) : undefined,
+          description: item.description,
         });
         results.successCount++;
       } catch (error: any) {

@@ -14,6 +14,7 @@ import {
   SHIPPING_FREE_THRESHOLD,
   CartItem,
 } from './types';
+import { hasFlashSaleItems } from '../Checkout/utils';
 import './index.less';
 
 const Cart: React.FC = () => {
@@ -109,6 +110,7 @@ const Cart: React.FC = () => {
         voucherCode: code,
         cartTotal: subtotal,
         productIds,
+        hasDirectDiscount: hasFlashSaleItems(items),
       });
       setDiscount(result.discountAmount || 0);
       setAppliedVoucher(result.voucherCode || code.toUpperCase());

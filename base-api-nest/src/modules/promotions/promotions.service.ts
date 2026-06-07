@@ -154,7 +154,7 @@ export class PromotionsService {
         await this.create({
           name: item.name,
           description: item.description,
-          discountType: item.discountType,
+          discountType: item.discountType === 'FIXED_AMOUNT' ? 'FIXED' : item.discountType,
           discountValue: Number(item.discountValue),
           applyScope: item.applyScope,
           startDate: new Date(item.startDate),

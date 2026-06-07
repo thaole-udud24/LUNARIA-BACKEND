@@ -1,5 +1,6 @@
 import { history } from 'umi';
 import '@/styles/global.less';
+import '@/styles/admin-tokens.less';
 import '@/styles/admin.less';
 import '@/styles/admin-theme.less';
 import '@/styles/admin-responsive.less';
@@ -107,10 +108,19 @@ export function onRouteChange({ location }: any) {
   
   const isAdminPage = pathname.startsWith('/admin');
   const isAuthPage = pathname.startsWith('/auth');
+  const protectedCustomerPaths = ['/account', '/checkout', '/orders', '/orderdetail', '/notifications'];
+  const isProtectedCustomer = protectedCustomerPaths.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
 
   // Trường hợp 1: Chưa đăng nhập mà cố tình vào trang Admin quản trị -> Đá về Login
   if (!token && isAdminPage) {
     history.replace('/auth/login');
+    return;
+  }
+
+  if (!token && isProtectedCustomer) {
+    history.replace(`/auth/login?redirect=${encodeURIComponent(pathname + (location.search || ''))}`);
     return;
   }
 

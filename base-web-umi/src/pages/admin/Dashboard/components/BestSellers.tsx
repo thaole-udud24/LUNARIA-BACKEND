@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { history } from 'umi';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { BestSeller } from '@/services/Admin/types';
 import styles from './BestSellers.less';
 
 interface BestSellersProps {
-  products?: Array<{ id: string; name: string; imageUrl: string }>;
+  products?: BestSeller[];
 }
 
 export default function BestSellers({ products }: BestSellersProps) {
@@ -34,7 +35,12 @@ export default function BestSellers({ products }: BestSellersProps) {
   if (!products?.length) {
     return (
       <div className={styles.container}>
-        <h3 className={styles.title}>Sản phẩm bán chạy</h3>
+        <div className={styles.header}>
+          <div>
+            <h3 className={styles.title}>Sản phẩm bán chạy</h3>
+            <p className={styles.subtitle}>30 ngày qua · đơn đã thanh toán</p>
+          </div>
+        </div>
         <div className={styles.empty}>Chưa có dữ liệu bán chạy</div>
       </div>
     );
@@ -43,10 +49,13 @@ export default function BestSellers({ products }: BestSellersProps) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Sản phẩm bán chạy</h3>
+        <div>
+          <h3 className={styles.title}>Sản phẩm bán chạy</h3>
+          <p className={styles.subtitle}>30 ngày qua · đơn đã thanh toán</p>
+        </div>
         <div className={styles.navButtons}>
-          <button type="button" onClick={() => scroll('left')}><ChevronLeft size={18} /></button>
-          <button type="button" onClick={() => scroll('right')}><ChevronRight size={18} /></button>
+          <button type="button" onClick={() => scroll('left')} aria-label="Trước"><ChevronLeft size={18} /></button>
+          <button type="button" onClick={() => scroll('right')} aria-label="Sau"><ChevronRight size={18} /></button>
         </div>
       </div>
 
@@ -59,11 +68,15 @@ export default function BestSellers({ products }: BestSellersProps) {
           >
             <div className={styles.imageWrapper}>
               <img src={product.imageUrl} alt={product.name} />
+              {product.sales != null && product.sales > 0 && (
+                <span className={styles.salesBadge}>Đã bán {product.sales}</span>
+              )}
               <div className={styles.overlay}>
                 <button
                   type="button"
                   className={styles.actionBtn}
-                  onClick={() => history.push('/admin/products')}
+                  onClick={() => history.push(`/admin/products?search=${encodeURIComponent(product.name)}`)}
+                  aria-label={`Xem ${product.name}`}
                 >
                   <ArrowRight size={18} />
                 </button>

@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { NotificationCategory } from 'src/common/constants/notification.constant';
+import {
+  NotificationAudience,
+  NotificationCategory,
+} from 'src/common/constants/notification.constant';
 
 export type NotificationDocument = Notification & Document;
 
@@ -8,6 +11,14 @@ export type NotificationDocument = Notification & Document;
 export class Notification {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId!: Types.ObjectId;
+
+  @Prop({
+    type: String,
+    enum: NotificationAudience,
+    default: NotificationAudience.CUSTOMER,
+    index: true,
+  })
+  audience!: NotificationAudience;
 
   @Prop({ type: String, enum: NotificationCategory, required: true })
   category!: NotificationCategory;
@@ -50,3 +61,5 @@ export const NotificationSchema = SchemaFactory.createForClass(Notification);
 
 NotificationSchema.index({ userId: 1, createdAt: -1 });
 NotificationSchema.index({ userId: 1, isRead: 1 });
+NotificationSchema.index({ userId: 1, audience: 1, category: 1, createdAt: -1 });
+NotificationSchema.index({ userId: 1, audience: 1, isRead: 1 });

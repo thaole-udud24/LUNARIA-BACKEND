@@ -10,6 +10,7 @@ import {
 } from '@/pages/shop/Checkout/validators';
 import { AccountAddress, slugifyLocationId, phoneToE164 } from '../account.utils';
 import type { AddressPayload } from '@/services/TaiKhoan/users.api';
+import './AddressFormModal.less';
 
 interface AddressFormModalProps {
   visible: boolean;
@@ -114,9 +115,10 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
       confirmLoading={submitting}
       width={640}
       destroyOnClose
-      className="account-address-modal"
+      wrapClassName="account-address-modal-wrap"
+      centered
     >
-      <div className="profile-form modal-form">
+      <div className="modal-form">
         <div className="form-group col-12">
           <label>Nhãn địa chỉ (tuỳ chọn)</label>
           <input

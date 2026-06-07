@@ -9,7 +9,6 @@ import {
   buildVoucherViews,
   formatDate,
   formatPrice,
-  saveVoucherLocally,
 } from '../account.utils';
 
 type VoucherTabKey = 'available' | 'used' | 'expired';
@@ -17,10 +16,10 @@ type VoucherTabKey = 'available' | 'used' | 'expired';
 interface VouchersTabProps {
   orders: ApiOrder[];
   savedVouchers: SavedVoucher[];
-  onVouchersChange: (next: SavedVoucher[]) => void;
+  onSaveVoucher: (voucher: SavedVoucher) => Promise<SavedVoucher[]>;
 }
 
-const VouchersTab: React.FC<VouchersTabProps> = ({ orders, savedVouchers, onVouchersChange }) => {
+const VouchersTab: React.FC<VouchersTabProps> = ({ orders, savedVouchers, onSaveVoucher }) => {
   const [activeTab, setActiveTab] = useState<VoucherTabKey>('available');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,7 +40,7 @@ const VouchersTab: React.FC<VouchersTabProps> = ({ orders, savedVouchers, onVouc
     setLoading(true);
     try {
       const result = await applyVoucher({ voucherCode: trimmed, cartTotal: 1000000 });
-      const next = saveVoucherLocally({
+      await onSaveVoucher({
         code: result.voucherCode || trimmed,
         discountAmount: result.discountAmount,
         name: result.voucherName,
@@ -49,7 +48,6 @@ const VouchersTab: React.FC<VouchersTabProps> = ({ orders, savedVouchers, onVouc
         expiresAt: result.endDate,
         minOrder: result.minOrderAmount,
       });
-      onVouchersChange(next);
       setCode('');
       message.success('Đã lưu voucher khả dụng vào ví của bạn');
       setActiveTab('available');

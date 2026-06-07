@@ -5,9 +5,11 @@
 
 .container {
   background-color: #F8F2FF;
-  border-radius: 10px;
+  border-radius: 24px;
   padding: 24px;
   height: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 
 .title {
@@ -61,6 +63,21 @@
 .info {
   flex: 1;
   min-width: 0;
+
+  .orderMeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .orderCode {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ff8c69;
+    letter-spacing: 0.3px;
+  }
 
   .name {
     font-size: 13px;
@@ -117,14 +134,14 @@
 
 :global(html[data-admin-theme='dark']) {
   .container {
-    background-color: #1e293b;
+    background-color: #27272a;
 
     .title {
       color: #e2e8f0;
     }
 
     .item {
-      background: #162032;
+      background: #3f3f46;
     }
 
     .info .name {
@@ -132,7 +149,7 @@
     }
 
     .empty {
-      background: #162032;
+      background: #3f3f46;
       color: #94a3b8;
     }
   }

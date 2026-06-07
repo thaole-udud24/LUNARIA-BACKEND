@@ -5,13 +5,13 @@ export type SkinTypeDocument = SkinType & Document;
 
 @Schema({ timestamps: true })
 export class SkinType {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   name!: string;
 
-  @Prop({ required: true, unique: true, uppercase: true, default: 'GEN' })
+  @Prop({ required: true, uppercase: true, default: 'GEN' })
   code!: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   slug!: string;
 
   @Prop({ default: '' })
@@ -25,3 +25,16 @@ export class SkinType {
 }
 
 export const SkinTypeSchema = SchemaFactory.createForClass(SkinType);
+
+SkinTypeSchema.index(
+  { name: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);
+SkinTypeSchema.index(
+  { code: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);
+SkinTypeSchema.index(
+  { slug: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);

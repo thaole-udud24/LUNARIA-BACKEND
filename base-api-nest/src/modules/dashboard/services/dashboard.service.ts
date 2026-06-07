@@ -15,27 +15,35 @@ export class DashboardService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  private sumPotentialRevenue(orders: Array<{ totalAmount?: number }>) {
-    return orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+  private sumPaidRevenue(orders: Array<{ totalAmount?: number; paymentStatus?: string }>) {
+    return orders
+      .filter((o) => o.paymentStatus === 'PAID')
+      .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
   }
 
   private async getStatByStatuses(statuses: OrderStatus[]) {
     const orders = await this.orderModel
       .find({ status: { $in: statuses } })
-      .select('totalAmount')
+      .select('totalAmount paymentStatus')
       .lean()
       .exec();
 
     return {
       count: orders.length,
-      potentialRevenue: this.sumPotentialRevenue(orders),
+      potentialRevenue: this.sumPaidRevenue(orders),
     };
   }
 
-  private formatTime(value?: Date | string) {
+  private formatDateTime(value?: Date | string) {
     if (!value) return '—';
     const date = new Date(value);
-    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    return date.toLocaleString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   }
 
   private getWeekdayLabel(date: Date) {
@@ -115,6 +123,9 @@ export class DashboardService {
     const startOfWeek = new Date(now);
     startOfWeek.setHours(0, 0, 0, 0);
     startOfWeek.setDate(startOfWeek.getDate() - 6);
+    const startOf30Days = new Date(now);
+    startOf30Days.setDate(startOf30Days.getDate() - 30);
+    startOf30Days.setHours(0, 0, 0, 0);
 
     const paidFilter = { paymentStatus: 'PAID' };
 
@@ -138,7 +149,7 @@ export class DashboardService {
         .lean()
         .exec(),
       this.orderModel
-        .find()
+        .find({ status: { $ne: OrderStatus.CANCELLED } })
         .sort({ createdAt: -1 })
         .limit(5)
         .populate('items.productId', 'mainImage')
@@ -160,7 +171,7 @@ export class DashboardService {
         .lean()
         .exec(),
       this.orderModel.aggregate([
-        { $match: paidFilter },
+        { $match: { ...paidFilter, createdAt: { $gte: startOf30Days } } },
         { $unwind: '$items' },
         {
           $group: {
@@ -194,10 +205,12 @@ export class DashboardService {
       return {
         id: orderDoc._id.toString(),
         orderId: orderDoc._id.toString(),
+        orderCode: orderDoc.orderCode || '',
+        status: orderDoc.status || 'PENDING',
         productName: firstItem?.name || 'Sản phẩm LURANA',
         quantity: firstItem?.quantity || 1,
         price: orderDoc.totalAmount || 0,
-        createdAt: this.formatTime(orderDoc.createdAt),
+        createdAt: this.formatDateTime(orderDoc.createdAt),
         imageUrl,
       };
     });
@@ -230,6 +243,7 @@ export class DashboardService {
       id: item._id?.toString() || item.name,
       name: item.name || item.product?.name || 'Sản phẩm',
       imageUrl: item.product?.mainImage || '/images/placeholder-product.png',
+      sales: item.sales || 0,
     }));
 
     const stats = this.withRingPercent({

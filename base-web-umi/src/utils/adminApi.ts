@@ -59,7 +59,11 @@ export const unwrapDashboardOverview = <T>(res: unknown): T | null => {
 };
 
 /** @deprecated dùng resolveMediaUrl từ @/utils/apiUrl */
-export { resolveMediaUrl } from '@/utils/apiUrl';
+export {
+  resolveMediaUrl,
+  normalizeMediaPath,
+  resolveMediaUrlWithFallback,
+} from '@/utils/apiUrl';
 
 export const formatExportParams = (
   search: string,
@@ -70,3 +74,35 @@ export const formatExportParams = (
   exportOptions: fields.join(','),
   ...(extra || {}),
 });
+
+export interface AdminNotificationsListResult<T> {
+  list: T[];
+  total: number;
+  page: number;
+  limit: number;
+  unreadCount: number;
+}
+
+/** Parse response GET /api/admin/notifications */
+export const parseAdminNotificationsList = <T>(res: unknown): AdminNotificationsListResult<T> => {
+  const payload = unwrapApiData<{
+    data?: T[];
+    total?: number;
+    page?: number;
+    limit?: number;
+    unreadCount?: number;
+  }>(res);
+
+  return {
+    list: Array.isArray(payload?.data) ? payload.data : [],
+    total: payload?.total ?? 0,
+    page: payload?.page ?? 1,
+    limit: payload?.limit ?? 50,
+    unreadCount: payload?.unreadCount ?? 0,
+  };
+};
+
+export const parseAdminUnreadCount = (res: unknown): number => {
+  const payload = unwrapApiData<{ unreadCount?: number }>(res);
+  return payload?.unreadCount ?? 0;
+};

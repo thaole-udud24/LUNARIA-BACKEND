@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { history, useLocation, useModel } from 'umi';
+import { history, useLocation, useModel, setLocale, getLocale } from 'umi';
+import { Badge } from 'antd';
 import {
   AppstoreOutlined,
   LogoutOutlined,
@@ -18,11 +19,16 @@ import {
   SmileOutlined,
 } from '@ant-design/icons';
 import { Moon, Sun } from 'lucide-react';
+import { getAdminUnreadNotificationCount } from '@/services/ThongBao/notifications.admin.api';
+import { getMe, getPreferences, type AppLocale } from '@/services/TaiKhoan/users.api';
+import { parseAdminUnreadCount, resolveMediaUrl, normalizeMediaPath } from '@/utils/adminApi';
 import logo from '@/assets/images/logo-lunaria.png';
 import {
   getStoredTheme,
   initAdminTheme,
   setStoredTheme,
+  ADMIN_THEME_CHANGE_EVENT,
+  type AdminThemeChangeDetail,
   type AdminThemeMode,
 } from '@/utils/adminTheme';
 import './AdminLayout.less';
@@ -45,6 +51,7 @@ const masterMenus = [
 const mainMenus = [
   { title: 'Tổng quan', path: '/admin/dashboard', icon: <DashboardOutlined /> },
   { title: 'Đơn hàng', path: '/admin/orders', icon: <FileTextOutlined /> },
+  { title: 'Thông báo', path: '/admin/notifications', icon: <BellOutlined /> },
   { title: 'Khách hàng', path: '/admin/customers', icon: <UserOutlined /> },
   { title: 'Báo cáo doanh thu', path: '/admin/reports', icon: <BarChartOutlined /> },
 ];
@@ -66,6 +73,8 @@ export default function AdminLayout(props: any) {
   const [isMobile, setIsMobile] = useState(false);
   const [themeMode, setThemeMode] = useState<AdminThemeMode>(() => getStoredTheme());
   const [quickSearch, setQuickSearch] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [profileAvatar, setProfileAvatar] = useState<string>('');
 
   const displayName = useMemo(() => {
     try {
@@ -80,12 +89,68 @@ export default function AdminLayout(props: any) {
     return currentUser?.name || 'Admin';
   }, [currentUser?.name]);
 
-  const avatarUrl = buildAvatarUrl(displayName);
+  const avatarUrl = profileAvatar
+    ? resolveMediaUrl(profileAvatar) || buildAvatarUrl(displayName)
+    : buildAvatarUrl(displayName);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadProfile = async () => {
+      try {
+        if (!localStorage.getItem('token')) return;
+        const res: any = await getMe();
+        const data = res?.data ?? res;
+        const profile = data?.profile;
+        if (mounted && profile?.avatar_url) {
+          setProfileAvatar(normalizeMediaPath(profile.avatar_url));
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadProfile();
+    return () => {
+      mounted = false;
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     const cleanup = initAdminTheme();
     setThemeMode(getStoredTheme());
-    return cleanup;
+
+    const onThemeChange = (event: Event) => {
+      const detail = (event as CustomEvent<AdminThemeChangeDetail>).detail;
+      if (detail?.mode) {
+        setThemeMode(detail.mode);
+      }
+    };
+    window.addEventListener(ADMIN_THEME_CHANGE_EVENT, onThemeChange);
+
+    return () => {
+      cleanup?.();
+      window.removeEventListener(ADMIN_THEME_CHANGE_EVENT, onThemeChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadLocale = async () => {
+      try {
+        if (!localStorage.getItem('token')) return;
+        const res: any = await getPreferences();
+        const prefs = res?.data?.data ?? res?.data;
+        const next = prefs?.locale as AppLocale | undefined;
+        if (mounted && next && getLocale() !== next) {
+          setLocale(next, false);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadLocale();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -111,6 +176,27 @@ export default function AdminLayout(props: any) {
       setCollapsed(true);
     }
   }, [location.pathname, isMobile]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadUnread = async () => {
+      try {
+        if (!localStorage.getItem('token')) return;
+        const res = await getAdminUnreadNotificationCount();
+        if (mounted) {
+          setUnreadCount(parseAdminUnreadCount(res));
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadUnread();
+    const timer = setInterval(loadUnread, 60000);
+    return () => {
+      mounted = false;
+      clearInterval(timer);
+    };
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -267,7 +353,9 @@ export default function AdminLayout(props: any) {
                 onClick={() => history.push('/admin/notifications')}
                 title="Thông báo đơn hàng"
               >
-                <BellOutlined />
+                <Badge count={unreadCount} size="small" offset={[-2, 2]}>
+                  <BellOutlined />
+                </Badge>
               </button>
 
               <button

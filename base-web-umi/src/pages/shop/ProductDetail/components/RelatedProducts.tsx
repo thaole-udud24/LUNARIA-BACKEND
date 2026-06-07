@@ -95,7 +95,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
         <h2>
           Sản phẩm <span>{subtitle}</span>
         </h2>
-        <a href="#/products" className="view-more-link">Xem thêm</a>
+        <a href="/products" className="view-more-link" onClick={(e) => { e.preventDefault(); history.push('/products'); }}>Xem thêm</a>
       </div>
 
       <div className="related-grid">

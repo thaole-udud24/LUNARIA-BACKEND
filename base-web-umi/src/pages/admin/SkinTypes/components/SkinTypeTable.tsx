@@ -53,7 +53,7 @@ export default function SkinTypeTable({
         <StatusTag
           status={record.isActive ?? true}
           editable
-          onChange={(checked) => onToggleStatus(checked, (record as any)._id || record.id)}
+          onChange={(checked) => onToggleStatus(checked, record._id || record.id || '')}
         />
       ),
     },
@@ -73,7 +73,7 @@ export default function SkinTypeTable({
                   title="Bạn có chắc chắn muốn xóa?"
                   okText="Xóa"
                   cancelText="Hủy"
-                  onConfirm={() => onDelete((record as any)._id || record.id)}
+                  onConfirm={() => onDelete(record._id || record.id || '')}
                 >
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <DeleteOutlined /> Xóa
@@ -95,7 +95,7 @@ export default function SkinTypeTable({
 
   return (
     <DataTable<SkinTypeType>
-      rowKey={(record) => ((record as any)._id || record.id || '').toString()}
+      rowKey={(record) => String(record._id || record.id || '')}
       loading={loading}
       columns={columns}
       dataSource={dataSource}

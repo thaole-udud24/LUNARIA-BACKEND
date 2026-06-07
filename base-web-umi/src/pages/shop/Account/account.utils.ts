@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { resolveMediaUrl } from '@/utils/apiUrl';
 import {
   formatPhoneDisplay,
   normalizePhoneDigits,
@@ -26,8 +27,8 @@ export const ACCOUNT_TABS: AccountTabType[] = [
 export type OrderFilterKey =
   | 'ALL'
   | 'PENDING'
+  | 'CONFIRMED'
   | 'PROCESSING'
-  | 'SHIPPING'
   | 'COMPLETED'
   | 'CANCELLED';
 
@@ -205,14 +206,24 @@ export const mapGetMeToProfile = (data: any): AccountProfile => {
     ),
     gender: profile.gender || '',
     birthday: profile.date_of_birth ? moment(profile.date_of_birth).format('YYYY-MM-DD') : '',
-    avatar: profile.avatar_url || '',
+    avatar: resolveMediaUrl(profile.avatar_url) || '',
     memberSince: account.createdAt ? moment(account.createdAt).format('MM/YYYY') : '',
   };
 };
 
+export const mapApiSavedVouchers = (list: any[] = []): SavedVoucher[] =>
+  list.map((item) => ({
+    code: item.code,
+    name: item.name,
+    discountAmount: item.discount_amount ?? item.discountAmount ?? 0,
+    expiresAt: item.expires_at || item.expiresAt,
+    minOrder: item.min_order ?? item.minOrder,
+    savedAt: item.saved_at || item.savedAt,
+  }));
+
 export const mapApiAddresses = (addresses: ApiAddress[] = []): AccountAddress[] =>
   addresses.map((item) => ({
-    id: item._id,
+    id: String(item._id),
     isDefault: !!item.is_default,
     label: item.label,
     fullName: item.receiver_name,
@@ -228,9 +239,9 @@ export const getOrderStatusMeta = (status: string) => {
     case 'PENDING':
       return { label: 'Chờ xác nhận', className: 'pending', filter: 'PENDING' as OrderFilterKey };
     case 'CONFIRMED':
-      return { label: 'Đang xử lý', className: 'processing', filter: 'PROCESSING' as OrderFilterKey };
+      return { label: 'Đã xác nhận', className: 'processing', filter: 'CONFIRMED' as OrderFilterKey };
     case 'PROCESSING':
-      return { label: 'Đang giao', className: 'shipping', filter: 'SHIPPING' as OrderFilterKey };
+      return { label: 'Đang giao hàng', className: 'shipping', filter: 'PROCESSING' as OrderFilterKey };
     case 'COMPLETED':
       return { label: 'Hoàn thành', className: 'completed', filter: 'COMPLETED' as OrderFilterKey };
     case 'CANCELLED':
@@ -242,12 +253,7 @@ export const getOrderStatusMeta = (status: string) => {
 
 export const filterOrdersByTab = (orders: ApiOrder[], filter: OrderFilterKey) => {
   if (filter === 'ALL') return orders;
-  if (filter === 'PENDING') return orders.filter((o) => o.status === 'PENDING');
-  if (filter === 'PROCESSING') return orders.filter((o) => o.status === 'CONFIRMED');
-  if (filter === 'SHIPPING') return orders.filter((o) => o.status === 'PROCESSING');
-  if (filter === 'COMPLETED') return orders.filter((o) => o.status === 'COMPLETED');
-  if (filter === 'CANCELLED') return orders.filter((o) => o.status === 'CANCELLED');
-  return orders;
+  return orders.filter((o) => o.status === filter);
 };
 
 export const buildDashboardStats = (

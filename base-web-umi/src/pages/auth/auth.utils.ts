@@ -22,7 +22,10 @@ export const extractAuthError = (error: unknown): string => {
     response?: { data?: { message?: string | string[] } };
     message?: string;
   };
-  const nested = err?.data?.message ?? err?.response?.data?.message;
+  const nested =
+    err?.data?.message ??
+    err?.response?.data?.message ??
+    (typeof err?.data === 'string' ? err.data : undefined);
   if (Array.isArray(nested)) return nested.join(', ');
   if (typeof nested === 'string') return nested;
   return err?.message || 'Đã xảy ra lỗi, vui lòng thử lại';
@@ -47,6 +50,11 @@ export const parseLoginResponse = (res: unknown): LoginPayload | null => {
   };
 };
 
+export const getAuthRedirectPath = (role?: string) =>
+  role === 'ADMIN' ? '/admin/dashboard' : '/home';
+
+export const AUTH_SESSION_EVENT = 'lurana:auth-session-updated';
+
 export const persistAuthSession = (payload: LoginPayload) => {
   const role = payload.user.roles?.[0] || 'USER';
   localStorage.setItem('token', payload.accessToken);
@@ -55,7 +63,5 @@ export const persistAuthSession = (payload: LoginPayload) => {
   if (payload.refreshToken) {
     localStorage.setItem('refreshToken', payload.refreshToken);
   }
+  window.dispatchEvent(new CustomEvent(AUTH_SESSION_EVENT, { detail: payload }));
 };
-
-export const getAuthRedirectPath = (role?: string) =>
-  role === 'ADMIN' ? '/admin/orders' : '/home';

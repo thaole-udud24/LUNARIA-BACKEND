@@ -1,20 +1,20 @@
 // =========================
-// COLORS
+// COLORS — brand + map tới CSS tokens (--admin-*)
 // =========================
 
 @primary-color: #FFA78A;
 @primary-hover: #f39a7d;
 
-@sidebar-bg: #FEF6F6;
-@content-bg: #ffffff;
+@sidebar-bg: var(--admin-sidebar-bg, #FEF6F6);
+@content-bg: var(--admin-bg, #ffffff);
 
-@text-color: #0C0C0C;
-@text-light: #8c8c8c;
+@text-color: var(--admin-text-strong, #0C0C0C);
+@text-light: var(--admin-text-muted, #8c8c8c);
 
-@border-color: #B1B1B1;
+@border-color: var(--admin-border-strong, #B1B1B1);
 
-@white: #ffffff;
-@danger: #FF0000;
+@white: var(--admin-surface, #ffffff);
+@danger: var(--admin-danger, #FF0000);
 
 // =========================
 // SIZE
