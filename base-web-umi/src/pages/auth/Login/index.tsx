@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { history } from 'umi';
+import { history, useLocation } from 'umi';
 import { Form, message } from 'antd';
 import { MailOutlined, LockOutlined, LoadingOutlined } from '@ant-design/icons';
 import { login as loginApi } from '@/services/TaiKhoan/auth.api';
@@ -7,9 +7,9 @@ import AuthShell from '../components/AuthShell';
 import AuthFieldInput from '../components/AuthFieldInput';
 import {
   extractAuthError,
-  getAuthRedirectPath,
   parseLoginResponse,
   persistAuthSession,
+  resolvePostLoginPath,
 } from '../auth.utils';
 
 interface LoginFormValues {
@@ -20,6 +20,7 @@ interface LoginFormValues {
 export default function LoginPage() {
   const [form] = Form.useForm<LoginFormValues>();
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
 
   const handleLogin = async (values: LoginFormValues) => {
     setLoading(true);
@@ -39,7 +40,7 @@ export default function LoginPage() {
 
       persistAuthSession(payload);
       message.success('Đăng nhập thành công!');
-      history.push(getAuthRedirectPath(payload.user.roles?.[0]));
+      history.replace(resolvePostLoginPath(payload.user.roles, location.search));
     } catch (error) {
       const msg = extractAuthError(error);
       if (msg.includes('EMAIL_NOT_VERIFIED') || msg.includes('xác thực email')) {

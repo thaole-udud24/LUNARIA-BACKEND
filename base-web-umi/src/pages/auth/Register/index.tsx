@@ -37,7 +37,16 @@ export default function RegisterPage() {
         `/auth/verify-email?email=${encodeURIComponent(values.email.trim())}`,
       );
     } catch (error) {
-      message.error(extractAuthError(error));
+      const errMsg = extractAuthError(error);
+      const email = values.email.trim();
+
+      if (errMsg.includes('không gửi được email') || errMsg.includes('Gửi lại mã')) {
+        message.warning(errMsg);
+        history.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
+
+      message.error(errMsg);
     } finally {
       setLoading(false);
     }

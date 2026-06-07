@@ -266,17 +266,17 @@ const ShopLayout: React.FC = ({ children }) => {
           </div>
 
           <div className="header-right header-actions">
-            <Link to="/notifications" className="notification-bell-link" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <BellOutlined className="action-icon" style={{ color: 'inherit' }} />
+            <Link to="/notifications" className="notification-bell-link">
+              <BellOutlined className="action-icon" />
               {unreadCount > 0 && <span className="header-unread-badge">{unreadCount}</span>}
             </Link>
-            <Link to="/cart" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <ShoppingCartOutlined className="action-icon" style={{ color: 'inherit' }} />
+            <Link to="/cart" className="cart-link">
+              <ShoppingCartOutlined className="action-icon" />
               {cartCount > 0 && <span className="header-unread-badge">{cartCount}</span>}
             </Link>
             <div className="user-menu-wrapper">
-              <Link to={currentUser ? "/account" : "/auth/login"}>
-                <UserOutlined className="action-icon" style={{ color: 'inherit' }} />
+              <Link to={currentUser ? "/account" : "/auth/login"} className="user-icon-link">
+                <UserOutlined className="action-icon" />
               </Link>
 
               <div className="user-menu-dropdown">

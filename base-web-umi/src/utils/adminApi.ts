@@ -85,21 +85,36 @@ export interface AdminNotificationsListResult<T> {
 
 /** Parse response GET /api/admin/notifications */
 export const parseAdminNotificationsList = <T>(res: unknown): AdminNotificationsListResult<T> => {
-  const payload = unwrapApiData<{
+  type Paginated = {
     data?: T[];
     total?: number;
     page?: number;
     limit?: number;
     unreadCount?: number;
-  }>(res);
-
-  return {
-    list: Array.isArray(payload?.data) ? payload.data : [],
-    total: payload?.total ?? 0,
-    page: payload?.page ?? 1,
-    limit: payload?.limit ?? 50,
-    unreadCount: payload?.unreadCount ?? 0,
   };
+
+  const toResult = (payload: Paginated | null | undefined): AdminNotificationsListResult<T> | null => {
+    if (!payload || !Array.isArray(payload.data)) return null;
+    return {
+      list: payload.data,
+      total: payload.total ?? payload.data.length,
+      page: payload.page ?? 1,
+      limit: payload.limit ?? 50,
+      unreadCount: payload.unreadCount ?? 0,
+    };
+  };
+
+  const wrapped = toResult(unwrapApiData<Paginated>(res));
+  if (wrapped) return wrapped;
+
+  const flat = toResult(res as Paginated);
+  if (flat) return flat;
+
+  const nested = res as { success?: boolean; data?: Paginated };
+  const nestedResult = toResult(nested?.data);
+  if (nestedResult) return nestedResult;
+
+  return { list: [], total: 0, page: 1, limit: 50, unreadCount: 0 };
 };
 
 export const parseAdminUnreadCount = (res: unknown): number => {

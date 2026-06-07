@@ -103,7 +103,7 @@ export class OrdersService {
       if (finalTotal < 0) throw new BadRequestException('Lỗi tính toán: Tổng tiền thanh toán không hợp lệ.');
 
       const orderCode = `LRN${Date.now()}`;
-      const qrUrl = `https://img.vietqr.io/image/mbbank-0908112006-compact2.jpg?amount=${finalTotal}&addInfo=${orderCode}`;
+      const qrUrl = `https://img.vietqr.io/image/mbbank-908112006-compact2.jpg?amount=${finalTotal}&addInfo=${orderCode}`;
 
       const paymentTimeout = new Date();
       paymentTimeout.setMinutes(paymentTimeout.getMinutes() + 15);

@@ -177,8 +177,10 @@ export default function PromotionModal({ open, mode, promotion, onClose, onSucce
                   <Select
                     mode="multiple"
                     size="large"
+                    className="promotion-product-select"
                     loading={loadingProducts}
                     placeholder="Tìm và chọn sản phẩm..."
+                    listHeight={280}
                     showSearch
                     filterOption={(input, option) =>
                       (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
@@ -193,7 +195,7 @@ export default function PromotionModal({ open, mode, promotion, onClose, onSucce
             )}
 
             <Col span={24}>
-              <Form.Item name="description" label="Mô tả chi tiết" style={{ marginBottom: 0 }}>
+              <Form.Item name="description" label="Mô tả chi tiết">
                 <TextArea rows={3} placeholder="Nhập mô tả hoặc điều kiện áp dụng..." />
               </Form.Item>
             </Col>

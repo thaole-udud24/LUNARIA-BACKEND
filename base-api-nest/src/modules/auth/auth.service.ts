@@ -130,6 +130,19 @@ export class AuthService implements OnModuleInit {
     return code;
   }
 
+  private async sendVerifyEmailOrCleanup(userId: Types.ObjectId, email: string) {
+    try {
+      await this.createAndSendVerifyCode(userId, email);
+    } catch (error) {
+      this.logger.error('[Auth] Gửi email xác thực thất bại:', error);
+      await this.verifyModel.deleteMany({ userId });
+      await this.userModel.deleteOne({ _id: userId });
+      throw new BadRequestException(
+        'Không gửi được email xác thực. Vui lòng thử đăng ký lại sau vài phút.',
+      );
+    }
+  }
+
   async register(dto: RegisterDto) {
     const email = dto.email.toLowerCase().trim();
 
@@ -137,10 +150,24 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Mật khẩu xác nhận không khớp');
     }
 
-    const existing = await this.userModel.findOne({ email }).lean();
+    const existing = await this.userModel.findOne({ email }).select('+password');
 
-    if (existing) {
+    if (existing?.isEmailVerified) {
       throw new BadRequestException('Email đã tồn tại');
+    }
+
+    // Email chưa xác thực (lần trước gửi mail lỗi / user bỏ dở): cập nhật và gửi lại OTP
+    if (existing && !existing.isEmailVerified) {
+      existing.password = await this.hashPassword(dto.password);
+      existing.fullName = dto.name?.trim() || existing.fullName || 'New User';
+      await existing.save();
+
+      await this.sendVerifyEmailOrCleanup(existing._id as Types.ObjectId, email);
+
+      return {
+        message: 'Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực 6 số.',
+        email,
+      };
     }
 
     const user = new this.userModel({
@@ -152,14 +179,7 @@ export class AuthService implements OnModuleInit {
     });
     await user.save();
 
-    try {
-      await this.createAndSendVerifyCode(user._id as Types.ObjectId, email);
-    } catch (error) {
-      this.logger.error('[Auth] Gửi email xác thực thất bại:', error);
-      throw new BadRequestException(
-        'Tạo tài khoản thành công nhưng không gửi được email. Vui lòng dùng "Gửi lại mã" hoặc kiểm tra cấu hình SMTP.',
-      );
-    }
+    await this.sendVerifyEmailOrCleanup(user._id as Types.ObjectId, email);
 
     return {
       message: 'Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực 6 số.',

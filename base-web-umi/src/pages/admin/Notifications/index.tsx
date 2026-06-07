@@ -14,6 +14,8 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
+
+const { TabPane } = Tabs;
 import {
   BellOutlined,
   DeleteOutlined,
@@ -31,6 +33,7 @@ import {
 } from '@/services/ThongBao/notifications.admin.api';
 import type { ApiNotification, ApiNotificationCategory } from '@/services/ThongBao/notifications.customer.api';
 import { parseAdminNotificationsList } from '@/utils/adminApi';
+import { resolveNotificationId } from '@/pages/shop/Notifications/notification.utils';
 import { normalizeAdminOrders } from '@/utils/orderAddress';
 import TableToolbar from '@/components/admin/TableToolbar';
 import styles from './styles.less';
@@ -242,6 +245,7 @@ export default function AdminNotificationsPage() {
         <List
           className={styles.listWrapper}
           dataSource={notifications}
+          rowKey={(item) => resolveNotificationId(item._id)}
           renderItem={(item) => (
             <List.Item
               className={`${styles.item} ${!item.isRead ? styles.itemUnread : ''}`}
@@ -306,36 +310,6 @@ export default function AdminNotificationsPage() {
     );
   };
 
-  const tabItems = [
-    ...NOTIF_CATEGORIES.map((cat) => ({
-      key: cat.key,
-      label: (
-        <span>
-          {cat.icon} {cat.label}
-        </span>
-      ),
-      children: activeTab === cat.key ? renderNotificationList() : null,
-    })),
-    {
-      key: 'pending',
-      label: (
-        <span>
-          Chờ xác nhận <Badge count={pendingTotal} style={{ marginLeft: 8 }} overflowCount={99} />
-        </span>
-      ),
-      children: renderOrderList(pendingOrders, 'Không có đơn chờ xác nhận'),
-    },
-    {
-      key: 'processing',
-      label: (
-        <span>
-          Đang xử lý <Badge count={processingTotal} style={{ marginLeft: 8 }} overflowCount={99} />
-        </span>
-      ),
-      children: renderOrderList(processingOrders, 'Không có đơn đang xử lý'),
-    },
-  ];
-
   return (
     <div className={styles.container}>
       <div className={styles.topBar}>
@@ -396,16 +370,53 @@ export default function AdminNotificationsPage() {
           </>
         )}
 
-        <Spin spinning={loading}>
-          <Tabs
-            className={styles.tabsContainer}
-            activeKey={activeTab}
-            onChange={(key) => {
-              setActiveTab(key);
-              setPage(1);
-            }}
-            items={tabItems}
+        <Tabs
+          className={styles.tabsContainer}
+          activeKey={activeTab}
+          animated={false}
+          onChange={(key) => {
+            setActiveTab(key);
+            setPage(1);
+          }}
+        >
+          {NOTIF_CATEGORIES.map((cat) => (
+            <TabPane
+              tab={
+                <span>
+                  {cat.icon} {cat.label}
+                </span>
+              }
+              key={cat.key}
+            />
+          ))}
+          <TabPane
+            tab={
+              <span>
+                Chờ xác nhận{' '}
+                <Badge count={pendingTotal} style={{ marginLeft: 8 }} overflowCount={99} />
+              </span>
+            }
+            key="pending"
           />
+          <TabPane
+            tab={
+              <span>
+                Đang xử lý{' '}
+                <Badge count={processingTotal} style={{ marginLeft: 8 }} overflowCount={99} />
+              </span>
+            }
+            key="processing"
+          />
+        </Tabs>
+
+        <Spin spinning={loading}>
+          <div className={styles.tabContent}>
+            {isNotificationTab && renderNotificationList()}
+            {activeTab === 'pending' &&
+              renderOrderList(pendingOrders, 'Không có đơn chờ xác nhận')}
+            {activeTab === 'processing' &&
+              renderOrderList(processingOrders, 'Không có đơn đang xử lý')}
+          </div>
         </Spin>
       </div>
     </div>

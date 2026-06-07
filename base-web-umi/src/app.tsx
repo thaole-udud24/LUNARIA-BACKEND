@@ -7,6 +7,7 @@ import '@/styles/admin-responsive.less';
 import { getMe } from '@/services/TaiKhoan/users.api';
 import { setupLuranaToast } from '@/utils/luranaToast';
 import { initAdminTheme } from '@/utils/adminTheme';
+import { hasAdminRole } from '@/pages/auth/auth.utils';
 
 setupLuranaToast();
 
@@ -28,7 +29,7 @@ const readStoredRoles = (): string[] => {
   }
 };
 
-const isAdminUser = () => readStoredRoles().includes('ADMIN');
+const isAdminUser = () => hasAdminRole(readStoredRoles());
 
 // ==========================================
 // 1. CONFIG LAYOUT (Tắt Layout mặc định của Umi Pro)
@@ -115,7 +116,7 @@ export function onRouteChange({ location }: any) {
 
   // Trường hợp 1: Chưa đăng nhập mà cố tình vào trang Admin quản trị -> Đá về Login
   if (!token && isAdminPage) {
-    history.replace('/auth/login');
+    history.replace('/auth/login?redirect=%2Fadmin%2Fdashboard');
     return;
   }
 

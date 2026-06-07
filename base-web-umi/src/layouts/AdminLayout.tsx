@@ -56,6 +56,13 @@ const mainMenus = [
   { title: 'Báo cáo doanh thu', path: '/admin/reports', icon: <BarChartOutlined /> },
 ];
 
+const isAdminMenuActive = (pathname: string, menuPath: string) => {
+  if (menuPath === '/admin/dashboard') {
+    return pathname === '/admin/dashboard' || pathname === '/admin';
+  }
+  return pathname === menuPath || pathname.startsWith(`${menuPath}/`);
+};
+
 const buildAvatarUrl = (name?: string, avatarUrl?: string) => {
   if (avatarUrl) return avatarUrl;
   const label = encodeURIComponent(name || 'Admin');
@@ -170,7 +177,7 @@ export default function AdminLayout(props: any) {
 
   useEffect(() => {
     if (location.pathname === '/' || location.pathname === '/admin') {
-      history.push('/admin/dashboard');
+      history.replace('/admin/dashboard');
     }
     if (isMobile) {
       setCollapsed(true);
@@ -238,7 +245,7 @@ export default function AdminLayout(props: any) {
             {mainMenus.map((item) => (
               <div
                 key={item.path}
-                className={`admin-sidebar-item ${location.pathname.includes(item.path) ? 'active' : ''}`}
+                className={`admin-sidebar-item ${isAdminMenuActive(location.pathname, item.path) ? 'active' : ''}`}
                 onClick={() => history.push(item.path)}
               >
                 <div className="item-icon">{item.icon}</div>

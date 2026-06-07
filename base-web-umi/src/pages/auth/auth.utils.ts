@@ -50,13 +50,36 @@ export const parseLoginResponse = (res: unknown): LoginPayload | null => {
   };
 };
 
-export const getAuthRedirectPath = (role?: string) =>
-  role === 'ADMIN' ? '/admin/dashboard' : '/home';
+export const hasAdminRole = (roles?: string[] | string | null): boolean => {
+  const list = Array.isArray(roles) ? roles : roles ? [roles] : [];
+  return list.some((role) => String(role).toUpperCase() === 'ADMIN');
+};
+
+export const getAuthRedirectPath = (
+  roles?: string[] | string | null,
+  redirect?: string | null,
+) => {
+  if (hasAdminRole(roles)) {
+    return '/admin/dashboard';
+  }
+
+  if (redirect && redirect.startsWith('/') && !redirect.startsWith('/admin')) {
+    return redirect;
+  }
+
+  return '/home';
+};
+
+export const resolvePostLoginPath = (roles?: string[] | null, search?: string) => {
+  const params = new URLSearchParams(search || '');
+  return getAuthRedirectPath(roles, params.get('redirect'));
+};
 
 export const AUTH_SESSION_EVENT = 'lurana:auth-session-updated';
 
 export const persistAuthSession = (payload: LoginPayload) => {
-  const role = payload.user.roles?.[0] || 'USER';
+  const roles = payload.user.roles?.length ? payload.user.roles : ['USER'];
+  const role = hasAdminRole(roles) ? 'ADMIN' : roles[0] || 'USER';
   localStorage.setItem('token', payload.accessToken);
   localStorage.setItem('user', JSON.stringify(payload.user));
   localStorage.setItem('role', role);
