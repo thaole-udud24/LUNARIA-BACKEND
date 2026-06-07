@@ -5,6 +5,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { ExcelBaseService } from 'src/shared/csv/excel.service';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @Controller('admin/orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -52,12 +53,17 @@ export class OrdersAdminController {
     res.send(buffer);
   }
 
-  @Get() 
+  @Get()
   async getOrders(@Query() query: any) {
     return this.ordersService.findAllAdmin(query);
   }
 
-  @Patch(':id/confirm-payment') 
+  @Get(':id')
+  async getOrderDetail(@Param('id') id: string) {
+    return this.ordersService.findOneAdmin(id);
+  }
+
+  @Patch(':id/confirm-payment')
   async confirmPayment(@Param('id') id: string) {
     return this.ordersService.confirmPaymentAdmin(id);
   }
@@ -65,6 +71,11 @@ export class OrdersAdminController {
   @Patch(':id/cancel')
   async cancelOrder(@Param('id') id: string, @Body('reason') reason: string) {
     return this.ordersService.cancelOrderAdmin(id, reason);
+  }
+
+  @Patch(':id/status')
+  async updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
+    return this.ordersService.updateStatus(id, dto.status);
   }
 
   @Post('trigger-timeout-cleanup')

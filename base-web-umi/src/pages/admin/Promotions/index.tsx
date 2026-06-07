@@ -1,942 +1,129 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-
+import { useEffect, useState, useCallback } from 'react';
+import { Button, Space, message, Card, Col, Row } from 'antd';
+import { ImportOutlined, ExportOutlined, SafetyCertificateOutlined, PercentageOutlined } from '@ant-design/icons';
 import { history } from 'umi';
 
-import {
-  Button,
-  Card,
-  Col,
-  Dropdown,
-  Input,
-  Menu,
-  Pagination,
-  Popconfirm,
-  Row,
-  Space,
-  Typography,
-  message,
-} from 'antd';
-
-import {
-  AppstoreOutlined,
-  GiftOutlined,
-  MenuOutlined,
-  PlusOutlined,
-  SearchOutlined,
-} from '@ant-design/icons';
-
-import DataTable from '@/components/admin/DataTable';
-
-import StatusTag from '@/components/admin/StatusTag';
-
-import PromotionForm from './components/PromotionForm';
-
-import type {
-  ColumnsType,
-} from 'antd/es/table';
-
-import type {
-  Promotion,
-} from '@/types/promotion';
-
-import type {
-  ProductType,
-} from '@/types/catalog';
-
-import {
-  deletePromotion,
-  getPromotions,
-} from '@/services/UuDai/promotions.api';
-
-import {
-  getAdminProducts,
-} from '@/services/SanPham/products.api';
-
-import {
-  buildPromotionTableRows,
-} from '@/utils/promotion';
-
-import type {
-  PromotionStatus,
-} from '@/utils/promotion';
-
-const {
-  Title,
-  Text,
-} = Typography;
-
-// =========================
-// TABLE ROW
-// =========================
-
-interface PromotionTableRow {
-  rowId: string;
-
-  promotionId: number;
-
-  promotionName: string;
-
-  productId: number;
-
-  productName: string;
-
-  productImage?: string;
-
-  originalPrice: number;
-
-  discountPercent: number;
-
-  discountPrice: number;
-
-  startDate: string;
-
-  endDate: string;
-
-  status: PromotionStatus;
-
-  isFirstRow?: boolean;
-
-  applyType: 'all' | 'specific';
-}
-
-const PromotionsPage =
-  () => {
-
-    // =========================
-    // STATES
-    // =========================
-
-    const [loading, setLoading] =
-      useState(false);
-
-    const [
-      promotions,
-      setPromotions,
-    ] = useState<
-      Promotion[]
-    >([]);
-
-    const [products, setProducts] =
-      useState<
-        ProductType[]
-      >([]);
-
-    const [
-      searchText,
-      setSearchText,
-    ] = useState('');
-
-    const [
-      openForm,
-      setOpenForm,
-    ] = useState(false);
-
-    const [
-      selectedPromotion,
-      setSelectedPromotion,
-    ] = useState<
-      Promotion | null
-    >(null);
-
-    const [currentPage, setCurrentPage] =
-      useState(1);
-
-    const [pageSize, setPageSize] =
-      useState(10);
-
-    // =========================
-    // FETCH DATA
-    // =========================
-
-    const fetchData =
-      async () => {
-
-        try {
-
-          setLoading(true);
-
-          const [
-            promotionsRes,
-            productsRes,
-          ] = await Promise.all([
-            getPromotions(),
-            getAdminProducts(),
-          ]);
-
-          setPromotions(
-            promotionsRes.data ||
-              [],
-          );
-
-          setProducts(
-            productsRes.data ||
-              [],
-          );
-
-        } catch (error) {
-
-          message.error(
-            'Không thể tải dữ liệu',
-          );
-
-        } finally {
-
-          setLoading(false);
-        }
-      };
-
-    useEffect(() => {
-
-      setCurrentPage(1);
-
-    }, [searchText]);
-
-    useEffect(() => {
-      fetchData();
-    }, []);
-
-    // =========================
-    // TABLE DATA
-    // =========================
-
-    const tableData =
-      useMemo<
-        PromotionTableRow[]
-      >(() => {
-
-        const rows =
-          buildPromotionTableRows({
-            promotions,
-            products,
-          });
-
-        if (
-          !searchText.trim()
-        ) {
-          return rows;
-        }
-
-        return rows.filter(
-          (item) =>
-            item.productName
-              ?.toLowerCase()
-              .includes(
-                searchText.toLowerCase(),
-              ) ||
-            item.promotionName
-              ?.toLowerCase()
-              .includes(
-                searchText.toLowerCase(),
-              ),
-        );
-
-      }, [
-        promotions,
-        products,
-        searchText,
-      ]);
-
-    const paginatedData =
-      useMemo(() => {
-
-        return tableData.slice(
-          (currentPage - 1) *
-            pageSize,
-          currentPage *
-            pageSize,
-        );
-
-      }, [
-        tableData,
-        currentPage,
-        pageSize,
-      ]);
-
-    const isFirstPromotionRow =
-      (
-        record: PromotionTableRow,
-      ) => {
-
-        const firstRow =
-          tableData.find(
-            (item) =>
-              item.promotionId ===
-              record.promotionId,
-          );
-
-        return (
-          firstRow?.rowId ===
-          record.rowId
-        );
-      };
-
-    // =========================
-    // DELETE
-    // =========================
-
-    const handleDelete =
-      async (
-        promotionId: number,
-        productId: number,
-      ) => {
-
-        try {
-
-          const targetPromotion =
-            promotions.find(
-              (item) =>
-                item.id === promotionId,
-            );
-
-          if (!targetPromotion) {
-
-            message.error(
-              'Không tìm thấy ưu đãi',
-            );
-
-            return;
-          }
-
-          // =========================
-          // ALL PRODUCTS
-          // =========================
-
-          if (
-            targetPromotion.applyType ===
-            'all'
-          ) {
-
-            const response =
-              await deletePromotion(
-                promotionId,
-              );
-
-            if (!response.success) {
-
-              message.error(
-                response.message,
-              );
-
-              return;
-            }
-
-            message.success(
-              'Xóa ưu đãi thành công',
-            );
-
-            fetchData();
-
-            return;
-          }
-
-          // =========================
-          // REMOVE PRODUCT
-          // =========================
-
-          const nextProductIds =
-            targetPromotion.productIds.filter(
-              (id) =>
-                id !== productId,
-            );
-
-          // nếu không còn sản phẩm
-          // => xóa promotion
-
-          if (
-            !nextProductIds.length
-          ) {
-
-            const response =
-              await deletePromotion(
-                promotionId,
-              );
-
-            if (!response.success) {
-
-              message.error(
-                response.message,
-              );
-
-              return;
-            }
-
-            message.success(
-              'Xóa ưu đãi thành công',
-            );
-
-            fetchData();
-
-            return;
-          }
-
-          // =========================
-          // UPDATE PROMOTION
-          // =========================
-
-          const {
-            updatePromotion,
-          } = await import(
-            '@/services/UuDai/promotions.api'
-          );
-
-          const response =
-            await updatePromotion(
-              promotionId,
-              {
-                productIds:
-                  nextProductIds,
-              },
-            );
-
-          if (!response.success) {
-
-            message.error(
-              response.message,
-            );
-
-            return;
-          }
-
-          message.success(
-            'Đã xóa sản phẩm khỏi ưu đãi',
-          );
-
-          fetchData();
-
-        } catch (error) {
-
-          message.error(
-            'Không thể xóa ưu đãi',
-          );
-        }
-      };
-
-    // =========================
-    // EDIT
-    // =========================
-
-    const handleEdit =
-      (
-        promotionId: number,
-      ) => {
-
-        const targetPromotion =
-          promotions.find(
-            (item) =>
-              item.id ===
-              promotionId,
-          ) || null;
-
-        setSelectedPromotion(
-          targetPromotion,
-        );
-
-        setOpenForm(true);
-      };
-
-    // =========================
-    // ACTION MENU
-    // =========================
-
-    const renderActionMenu =
-      (
-        record: PromotionTableRow,
-      ) => (
-
-        <Menu>
-
-          <Menu.Item
-            key="edit"
-            onClick={() =>
-              handleEdit(
-                record.promotionId,
-              )
-            }
-          >
-            Chỉnh sửa
-          </Menu.Item>
-
-          <Menu.Item
-            key="delete"
-            danger
-          >
-
-            <Popconfirm
-              title="Xác nhận xóa ưu đãi?"
-              okText="Xóa"
-              cancelText="Hủy"
-              onConfirm={() =>
-                handleDelete(
-                  record.promotionId,
-                  record.productId,
-                )
-              }
-            >
-
-              <span>
-                Xóa
-              </span>
-
-            </Popconfirm>
-          </Menu.Item>
-        </Menu>
-      );
-
-    // =========================
-    // COLUMNS
-    // =========================
-
-    const columns: ColumnsType<PromotionTableRow> =
-      [
-        {
-          title: 'STT',
-
-          width: 70,
-
-          render: (
-            _,
-            __,
-            index,
-          ) =>
-            index + 1,
-        },
-
-        {
-          title:
-            'Sản phẩm',
-
-          render: (
-            _,
-            record,
-          ) => (
-
-            <div
-              style={{
-                display:
-                  'flex',
-
-                alignItems:
-                  'center',
-
-                gap: 12,
-              }}
-            >
-
-              <img
-                src={
-                  record.productImage ||
-                  'https://via.placeholder.com/60'
-                }
-                alt={
-                  record.productName
-                }
-                style={{
-                  width: 48,
-
-                  height: 48,
-
-                  objectFit:
-                    'cover',
-
-                  borderRadius: 8,
-                }}
-              />
-
-              <div>
-
-                <div>
-                  {
-                    record.productName
-                  }
-                </div>
-
-                <div
-                  style={{
-                    fontSize: 12,
-
-                    color:
-                      '#999',
-                  }}
-                >
-                  {
-                    record.promotionName
-                  }
-                </div>
-
-              </div>
-            </div>
-          ),
-        },
-
-        {
-          title:
-            'Giá gốc',
-
-          render: (
-            _,
-            record,
-          ) =>
-            `${record.originalPrice.toLocaleString(
-              'vi-VN',
-            )} đ`,
-        },
-
-        {
-          title:
-            'Giảm giá',
-
-          render: (
-            _,
-            record,
-          ) =>
-            `${record.discountPrice.toLocaleString(
-              'vi-VN',
-            )} đ`,
-        },
-
-        {
-          title:
-            'Phần trăm',
-
-          render: (
-            _,
-            record,
-          ) =>
-            `${record.discountPercent}%`,
-        },
-
-        {
-          title:
-            'Thời hạn',
-
-          render: (
-            _,
-            record,
-          ) => (
-
-            <div>
-
-              <div>
-                {
-                  record.startDate
-                }
-              </div>
-
-              <div>
-                {
-                  record.endDate
-                }
-              </div>
-
-            </div>
-          ),
-        },
-
-        {
-          title:
-            'Trạng thái',
-
-          render: (
-            _,
-            record,
-          ) => (
-
-            <StatusTag
-              status={
-                record.status
-              }
-            />
-          ),
-        },
-
-        {
-          title:
-            'Thao tác',
-
-          width: 140,
-
-          render: (
-            _,
-            record,
-          ) => {
-
-            // =========================
-            // APPLY TYPE = ALL
-            // =========================
-
-            if (
-              record.applyType ===
-              'all'
-            ) {
-
-              // chỉ dòng đầu tiên
-              // mới có action
-
-              if (
-                !isFirstPromotionRow(
-                  record,
-                )
-              ) {
-
-                return (
-                  <span
-                    style={{
-                      color: '#999',
-                      fontSize: 13,
-                    }}
-                  >
-                    Toàn bộ sản phẩm
-                  </span>
-                );
-              }
-            }
-
-            return (
-              <Dropdown
-                overlay={renderActionMenu(
-                  record,
-                )}
-                trigger={[
-                  'click',
-                ]}
-              >
-
-                <Button
-                  type="text"
-                  icon={
-                    <MenuOutlined />
-                  }
-                />
-              </Dropdown>
-            );
-          },
-        }, 
-      ];
-
-    return (
-
-      <div className="admin-page">
-
-        {/* HEADER */}
-
-        <div className="admin-header">
-
-          <Title level={2}>
-            Thiết lập mã giảm giá
-          </Title>
-
-          <Text type="secondary">
-            Trang chủ
-            {' > '}
-            Sản phẩm
-            {' > '}
-            Ưu đãi
-          </Text>
-        </div>
-
-        {/* TYPE */}
-
-        <Row
-          gutter={16}
-          className="promotion-type-row"
-        >
-
-          <Col
-            xs={24}
-            md={12}
-          >
-
-            <Card className="promotion-type-card active">
-
-              <Space align="start">
-
-                <div className="promotion-icon">
-
-                  <GiftOutlined />
-
-                </div>
-
-                <div>
-
-                  <h3>
-                    Giảm giá trực tiếp trên sản phẩm
-                  </h3>
-
-                  <p>
-                    Đây là hình thức giảm giá trực tiếp vào giá bán của từng sản phẩm.
-                  </p>
-
-                </div>
-              </Space>
-            </Card>
-          </Col>
-
-          <Col
-            xs={24}
-            md={12}
-          >
-
-            <Card
-              hoverable
-              className="promotion-type-card"
-              onClick={() => {
-                history.push('/admin/vouchers');
-              }}
-            >
-
-              <Space align="start">
-
-                <div className="promotion-icon">
-
-                  <AppstoreOutlined />
-
-                </div>
-
-                <div>
-
-                  <h3>
-                    Mã giảm giá
-                  </h3>
-
-                  <p>
-                    Đây là hình thức sử dụng mã code khi thanh toán.
-                  </p>
-
-                </div>
-              </Space>
-            </Card>
-          </Col>
-        </Row>
-
-        {/* TOOLBAR */}
-
-        <div className="promotion-toolbar">
-
-          <Title level={3}>
-            Danh sách mã giảm giá
-          </Title>
-
-          <Space>
-
-            <Input
-              allowClear
-              placeholder="Tìm kiếm"
-              prefix={
-                <SearchOutlined />
-              }
-              value={
-                searchText
-              }
-              onChange={(e) =>
-                setSearchText(
-                  e.target.value,
-                )
-              }
-            />
-
-            <Button
-              type="primary"
-              icon={
-                <PlusOutlined />
-              }
-              onClick={() => {
-
-                setSelectedPromotion(
-                  null,
-                );
-
-                setOpenForm(
-                  true,
-                );
-              }}
-            >
-              Thêm mới
-            </Button>
-          </Space>
-        </div>
-
-        {/* TABLE */}
-
-        <DataTable
-          rowKey="rowId"
-          loading={loading}
-          columns={columns}
-          dataSource={paginatedData}
-          pagination={false}
-        />
-
-        {/* PAGINATION */}
-
-        <div className="custom-pagination">
-
-          <div className="pagination-total">
-
-            Tổng số:
-            {' '}
-            {tableData.length}
-
-          </div>
-
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={tableData.length}
-            showSizeChanger
-            pageSizeOptions={[
-              '10',
-              '20',
-              '50',
-            ]}
-            onChange={(
-              page,
-              size,
-            ) => {
-
-              setCurrentPage(page);
-
-              setPageSize(
-                size || 10,
-              );
-            }}
-          />
-        </div>
-
-        {/* FORM */}
-
-        <PromotionForm
-          open={openForm}
-          promotion={
-            selectedPromotion
-          }
-          onCancel={() => {
-
-            setOpenForm(
-              false,
-            );
-
-            setSelectedPromotion(
-              null,
-            );
-          }}
-          onSuccess={() => {
-
-            setOpenForm(
-              false,
-            );
-
-            setSelectedPromotion(
-              null,
-            );
-
-            fetchData();
-          }}
-        />
-      </div>
-    );
+import type { Promotion } from '@/types/promotion';
+import { getPromotions, deletePromotion, activatePromotion, disablePromotion, exportPromotions } from '@/services/UuDai/promotions.api';
+
+import TableToolbar from '@/components/admin/TableToolbar';
+import PromotionTable from './components/PromotionTable';
+import PromotionModal from './components/PromotionModal';
+import ImportPromotionModal from './components/ImportPromotionModal';
+import styles from './styles.less';
+
+export default function PromotionsPage() {
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
+  const [openModal, setOpenModal] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [selected, setSelected] = useState<Promotion | null>(null);
+  const [openImport, setOpenImport] = useState(false);
+
+  const fetchPromotions = useCallback(async (showMsg = false) => {
+    try {
+      setLoading(true);
+      const res: any = await getPromotions({ page, limit, search });
+      setPromotions(res?.data || []);
+      setTotal(res?.total || 0);
+      if (showMsg) message.success('Đã làm mới dữ liệu!');
+    } catch {
+      message.error('Lỗi tải danh sách khuyến mãi');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, limit, search]);
+
+  useEffect(() => { fetchPromotions(); }, [fetchPromotions]);
+
+  const handleDelete = async (id: string) => {
+    try { await deletePromotion(id); message.success('Đã xóa!'); fetchPromotions(); }
+    catch { message.error('Xóa thất bại'); }
+  };
+  const handleActivate = async (id: string) => {
+    try { await activatePromotion(id); message.success('Đã kích hoạt!'); fetchPromotions(); }
+    catch { message.error('Lỗi kích hoạt'); }
+  };
+  const handleDisable = async (id: string) => {
+    try { await disablePromotion(id); message.success('Đã tắt!'); fetchPromotions(); }
+    catch { message.error('Lỗi tắt khuyến mãi'); }
   };
 
-export default PromotionsPage;
+  const handleExport = async () => {
+    try {
+      setExportLoading(true);
+      const blob = await exportPromotions(['name', 'status', 'discountType', 'discountValue', 'applyScope', 'startDate', 'endDate'], { search });
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a'); link.href = url; link.download = 'Promotions.xlsx'; link.click();
+      window.URL.revokeObjectURL(url); message.success('Xuất file thành công!');
+    } catch { message.error('Xuất file thất bại!'); }
+    finally { setExportLoading(false); }
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.topBar}>
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Ưu Đãi</h1>
+          <div className={styles.breadcrumb}>
+            Tổng quan <span className={styles.separator}>/</span> <span className={styles.active}>Ưu đãi</span>
+          </div>
+        </div>
+        <Space>
+          <Button className={styles.gradientBtn} icon={<ImportOutlined />} onClick={() => setOpenImport(true)}>Nhập Excel</Button>
+          <Button className={styles.gradientBtn} icon={<ExportOutlined />} loading={exportLoading} onClick={handleExport}>Xuất Excel</Button>
+        </Space>
+      </div>
+
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Card style={{ borderRadius: 12, cursor: 'pointer', border: 'none', background: 'linear-gradient(135deg, #FFA78A 0%, #FF7792 100%)', boxShadow: '0 4px 14px rgba(255, 167, 138, 0.25)' }}>
+            <Space align="start" size={16}>
+              <div style={{ background: '#fff', borderRadius: 8, width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: '#FFA78A' }}><SafetyCertificateOutlined /></div>
+              <div>
+                <h3 style={{ margin: 0, color: '#fff', fontSize: 18, fontWeight: 700 }}>Giảm giá trực tiếp trên sản phẩm</h3>
+                <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: 13, marginTop: 4 }}>Đây là hình thức giảm giá trực tiếp vào giá bán của từng sản phẩm cụ thể trong danh mục.</p>
+              </div>
+            </Space>
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card hoverable onClick={() => history.push('/admin/vouchers')} style={{ borderRadius: 12, cursor: 'pointer', border: '1px solid #FFA78A', background: '#fff' }}>
+            <Space align="start" size={16}>
+              <div style={{ background: '#FFA78A', borderRadius: 8, width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: '#fff' }}><PercentageOutlined /></div>
+              <div>
+                <h3 style={{ margin: 0, color: '#1F2937', fontSize: 18, fontWeight: 700 }}>Mã giảm giá</h3>
+                <p style={{ margin: 0, color: '#6B7280', fontSize: 13, marginTop: 4 }}>Đây là hình thức sử dụng một đoạn mã (code) để khách hàng nhập vào khi thanh toán nhằm nhận ưu đãi.</p>
+              </div>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
+
+      <TableToolbar
+        total={total} searchValue={search} searchPlaceholder="Tìm theo tên chương trình..."
+        onSearchChange={setSearch} onSearch={() => { setPage(1); fetchPromotions(); }} onRefresh={() => fetchPromotions(true)}
+        onAddNew={() => { setSelected(null); setModalMode('create'); setOpenModal(true); }} loading={loading}
+      />
+
+      <div className={styles.tableWrapper}>
+        <PromotionTable 
+          loading={loading} dataSource={promotions} page={page} limit={limit} total={total}
+          // Thêm : number cho p và l
+          onPageChange={(p: number, l: number) => { setPage(p); setLimit(l); }} 
+          // Thêm : Promotion cho r
+          onEdit={(r: Promotion) => { setSelected(r); setModalMode('edit'); setOpenModal(true); }}
+          onDelete={handleDelete} onActivate={handleActivate} onDisable={handleDisable}
+        />
+      </div>
+
+      <PromotionModal open={openModal} mode={modalMode} promotion={selected} onClose={() => setOpenModal(false)} onSuccess={() => { setOpenModal(false); fetchPromotions(); }} />
+      <ImportPromotionModal open={openImport} onClose={() => setOpenImport(false)} onSuccess={fetchPromotions} />
+    </div>
+  );
+}

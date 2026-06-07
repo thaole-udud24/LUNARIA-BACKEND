@@ -1,0 +1,214 @@
+@import '~@/styles/variables.less';
+
+@toast-radius: 18px;
+@toast-shadow: 0 16px 40px rgba(45, 42, 40, 0.12), 0 4px 12px rgba(255, 167, 138, 0.1);
+
+.lurana-toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 320px;
+  max-width: 420px;
+  padding: 16px 44px 16px 18px;
+  border-radius: @toast-radius;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 167, 138, 0.14);
+  box-shadow: @toast-shadow;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: luranaToastIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  &__accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: @toast-radius 0 0 @toast-radius;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-top: 1px;
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+    padding-top: 1px;
+  }
+
+  &__title {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  &__message {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #5c5552;
+    word-break: break-word;
+  }
+
+  &__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(45, 42, 40, 0.04);
+    color: #8a827e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 11px;
+    transition: @transition;
+
+    &:hover {
+      background: rgba(255, 167, 138, 0.16);
+      color: @primary-color;
+    }
+  }
+
+  &__progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    transform-origin: left center;
+    animation-name: luranaToastProgress;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+
+  &--success {
+    .lurana-toast__accent,
+    .lurana-toast__progress {
+      background: linear-gradient(90deg, @primary-color 0%, #ffb89f 100%);
+    }
+
+    .lurana-toast__icon {
+      background: rgba(255, 167, 138, 0.14);
+      color: #e87d5c;
+    }
+
+    .lurana-toast__title {
+      color: #c96b4f;
+    }
+  }
+
+  &--error {
+    .lurana-toast__accent,
+    .lurana-toast__progress {
+      background: linear-gradient(90deg, #ff6b6b 0%, #ff8787 100%);
+    }
+
+    .lurana-toast__icon {
+      background: rgba(255, 107, 107, 0.12);
+      color: #e85555;
+    }
+
+    .lurana-toast__title {
+      color: #d64545;
+    }
+  }
+
+  &--warning {
+    .lurana-toast__accent,
+    .lurana-toast__progress {
+      background: linear-gradient(90deg, #ffb020 0%, #ffc857 100%);
+    }
+
+    .lurana-toast__icon {
+      background: rgba(255, 176, 32, 0.14);
+      color: #d9920a;
+    }
+
+    .lurana-toast__title {
+      color: #b87a08;
+    }
+  }
+
+  &--info {
+    .lurana-toast__accent,
+    .lurana-toast__progress {
+      background: linear-gradient(90deg, #7eb8ff 0%, #a8d4ff 100%);
+    }
+
+    .lurana-toast__icon {
+      background: rgba(126, 184, 255, 0.14);
+      color: #4a94e8;
+    }
+
+    .lurana-toast__title {
+      color: #3b7fd4;
+    }
+  }
+}
+
+@keyframes luranaToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes luranaToastProgress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+// Override Ant Design message wrapper
+.ant-message {
+  z-index: 10050;
+
+  .lurana-toast-notice {
+    .ant-message-notice-content {
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+      border: none;
+    }
+
+    .ant-message-custom-content {
+      display: block;
+    }
+
+    > .anticon {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .lurana-toast {
+    min-width: 0;
+    max-width: calc(100vw - 32px);
+  }
+}

@@ -1,49 +1,68 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Spin } from 'antd';
+import { Spin, Empty } from 'antd';
 import { history } from 'umi';
-import request from '../../../../utils/request';
-import { getImg } from '../utils';
+import {
+  getBestSellingProducts,
+  getProducts,
+} from '@/services/SanPham/products.customer.api';
+import { getProductImageFromApi } from '../utils';
 import ProductCard from '../UI/ProductCard';
 import styles from '../UI/ProductCard/index.module.less';
 
+const ROW_LIMIT = 4;
+
+const parseProductList = (res: any): any[] => {
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.items)) return res.items;
+  return [];
+};
+
+const mergeUniqueProducts = (primary: any[], secondary: any[], limit: number) => {
+  const seen = new Set<string>();
+  const merged: any[] = [];
+
+  [...primary, ...secondary].forEach((product) => {
+    if (merged.length >= limit) return;
+    const id = product?._id || product?.id;
+    if (!id || seen.has(id) || product?.isActive === false) return;
+    seen.add(id);
+    merged.push(product);
+  });
+
+  return merged;
+};
+
+const getDisplayPrice = (variants: any[] = []) => {
+  if (!variants.length) return 'Liên hệ';
+  const prices = variants.map((v) => v.priceSell).filter((p) => p != null && p > 0);
+  if (!prices.length) return 'Liên hệ';
+  return `${Math.min(...prices).toLocaleString('vi-VN')}đ`;
+};
+
 const BestSellerSection: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Montserrat:wght@400;500;600;700&display=swap';
+    link.href =
+      'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Montserrat:wght@400;500;600;700&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
 
     const fetchTopProducts = async () => {
       try {
-        const response = await request('/api/products', {
-          method: 'GET',
-          params: { page: 1, limit: 8 },
-        });
-        
-        if (response && response.data && response.data.length > 0) {
-          setProducts(response.data);
-        } else {
-          const mockData = [1, 2, 3, 4, 5, 6, 7, 8].map((item) => ({
-            _id: String(item),
-            name: `Sản phẩm mẫu ${item}`,
-            variants: [{ priceSell: 320000 }],
-            images: [`anh-san-pham-${item}.png`],
-            rating: item === 1 ? 5.0 : undefined,
-          }));
-          setProducts(mockData);
-        }
+        const [bestRes, allRes] = await Promise.all([
+          getBestSellingProducts(ROW_LIMIT),
+          getProducts({ limit: ROW_LIMIT }),
+        ]);
+        const bestList = parseProductList(bestRes);
+        const allList = parseProductList(allRes);
+        setProducts(mergeUniqueProducts(bestList, allList, ROW_LIMIT));
       } catch (error) {
-        const mockData = [1, 2, 3, 4, 5, 6, 7, 8].map((item) => ({
-          _id: String(item),
-          name: `Sản phẩm lỗi kết nối ${item}`,
-          variants: [{ priceSell: 320000 }],
-          images: [`anh-san-pham-${item}.png`],
-          rating: item === 1 ? 5.0 : undefined,
-        }));
-        setProducts(mockData);
+        console.error('Không tải được sản phẩm bán chạy:', error);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -55,14 +74,6 @@ const BestSellerSection: React.FC = () => {
   const handleViewMore = (e: React.MouseEvent) => {
     e.preventDefault();
     history.push('/products');
-  };
-
-  const getDisplayPrice = (variants: any[]) => {
-    if (!variants || variants.length === 0) return '320,000đ';
-    const prices = variants.map(v => v.priceSell).filter(p => p !== undefined);
-    if (prices.length === 0) return '320,000đ';
-    const minPrice = Math.min(...prices);
-    return `${minPrice.toLocaleString('vi-VN')}đ`;
   };
 
   return (
@@ -81,20 +92,26 @@ const BestSellerSection: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
             <Spin size="large" style={{ color: '#ff8e73' }} />
           </div>
+        ) : products.length === 0 ? (
+          <Empty description="Chưa có sản phẩm" style={{ padding: '40px 0' }} />
         ) : (
-          <Row gutter={[24, 24]}>
-            {products.map((product) => (
-              <Col xs={24} sm={12} md={6} lg={6} key={product._id}>
+          <div className={styles.productGrid}>
+            {products.map((product) => {
+              const id = product._id || product.id;
+              const firstVariant = product.variants?.[0];
+              return (
                 <ProductCard
-                  id={product._id}
-                  img={product.images && product.images.length > 0 ? product.images[0] : 'anh-san-pham-1.png'}
+                  key={id}
+                  id={id}
+                  img={getProductImageFromApi(product)}
                   name={product.name}
                   price={getDisplayPrice(product.variants)}
-                  rating={product.rating} 
+                  rating={product.rating}
+                  variantName={firstVariant?.variantName}
                 />
-              </Col>
-            ))}
-          </Row>
+              );
+            })}
+          </div>
         )}
       </div>
     </section>

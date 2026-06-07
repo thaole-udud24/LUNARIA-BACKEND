@@ -77,3 +77,40 @@
   font-weight: 500;
   animation: fluidEntrance 0.5s ease forwards;
 }
+
+.errorState {
+  text-align: center;
+  padding: 48px 24px;
+  color: #64748b;
+
+  h2 {
+    color: #0f172a;
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .topRow,
+  .bottomRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardContainer {
+    gap: 16px;
+  }
+
+  .pageTitle {
+    font-size: 22px;
+  }
+
+  .topRow,
+  .bottomRow {
+    gap: 16px;
+  }
+
+  .chartGroup {
+    gap: 16px;
+  }
+}

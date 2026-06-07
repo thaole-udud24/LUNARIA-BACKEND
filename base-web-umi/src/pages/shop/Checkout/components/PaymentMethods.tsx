@@ -1,79 +1,84 @@
 import React from 'react';
-import { PaymentMethodType } from '../types';
+import {
+  ShoppingOutlined,
+  CreditCardOutlined,
+  InfoCircleOutlined,
+} from '@ant-design/icons';
+import { PaymentMethod } from '../types';
 
 interface PaymentMethodsProps {
-  selected: PaymentMethodType;
-  onSelect: (method: PaymentMethodType) => void;
+  selected: PaymentMethod;
+  onSelect: (method: PaymentMethod) => void;
+  previewQrUrl?: string;
+  previewAmount?: number;
+  previewOrderCode?: string;
 }
 
-const PaymentMethods: React.FC<PaymentMethodsProps> = ({ selected, onSelect }) => {
+const PaymentMethods: React.FC<PaymentMethodsProps> = ({
+  selected,
+  onSelect,
+  previewQrUrl,
+  previewAmount,
+  previewOrderCode,
+}) => {
   return (
-    <div className="checkout-card payment-methods-card">
-      <h2>2. Phương thức thanh toán</h2>
-      <p className="sub-title">Chọn phương thức thanh toán phù hợp với bạn</p>
-
-      <div className="methods-list">
-        {/* COD */}
-        <div
-          className={`payment-method-item ${selected === 'COD' ? 'active' : ''}`}
-          onClick={() => onSelect('COD')}
-        >
-          <div className="method-header">
-            <span className="radio-circle"></span>
-            <span className="method-icon">🚚</span>
-            <div className="method-info">
-              <h4>Thanh toán khi nhận hàng (COD)</h4>
-              <p>Thanh toán bằng tiền mặt khi shipper giao hàng đến</p>
-            </div>
-          </div>
-        </div>
-
-        {/* BANK */}
-        <div
-          className={`payment-method-item ${selected === 'BANK' ? 'active' : ''}`}
-          onClick={() => onSelect('BANK')}
-        >
-          <div className="method-header">
-            <span className="radio-circle"></span>
-            <span className="method-icon">💳</span>
-            <div className="method-info">
-              <h4>Chuyển khoản ngân hàng (Mã QR)</h4>
-              <p>Chuyển khoản nhanh qua quét mã QR ứng dụng ngân hàng</p>
-            </div>
-          </div>
-
-          {selected === 'BANK' && (
-            <div className="method-details bank-details">
-              <div className="bank-info-box">
-                <p><strong>Ngân hàng:</strong> Techcombank (TCB)</p>
-                <p><strong>Số tài khoản:</strong> 19036688990011</p>
-                <p><strong>Chủ tài khoản:</strong> LUNARIA COSMETICS</p>
-                <p><strong>Nội dung CK:</strong> LN8899 + Số điện thoại</p>
-              </div>
-              <div className="qr-box">
-                <div className="mock-qr">MÃ QR MẪU</div>
-                <span>Quét mã bằng ứng dụng ngân hàng</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* MOMO */}
-        <div
-          className={`payment-method-item ${selected === 'MOMO' ? 'active' : ''}`}
-          onClick={() => onSelect('MOMO')}
-        >
-          <div className="method-header">
-            <span className="radio-circle"></span>
-            <span className="method-icon">📱</span>
-            <div className="method-info">
-              <h4>Ví điện tử MoMo / ZaloPay</h4>
-              <p>Thanh toán tiện lợi qua cổng ví điện tử</p>
-            </div>
-          </div>
+    <section className="checkout-card payment-methods-card">
+      <div className="checkout-card__head">
+        <span className="checkout-card__step">03</span>
+        <div>
+          <h2>Phương thức thanh toán</h2>
+          <p className="sub-title">Chọn cách thanh toán phù hợp với bạn</p>
         </div>
       </div>
-    </div>
+
+      <div className="methods-list">
+        <button
+          type="button"
+          className={`payment-method-item ${selected === 'cod' ? 'is-active' : ''}`}
+          onClick={() => onSelect('cod')}
+        >
+          <span className="radio-circle" />
+          <ShoppingOutlined className="method-icon" />
+          <div className="method-info">
+            <h4>Thanh toán khi nhận hàng (COD)</h4>
+            <p>Thanh toán bằng tiền mặt khi nhận hàng từ shipper</p>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className={`payment-method-item ${selected === 'bank_transfer' ? 'is-active' : ''}`}
+          onClick={() => onSelect('bank_transfer')}
+        >
+          <span className="radio-circle" />
+          <CreditCardOutlined className="method-icon" />
+          <div className="method-info">
+            <h4>Chuyển khoản / VietQR</h4>
+            <p>Quét mã QR sau khi đặt hàng — hệ thống giữ đơn 15 phút</p>
+          </div>
+        </button>
+      </div>
+
+      {selected === 'bank_transfer' && (
+        <div className="payment-hint">
+          <InfoCircleOutlined />
+          <span>
+            Sau khi đặt hàng, mã QR VietQR sẽ hiển thị với số tiền chính xác.
+            Vui lòng chuyển khoản trong vòng 15 phút để giữ đơn hàng.
+          </span>
+        </div>
+      )}
+
+      {selected === 'bank_transfer' && previewQrUrl && (
+        <div className="payment-qr-preview">
+          <img src={previewQrUrl} alt="Mã QR thanh toán" />
+          <div>
+            <strong>{previewOrderCode}</strong>
+            <p>{previewAmount?.toLocaleString('vi-VN')}đ</p>
+          </div>
+        </div>
+      )}
+    </section>
   );
 };
 

@@ -83,6 +83,51 @@
   min-height: 250px;
 }
 
+.emptyChart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 220px;
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px dashed #e5e7eb;
+}
+
+:global(html[data-admin-theme='dark']) {
+  .container {
+    background-color: #1e293b;
+    border-color: rgba(148, 163, 184, 0.14);
+
+    .title,
+    .amount {
+      color: #e2e8f0;
+    }
+
+    .tabs {
+      background: #162032;
+      border-color: rgba(148, 163, 184, 0.18);
+
+      button {
+        color: #94a3b8;
+
+        &.active {
+          color: #fff;
+        }
+      }
+    }
+
+    .emptyChart {
+      background: #162032;
+      border-color: rgba(148, 163, 184, 0.18);
+      color: #94a3b8;
+    }
+  }
+}
+
 .customTooltip {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
@@ -99,5 +144,42 @@
     color: #1f2937;
     border-bottom: 1px solid #f3f4f6;
     padding-bottom: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .amount {
+    font-size: 24px !important;
+  }
+
+  .tabs {
+    width: 100%;
+    justify-content: space-between;
+
+    button {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+  }
+
+  .legend {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .chartWrapper {
+    min-height: 200px;
   }
 }

@@ -81,6 +81,22 @@ const AnimatedCounter: React.FC<CounterProps> = ({ targetValue }) => {
   );
 };
 
+const splitText = (text: string, startDelay = 0) => {
+  return text.split('').map((char, index) => (
+    <span
+      key={index}
+      style={{
+        display: 'inline-block',
+        animationDelay: `${startDelay + index * 0.04}s`,
+        whiteSpace: char === ' ' ? 'pre' : 'normal'
+      }}
+      className="char-item"
+    >
+      {char}
+    </span>
+  ));
+};
+
 const About: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fxLayerRef = useRef<HTMLDivElement>(null);
@@ -322,7 +338,15 @@ const About: React.FC = () => {
           <div className="label-badge-wrapper text-center">
             <span className="section-label light">Bắt đầu hành trình</span>
           </div>
-          <h2 className="scroll-reveal">Làn da khỏe mạnh<br />bắt đầu từ hôm nay</h2>
+          <h2 className="scroll-reveal typing-reveal-container">
+            <span className="line-wrapper">
+              {splitText("Làn da khỏe mạnh", 0)}
+            </span>
+            <br />
+            <span className="line-wrapper">
+              {splitText("bắt đầu từ hôm nay", 0.64)}
+            </span>
+          </h2>
           <p>Khám phá hơn 50 sản phẩm thuần tự nhiên được hàng nghìn khách hàng tin dùng.</p>
           <Link to="/products" className="about-cta-btn white shine-trigger">Mua ngay</Link>
         </div>

@@ -1,175 +1,291 @@
-import React, { useState } from 'react';
-import { Row, Col, Checkbox, Pagination, Select, message } from 'antd';
-import { HeartFilled, HeartOutlined, StarFilled } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Pagination, Select } from 'antd';
+import {
+  HeartFilled,
+  HeartOutlined,
+  StarFilled,
+  LeftOutlined,
+  RightOutlined,
+  PictureOutlined,
+  ArrowRightOutlined,
+  InboxOutlined,
+  TagOutlined,
+} from '@ant-design/icons';
 import { history } from 'umi';
-import { getImg } from '../utils';
+import './ShopAllProducts.less';
 
-const HeartButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({ onClick }) => {
+interface ShopAllProductsProps {
+  products: any[];
+  pageSize?: number;
+}
+
+const GRID_SIZE = 9;
+
+const hasValidImage = (p: any) => {
+  const url = p.mainImage || p.images?.[0] || p.avatar_url || p.img;
+  return Boolean(url && typeof url === 'string' && url.trim());
+};
+
+const getProductImage = (p: any) => {
+  if (p.mainImage) return p.mainImage;
+  if (p.images && p.images.length > 0) return p.images[0];
+  if (p.avatar_url) return p.avatar_url;
+  if (p.img) return p.img;
+  return '';
+};
+
+const getProductPrices = (p: any) => {
+  const variant = p.variants?.[0];
+  const sell = variant?.priceSell ?? p.price ?? 0;
+  const original = variant?.originalPrice ?? 0;
+  const hasDiscount = original > sell && sell > 0;
+  const discountPercent = hasDiscount
+    ? Math.round(((original - sell) / original) * 100)
+    : 0;
+
+  return {
+    sell,
+    original,
+    hasDiscount,
+    discountPercent,
+    sellText: sell > 0 ? `${sell.toLocaleString('vi-VN')}đ` : 'Liên hệ',
+    originalText: original > 0 ? `${original.toLocaleString('vi-VN')}đ` : '',
+  };
+};
+
+const getProductId = (p: any) => p._id || p.id || '';
+
+const getCategoryName = (p: any) =>
+  p?.category?.name || p?.category || '';
+
+const getSkinTypeLabels = (p: any) => {
+  if (Array.isArray(p.skinTypes) && p.skinTypes.length > 0) {
+    return p.skinTypes.map((s: any) => s?.name || s).filter(Boolean).join(', ');
+  }
+  if (p?.skinType?.name) return p.skinType.name;
+  if (typeof p?.skinType === 'string') return p.skinType;
+  return '';
+};
+
+const getStockInfo = (p: any) => {
+  const variant = p.variants?.[0];
+  const stock = variant?.stockQty ?? 0;
+  if (stock <= 0) return { label: 'Hết hàng', tone: 'danger' as const };
+  if (stock <= (variant?.stockAlert ?? 5)) return { label: `Còn ${stock}`, tone: 'warning' as const };
+  return { label: 'Còn hàng', tone: 'success' as const };
+};
+
+const NoImagePlaceholder: React.FC<{ compact?: boolean }> = ({ compact }) => (
+  <div className={`no-img-placeholder ${compact ? 'no-img-placeholder--compact' : ''}`}>
+    <PictureOutlined />
+    <span>NO IMG</span>
+  </div>
+);
+
+const HeartButton: React.FC = () => {
   const [active, setActive] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
-    onClick(e);
-    setActive(true);
+    e.stopPropagation();
+    setActive(!active);
   };
 
   return (
-    <div 
-      className="heart-icon" 
+    <button
+      type="button"
+      className={`lunaria-card__wishlist ${active ? 'is-active' : ''}`}
       onClick={handleClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ cursor: 'pointer' }}
+      aria-label="Yêu thích"
     >
-      {active || hovered ? <HeartFilled /> : <HeartOutlined />}
-    </div>
+      {active ? <HeartFilled /> : <HeartOutlined />}
+    </button>
   );
 };
 
-const ShopAllProducts: React.FC = () => {
-  const mockProducts = Array.from({ length: 12 }).map((_, idx) => ({
-    id: idx,
-    name: 'Bye Bye Lines Foundation',
-    price: '320,000đ',
-    rating: idx % 4 === 3 ? 4.9 : 5.0,
-    img: `anh-san-pham-${(idx % 8) + 1}.png`,
-    active: idx === 4 // Set the 5th item as active (blue border) for demo
-  }));
+const ProductImage: React.FC<{ product: any }> = ({ product }) => {
+  const [broken, setBroken] = useState(false);
+  const src = getProductImage(product);
+  const showPlaceholder = !hasValidImage(product) || broken || !src;
+
+  if (showPlaceholder) {
+    return <NoImagePlaceholder />;
+  }
+
+  return (
+    <img
+      src={src}
+      alt={product.name}
+      loading="lazy"
+      onError={() => setBroken(true)}
+    />
+  );
+};
+
+const ShopAllProducts: React.FC<ShopAllProductsProps> = ({
+  products = [],
+  pageSize = GRID_SIZE,
+}) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [products.length, limit]);
+
+  const startIdx = (currentPage - 1) * limit;
+  const pageProducts = products.slice(startIdx, startIdx + limit);
+  const emptySlotsCount = Math.max(0, limit - pageProducts.length);
+
+  const goToDetail = (pid: string) => {
+    if (pid) history.push(`/products/${pid}`);
+  };
 
   return (
     <div className="shop-all-products">
-      <Row gutter={40}>
-        {/* Left Sidebar */}
-        <Col xs={24} md={5}>
-          <div className="sidebar-filter-custom">
-            
-            <div className="filter-block">
-              <div className="filter-header">Giá tiền</div>
-              <div className="filter-body">
-                <Checkbox>&gt;= 500,000</Checkbox>
-                <Checkbox>&lt;= 900,000</Checkbox>
-                <Checkbox>&gt;= 1,200,000</Checkbox>
+      <div className="lunaria-product-grid">
+        {pageProducts.map((p) => {
+          const pid = getProductId(p);
+          const prices = getProductPrices(p);
+          const categoryName = getCategoryName(p);
+          const skinLabels = getSkinTypeLabels(p);
+          const stockInfo = getStockInfo(p);
+          const variant = p.variants?.[0];
+          const isActive = p.isActive !== false;
+
+          return (
+            <article
+              key={pid}
+              className="lunaria-card"
+              onClick={() => goToDetail(pid)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') goToDetail(pid);
+              }}
+            >
+              <div className="lunaria-card__media">
+                <span className={`lunaria-card__status lunaria-card__status--${isActive ? 'active' : 'inactive'}`}>
+                  {isActive ? 'ĐANG BÁN' : 'NGỪNG BÁN'}
+                </span>
+                <HeartButton />
+                <ProductImage product={p} />
+                {categoryName && (
+                  <span className="lunaria-card__category-tag">{categoryName}</span>
+                )}
+                {prices.hasDiscount && (
+                  <span className="lunaria-card__discount">-{prices.discountPercent}%</span>
+                )}
               </div>
-            </div>
 
-            <div className="filter-block">
-              <div className="filter-header">Chức năng</div>
-              <div className="filter-body">
-                <Checkbox>Làm sạch</Checkbox>
-                <Checkbox>Cân bằng</Checkbox>
-                <Checkbox>Dưỡng ẩm</Checkbox>
-                <Checkbox>Phục hồi</Checkbox>
-                <Checkbox>Chống nắng</Checkbox>
-              </div>
-            </div>
-
-            <div className="filter-block">
-              <div className="filter-header">Loại da phù hợp</div>
-              <div className="filter-body">
-                <Checkbox>Da nhạy cảm</Checkbox>
-                <Checkbox>Da dầu mụn</Checkbox>
-                <Checkbox>Da khô</Checkbox>
-                <Checkbox>Da thường</Checkbox>
-              </div>
-            </div>
-
-            <div className="filter-block">
-              <div className="filter-header">Đánh giá</div>
-              <div className="filter-body">
-                <Checkbox>&gt;=4.5 sao</Checkbox>
-                <Checkbox>&gt;=4.0 sao</Checkbox>
-                <Checkbox>&gt;=3.5 sao</Checkbox>
-              </div>
-            </div>
-
-          </div>
-        </Col>
-
-        {/* Right Grid */}
-        <Col xs={24} md={19}>
-          <div className="grid-top-bar">
-            <a href="#" className="view-more-link">Xem thêm</a>
-          </div>
-
-          <Row gutter={[24, 32]}>
-            {mockProducts.map((p) => {
-              const handleAddToCart = (e: React.MouseEvent) => {
-                e.stopPropagation();
-                try {
-                  const stored = localStorage.getItem('lunaria_cart_items');
-                  const cartItems: any[] = stored ? JSON.parse(stored) : [];
-                  const priceNum = parseInt(p.price.replace(/[^0-9]/g, ''), 10);
-                  const existingIdx = cartItems.findIndex((item) => item.name === p.name);
-                  
-                  if (existingIdx > -1) {
-                    cartItems[existingIdx].qty += 1;
-                  } else {
-                    cartItems.push({
-                      id: Date.now(),
-                      name: p.name,
-                      variant: 'Mặc định',
-                      price: priceNum,
-                      qty: 1,
-                      img: p.img,
-                    });
-                  }
-                  
-                  localStorage.setItem('lunaria_cart_items', JSON.stringify(cartItems));
-                  window.dispatchEvent(new Event('cartUpdate'));
-                  message.success(`Đã thêm sản phẩm "${p.name}" vào giỏ hàng!`);
-                } catch (err) {
-                  message.error('Lỗi khi thêm sản phẩm vào giỏ hàng');
-                }
-              };
-
-              return (
-                <Col xs={24} sm={12} md={8} lg={6} key={p.id}>
-                  <div 
-                    className={`shop2-product-card ${p.active ? 'active-card' : ''}`}
-                    onClick={() => history.push(`/products/${p.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="card-top">
-                      <HeartButton onClick={handleAddToCart} />
-                      <div className="rating-badge"><StarFilled /> {p.rating}</div>
-                    </div>
-                    <div className="card-img-container">
-                      <img src={getImg(p.img)} alt={p.name} />
-                    </div>
-                    <div className="card-info">
-                      <h4 className="prod-name">{p.name}</h4>
-                      <div className="prod-price">{p.price}</div>
-                    </div>
+              <div className="lunaria-card__content">
+                <div className="lunaria-card__meta-row">
+                  <div className="lunaria-card__brand">
+                    <span className="lunaria-card__sku">{p.sku || 'LUNARIA'}</span>
                   </div>
-                </Col>
-              );
-            })}
-          </Row>
+                  <span className="lunaria-card__price-top">{prices.sellText}</span>
+                </div>
 
-          <div className="custom-pagination">
-            <span className="total-text">Tổng số: 1</span>
-            <Pagination 
-              simple 
-              defaultCurrent={1} 
-              total={10} 
+                <h3 className="lunaria-card__title">{p.name}</h3>
+
+                <div className="lunaria-card__details">
+                  {variant?.variantName && (
+                    <span className="lunaria-card__detail-item">
+                      <InboxOutlined /> {variant.variantName}
+                    </span>
+                  )}
+                  <span className={`lunaria-card__detail-item lunaria-card__detail-item--${stockInfo.tone}`}>
+                    <TagOutlined /> {stockInfo.label}
+                  </span>
+                  {skinLabels && (
+                    <span className="lunaria-card__detail-item lunaria-card__detail-item--skin">
+                      {skinLabels}
+                    </span>
+                  )}
+                </div>
+
+                <div className="lunaria-card__footer">
+                  <div className="lunaria-card__rating">
+                    <StarFilled />
+                    <span>{p.rating || '5.0'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="lunaria-card__cta"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToDetail(pid);
+                    }}
+                  >
+                    Xem chi tiết <ArrowRightOutlined />
+                  </button>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+
+        {Array.from({ length: emptySlotsCount }).map((_, index) => (
+          <div key={`empty-${index}`} className="lunaria-card lunaria-card--empty">
+            <div className="lunaria-card__media lunaria-card__media--empty">
+              <NoImagePlaceholder compact />
+            </div>
+            <div className="lunaria-card__content lunaria-card__content--empty">
+              <div className="empty-slot-line" />
+              <div className="empty-slot-line empty-slot-line--short" />
+              <div className="empty-slot-line empty-slot-line--btn" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {products.length > 0 && (
+        <div className="lunaria-pagination">
+          <div className="lunaria-pagination__summary">
+            <span>Tổng số: <strong>{products.length}</strong></span>
+          </div>
+
+          <div className="lunaria-pagination__nav">
+            <Pagination
+              current={currentPage}
+              total={products.length}
+              pageSize={limit}
+              onChange={(page) => setCurrentPage(page)}
               showSizeChanger={false}
               itemRender={(page, type, originalElement) => {
                 if (type === 'prev') {
-                  return <a>&lt;</a>;
+                  return (
+                    <button type="button" className="lunaria-pagination__arrow" aria-label="Trang trước">
+                      <LeftOutlined />
+                    </button>
+                  );
                 }
                 if (type === 'next') {
-                  return <a>&gt;</a>;
+                  return (
+                    <button type="button" className="lunaria-pagination__arrow" aria-label="Trang sau">
+                      <RightOutlined />
+                    </button>
+                  );
                 }
                 return originalElement;
               }}
             />
-            <Select defaultValue="10" bordered={false} className="per-page-select">
-              <Select.Option value="10">10/trang</Select.Option>
-              <Select.Option value="20">20/trang</Select.Option>
-            </Select>
           </div>
-        </Col>
-      </Row>
+
+          <Select
+            value={limit.toString()}
+            onChange={(val) => {
+              setLimit(parseInt(val, 10));
+              setCurrentPage(1);
+            }}
+            className="lunaria-pagination__size"
+            dropdownClassName="lunaria-pagination__dropdown"
+          >
+            <Select.Option value="9">9 / trang</Select.Option>
+            <Select.Option value="18">18 / trang</Select.Option>
+            <Select.Option value="27">27 / trang</Select.Option>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };

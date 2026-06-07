@@ -1,6 +1,6 @@
-@primary-color: #ff9a7a;
-@primary-hover: #e88768;
-@secondary-color: #fff5f2;
+@ord-primary: #ff9a7a;
+@ord-primary-hover: #e88768;
+@ord-secondary: #fff5f2;
 @text-color: #333333;
 @border-color: #eeeeee;
 
@@ -17,6 +17,12 @@
     padding: 0 24px;
   }
 
+  .orders-loading {
+    display: flex;
+    justify-content: center;
+    padding: 80px 0;
+  }
+
   .page-header {
     text-align: center;
     margin-bottom: 40px;
@@ -24,8 +30,15 @@
     h1 {
       font-size: 32px;
       font-weight: 800;
-      color: #222222;
+      background: linear-gradient(120deg, #e63946, #ff9a7a, #ff4d4f, #e63946);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      animation: logo-gradient 4s linear infinite;
       margin: 0 0 12px;
+      display: inline-block;
     }
 
     p {
@@ -76,18 +89,18 @@
       }
 
       &:hover {
-        color: @primary-color;
+        color: @ord-primary;
         background: #fffaf8;
       }
 
       &.active {
-        background: @primary-color;
+        background: @ord-primary;
         color: #ffffff;
         box-shadow: 0 4px 15px rgba(255, 154, 122, 0.25);
 
         .tab-badge {
           background: #ffffff;
-          color: @primary-color;
+          color: @ord-primary;
         }
       }
     }
@@ -127,7 +140,7 @@
         background: #fcfcfc;
 
         &:focus {
-          border-color: @primary-color;
+          border-color: @ord-primary;
           background: #ffffff;
           box-shadow: 0 0 0 3px rgba(255, 154, 122, 0.15);
         }
@@ -199,7 +212,7 @@
           .order-code {
             font-size: 18px;
             font-weight: 700;
-            color: @primary-color;
+            color: @ord-primary;
           }
 
           .order-date {
@@ -252,6 +265,15 @@
             object-fit: cover;
             border: 1px solid @border-color;
             background: #fcfcfc;
+
+            &--placeholder {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #ffb199;
+              font-size: 24px;
+              background: #fff5f2;
+            }
           }
 
           .item-info {
@@ -305,7 +327,7 @@
           .total-amount {
             font-size: 22px;
             font-weight: 800;
-            color: @primary-color;
+            color: @ord-primary;
           }
         }
 
@@ -340,23 +362,23 @@
 
             &.btn-reorder {
               background: #ffffff;
-              border: 1px solid @primary-color;
-              color: @primary-color;
+              border: 1px solid @ord-primary;
+              color: @ord-primary;
 
               &:hover {
-                background: @primary-color;
+                background: @ord-primary;
                 color: #ffffff;
               }
             }
 
             &.btn-detail {
-              background: @primary-color;
+              background: @ord-primary;
               border: none;
               color: #ffffff;
               box-shadow: 0 4px 15px rgba(255, 154, 122, 0.3);
 
               &:hover {
-                background: @primary-hover;
+                background: @ord-primary-hover;
                 transform: translateY(-2px);
               }
             }
@@ -370,6 +392,28 @@
 /* Responsive */
 @media (max-width: 768px) {
   .orders-page-wrapper {
+    padding: 24px 0 56px;
+
+    .orders-page-container { padding: 0 16px; }
+
+    .page-header {
+      margin-bottom: 28px;
+
+      h1 { font-size: 24px; }
+      p { font-size: 14px; }
+    }
+
+    .order-tabs-container {
+      border-radius: 16px;
+      padding: 6px;
+
+      .order-tab-btn {
+        min-width: 120px;
+        height: 42px;
+        font-size: 13px;
+      }
+    }
+
     .order-card-container {
       .order-card-header, .order-card-body, .order-card-footer {
         padding: 20px;
@@ -390,6 +434,29 @@
           justify-content: flex-end;
           flex-wrap: wrap;
         }
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .orders-page-wrapper {
+    .order-tabs-container .order-tab-btn {
+      min-width: 108px;
+      padding: 0 10px;
+    }
+
+    .order-card-container {
+      .order-card-body .order-item-row {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .order-card-footer .footer-actions {
+        flex-direction: column;
+        align-items: stretch;
+
+        button { width: 100%; }
       }
     }
   }

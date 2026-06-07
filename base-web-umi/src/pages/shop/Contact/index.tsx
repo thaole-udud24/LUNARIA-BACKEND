@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Row, Col, Collapse, Progress } from 'antd';
 import { 
   RightOutlined,
-  HeartOutlined, // FIX: Bổ sung import bị thiếu để triệt tiêu lỗi TS2304
+  HeartOutlined,
   ThunderboltOutlined,
   ExperimentOutlined,
   SafetyOutlined,
@@ -31,6 +31,45 @@ interface TestimonialItem {
 
 const ContactPage: React.FC = () => {
   const [activeFaq, setActiveFaq] = useState<string[]>(['1']);
+  const fxLayerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Montserrat:wght@400;500;600;700&display=swap';
+    document.head.appendChild(link);
+
+    // Sinh tự động hiệu ứng cánh hoa rơi và bong bóng bay giống About
+    const fxContainer = fxLayerRef.current;
+    if (fxContainer) {
+      fxContainer.innerHTML = '';
+      const itemsCount = 20; 
+      for (let i = 0; i < itemsCount; i++) {
+        const isPetal = Math.random() > 0.45; 
+        const element = document.createElement('div');
+        
+        element.className = isPetal ? 'falling-petal' : 'falling-bubble';
+        
+        const size = isPetal ? Math.random() * 12 + 8 : Math.random() * 18 + 6;
+        element.style.width = `${size}px`;
+        element.style.height = isPetal ? `${size * 1.3}px` : `${size}px`;
+        
+        element.style.left = `${Math.random() * 100}%`;
+        element.style.top = `${Math.random() * -40}px`;
+        
+        const duration = Math.random() * 6 + 7; 
+        const delay = Math.random() * -12; 
+        element.style.animationDuration = `${duration}s`;
+        element.style.animationDelay = `${delay}s`;
+        
+        fxContainer.appendChild(element);
+      }
+    }
+
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
 
   const skinConcerns: SkinConcernItem[] = [
     { id: '1', title: 'Da nhạy cảm', desc: 'Dịu da tức thì, giảm mẩn đỏ, phục hồi nhanh chóng hàng rào bảo vệ tự nhiên bị tổn thương.', icon: <SafetyOutlined /> },
@@ -67,6 +106,9 @@ const ContactPage: React.FC = () => {
       <div className="aura-glow aura-center-pink" />
       <div className="aura-glow aura-bottom-left" />
       <div className="aura-glow aura-bottom-right" />
+
+      {/* Lớp chứa hiệu ứng cánh hoa và bong bóng rơi sinh động giống About */}
+      <div className="hero-fx-falling-layer" ref={fxLayerRef} />
 
       {/* HỆ HIỆU ỨNG VẬT THỂ DECOR CHUYỂN ĐỘNG FLOAT 3D KHÔNG LỖI NỀN */}
       <div className="decor-item floating-cream-1" />

@@ -1,18 +1,11 @@
-export interface OrderItem {
-  id: number;
-  name: string;
-  variant: string;
-  price: number;
-  qty: number;
-  img: string;
-}
+export type { PaymentMethod } from '@/services/DonHang/orders.customer.api';
+export type { CheckoutOrderResult } from '@/services/DonHang/orders.customer.api';
 
-export interface ShippingInfo {
-  fullName: string;
-  phone: string;
-  email: string;
-  address: string;
-  note: string;
-}
+export type {
+  CheckoutFormState,
+  SavedAddressOption,
+  CheckoutSummaryItem,
+  CheckoutMeta,
+} from './utils';
 
-export type PaymentMethodType = 'COD' | 'BANK' | 'MOMO';
+export { CHECKOUT_SHIPPING_FEE } from './utils';

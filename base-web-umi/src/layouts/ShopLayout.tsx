@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   ShoppingCartOutlined, 
   UserOutlined, 
   BellOutlined,
@@ -17,6 +17,9 @@ import {
 } from '@ant-design/icons';
 import { Link, useLocation, history } from 'umi';
 import { message } from 'antd';
+import useCart from '@/hooks/useCart';
+import useNotificationUnread from '@/hooks/useNotificationUnread';
+import ShopChatWidget from '@/components/ShopChatWidget';
 import './ShopLayout.less';
 
 const getImg = (name: string) => {
@@ -47,50 +50,24 @@ const HeaderSearch: React.FC = () => {
 
   return (
     <div className="search-box">
+      <SearchOutlined className="search-icon" onClick={handleSearch} style={{ cursor: 'pointer' }} />
       <input
         type="text"
-        placeholder="Nhập từ khóa tìm kiếm"
+        placeholder="Tìm kiếm nhanh..."
         value={val}
         onChange={(e) => setVal(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
       />
-      <button className="search-btn" onClick={handleSearch}><SearchOutlined /></button>
     </div>
   );
 };
 
 const ShopLayout: React.FC = ({ children }) => {
   const location = useLocation();
+  const { cartCount } = useCart();
   const [forceHide, setForceHide] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [unreadCount, setUnreadCount] = useState(2);
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    const updateCartCount = () => {
-      try {
-        const stored = localStorage.getItem('lunaria_cart_items');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          const count = parsed.reduce((acc: number, item: any) => acc + item.qty, 0);
-          setCartCount(count);
-        } else {
-          setCartCount(0);
-        }
-      } catch (err) {
-        setCartCount(0);
-      }
-    };
-
-    updateCartCount();
-    window.addEventListener('storage', updateCartCount);
-    window.addEventListener('cartUpdate', updateCartCount);
-
-    return () => {
-      window.removeEventListener('storage', updateCartCount);
-      window.removeEventListener('cartUpdate', updateCartCount);
-    };
-  }, []);
+  const { unreadCount, refreshUnreadCount } = useNotificationUnread(location.pathname);
 
   useEffect(() => {
     try {
@@ -100,16 +77,18 @@ const ShopLayout: React.FC = ({ children }) => {
       } else {
         setCurrentUser(null);
       }
-      const notifs = localStorage.getItem('lunaria_notifications');
-      if (notifs) {
-        const parsed = JSON.parse(notifs);
-        const count = parsed.filter((n: any) => !n.isRead).length;
-        setUnreadCount(count);
-      }
     } catch (e) {
       setCurrentUser(null);
     }
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleNotificationsUpdated = () => {
+      refreshUnreadCount();
+    };
+    window.addEventListener('notifications:updated', handleNotificationsUpdated);
+    return () => window.removeEventListener('notifications:updated', handleNotificationsUpdated);
+  }, [refreshUnreadCount]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -155,50 +134,44 @@ const ShopLayout: React.FC = ({ children }) => {
                     <div className="mega-grid-row">
                       <div className="mega-col">
                         <a onClick={() => handleQuickTab('Làm sạch da')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
-                          LÀM SẠCH DA <span className="heading-arrow">›</span>
+                          Làm sạch da <span className="heading-arrow">›</span>
                         </a>
                         <div className="mega-sub-list">
                           <a onClick={() => handleQuickSearch('Tẩy trang')}>Tẩy trang</a>
                           <a onClick={() => handleQuickSearch('Sữa rửa mặt')}>Sữa rửa mặt</a>
                           <a onClick={() => handleQuickSearch('Toner làm sạch')}>Toner làm sạch</a>
-                          <a onClick={() => handleQuickSearch('Tẩy tế bào chết')}>Tẩy tế bào chết</a>
                         </div>
                       </div>
 
                       <div className="mega-col">
                         <a onClick={() => handleQuickTab('Cân bằng da')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
-                          CÂN BẰNG DA <span className="heading-arrow">›</span>
+                          Cân bằng da <span className="heading-arrow">›</span>
                         </a>
                         <div className="mega-sub-list">
                           <a onClick={() => handleQuickSearch('Toner dưỡng ẩm')}>Toner dưỡng ẩm</a>
                           <a onClick={() => handleQuickSearch('Xịt khoáng')}>Xịt khoáng</a>
                           <a onClick={() => handleQuickSearch('Serum cân bằng')}>Serum cân bằng</a>
-                          <a onClick={() => handleQuickSearch('Nước thần')}>Nước thần</a>
                         </div>
                       </div>
 
                       <div className="mega-col">
                         <a onClick={() => handleQuickTab('Dưỡng ẩm')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
-                          DƯỠNG ẨM <span className="heading-arrow">›</span>
+                          Dưỡng ẩm <span className="heading-arrow">›</span>
                         </a>
                         <div className="mega-sub-list">
                           <a onClick={() => handleQuickSearch('Serum cấp nước')}>Serum cấp nước</a>
                           <a onClick={() => handleQuickSearch('Kem dưỡng ẩm')}>Kem dưỡng ẩm</a>
                           <a onClick={() => handleQuickSearch('Kem dưỡng mắt')}>Kem dưỡng mắt</a>
-                          <a onClick={() => handleQuickSearch('Mặt nạ ngủ')}>Mặt nạ ngủ</a>
-                          <a onClick={() => handleQuickSearch('Dưỡng môi')}>Dưỡng môi</a>
                         </div>
                       </div>
 
                       <div className="mega-col">
                         <a onClick={() => handleQuickTab('Chống nắng')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
-                          CHỐNG NẮNG <span className="heading-arrow">›</span>
+                          Chống nắng <span className="heading-arrow">›</span>
                         </a>
                         <div className="mega-sub-list">
                           <a onClick={() => handleQuickSearch('Kem chống nắng SPF 30')}>Kem chống nắng SPF 30</a>
                           <a onClick={() => handleQuickSearch('Kem chống nắng SPF 50')}>Kem chống nắng SPF 50</a>
-                          <a onClick={() => handleQuickSearch('Chống nắng dạng xịt')}>Chống nắng dạng xịt</a>
-                          <a onClick={() => handleQuickSearch('Chống nắng vật lý')}>Chống nắng vật lý</a>
                         </div>
                       </div>
                     </div>
@@ -207,31 +180,29 @@ const ShopLayout: React.FC = ({ children }) => {
                     <div className="mega-grid-row bottom-row">
                       <div className="mega-col">
                         <a onClick={() => handleQuickTab('Phục hồi')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
-                          PHỤC HỒI DA <span className="heading-arrow">›</span>
+                          Phục hồi da <span className="heading-arrow">›</span>
                         </a>
                         <div className="mega-sub-list">
                           <a onClick={() => handleQuickSearch('Mặt nạ phục hồi')}>Mặt nạ phục hồi</a>
                           <a onClick={() => handleQuickSearch('Serum B5')}>Serum B5</a>
                           <a onClick={() => handleQuickSearch('Kem dưỡng ban đêm')}>Kem dưỡng ban đêm</a>
-                          <a onClick={() => handleQuickSearch('Phục hồi chuyên sâu')}>Phục hồi chuyên sâu</a>
                         </div>
                       </div>
 
                       <div className="mega-col">
                         <a onClick={() => handleQuickTab('Tất cả')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
-                          BỘ SẢN PHẨM <span className="heading-arrow">›</span>
+                          Bộ sản phẩm <span className="heading-arrow">›</span>
                         </a>
                         <div className="mega-sub-list">
                           <a onClick={() => handleQuickSearch('Bộ làm sạch sâu')}>Bộ làm sạch sâu</a>
                           <a onClick={() => handleQuickSearch('Bộ dưỡng ẩm trắng da')}>Bộ dưỡng ẩm trắng da</a>
                           <a onClick={() => handleQuickSearch('Bộ phục hồi hư tổn')}>Bộ phục hồi hư tổn</a>
-                          <a onClick={() => handleQuickSearch('Bộ chống lão hóa')}>Bộ chống lão hóa</a>
                         </div>
                       </div>
 
                       <div className="mega-col">
                         <a onClick={() => handleQuickTab('Tất cả')} className="mega-col-heading" style={{ cursor: 'pointer' }}>
-                          QUÀ TẶNG <span className="heading-arrow">›</span>
+                          Quà tặng <span className="heading-arrow">›</span>
                         </a>
                         <div className="mega-sub-list">
                           <a onClick={() => handleQuickSearch('Set quà tặng dưới 500K')}>Set quà tặng dưới 500K</a>
@@ -284,7 +255,7 @@ const ShopLayout: React.FC = ({ children }) => {
           
           <div className="header-center logo">
             <img src={getImg('logo-lunaria.png')} alt="LUNARIA Logo" style={{ height: '40px', objectFit: 'contain' }} />
-            LUNARIA
+            <span className="logo-text">Lunaria</span>
           </div>
 
           <div className="header-right header-actions">
@@ -362,7 +333,7 @@ const ShopLayout: React.FC = ({ children }) => {
           <div className="footer-col brand-info">
             <div className="logo">
               <img src={getImg('logo-lunaria-footer.png')} alt="LUNARIA Logo" style={{ height: '40px', objectFit: 'contain', marginBottom: '10px' }} />
-              LUNARIA
+              <span className="logo-text">Lunaria</span>
             </div>
             <p className="brand-desc">Thương hiệu mỹ phẩm thiên nhiên hàng đầu, mang đến vẻ đẹp thuần khiết và an toàn cho làn da của bạn.</p>
             <div className="work-hours">
@@ -433,6 +404,8 @@ const ShopLayout: React.FC = ({ children }) => {
           <p>Copyright © 2026 Lunaria. All rights reserved.</p>
         </div>
       </footer>
+
+      <ShopChatWidget />
     </div>
   );
 };

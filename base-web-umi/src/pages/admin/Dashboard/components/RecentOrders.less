@@ -105,3 +105,35 @@
   color: #d1d5db;
   transition: all 0.3s ease;
 }
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+}
+
+:global(html[data-admin-theme='dark']) {
+  .container {
+    background-color: #1e293b;
+
+    .title {
+      color: #e2e8f0;
+    }
+
+    .item {
+      background: #162032;
+    }
+
+    .info .name {
+      color: #e2e8f0;
+    }
+
+    .empty {
+      background: #162032;
+      color: #94a3b8;
+    }
+  }
+}

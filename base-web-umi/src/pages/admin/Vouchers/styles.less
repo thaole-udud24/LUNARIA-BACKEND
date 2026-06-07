@@ -1,0 +1,131 @@
+@primary: #FFA78A;
+@primary-hover: #F39A7D;
+@bg: #FFF8F6;
+@surface: #FFFFFF;
+@text-primary: #1F2937;
+@text-secondary: #6B7280;
+@border: #F3E5DF;
+
+@keyframes fluidEntrance {
+  0% { opacity: 0; transform: translateY(24px); filter: blur(8px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes pulseBlob {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  padding: 24px;
+  animation: fluidEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 1;
+  overflow: hidden;
+
+  &::before, &::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: -1;
+    animation: pulseBlob 10s ease-in-out infinite;
+  }
+  &::before { top: -150px; right: -100px; width: 600px; height: 600px; background: rgba(255, 167, 138, 0.12); }
+  &::after { bottom: -200px; left: -200px; width: 500px; height: 500px; background: rgba(255, 119, 146, 0.12); animation-delay: -5s; }
+}
+
+.topBar, .tableWrapper {
+  background: @surface;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), 0 4px 6px rgba(15, 23, 42, 0.04);
+}
+
+.tableWrapper { padding: 24px; }
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #FFA78A 0%, #FFBEA9 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: @text-secondary;
+  .active { color: @text-primary; font-weight: 600; }
+}
+
+// Nút Gradient dùng chung
+.gradientBtn {
+  position: relative;
+  height: 42px;
+  min-width: 140px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 14px; // Đây là bo góc bạn đang dùng (14px)
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  
+  // ✅ Đã thêm dấu đóng ngoặc cho linear-gradient
+  background: linear-gradient(
+    135deg,
+    #ff916d 0%,
+    #ff7d83 55%,
+    #ff6d9f 100%
+  ); 
+
+  // Hiệu ứng bóng đổ ban đầu
+  box-shadow: 0 4px 10px rgba(255, 120, 130, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    // ✅ Bóng đổ mạnh hơn khi hover để tạo cảm giác "nổi"
+    box-shadow: 0 8px 20px rgba(255, 120, 130, 0.5) !important;
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+} // ✅ Đã đóng ngoặc cho .gradientBtn
+// Tương thích hiển thị trên các kích thước màn hình nhỏ (Responsive)
+@media (max-width: 992px) {
+  .topBar { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .pageTitle { font-size: 28px; }
+}
+
+@media (max-width: 768px) {
+  .container { padding: 16px; gap: 16px; }
+  .topBar, .tableWrapper { padding: 16px; border-radius: 16px; }
+  .pageTitle { font-size: 24px; }
+}

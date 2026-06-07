@@ -1,4 +1,14 @@
 {
+  "name": "lurana",
+  "private": true,
+  "scripts": {
+    "start": "yarn --cwd base-web-umi start",
+    "start:fe": "yarn --cwd base-web-umi start",
+    "start:be": "yarn --cwd base-api-nest start:dev",
+    "install:fe": "yarn --cwd base-web-umi install",
+    "install:be": "yarn --cwd base-api-nest install",
+    "install:all": "yarn install:fe && yarn install:be"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1"
   }

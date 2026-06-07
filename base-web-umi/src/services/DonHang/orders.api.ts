@@ -25,6 +25,13 @@ export async function cancelOrderAdmin(id: string, reason: string) {
   });
 }
 
+export async function updateOrderStatusAdmin(id: string, status: string) {
+  return request(`/api/admin/orders/${id}/status`, {
+    method: 'PATCH',
+    data: { status },
+  });
+}
+
 // 4. Lấy chi tiết đơn hàng
 export async function getAdminOrderById(id: string) {
   return request(`/api/admin/orders/${id}`, { method: 'GET' });

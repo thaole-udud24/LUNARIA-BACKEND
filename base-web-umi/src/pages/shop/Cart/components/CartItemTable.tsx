@@ -1,84 +1,140 @@
 import React from 'react';
 import { Link } from 'umi';
-import { DeleteOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  MinusOutlined,
+  PlusOutlined,
+  PictureOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons';
 import { CartItem } from '../types';
+import { formatPrice, getCartItemKey, resolveImageUrl } from '@/services/GioHang/cart.utils';
 
-const getImg = (name: string) => {
-  try {
-    return require(`@/assets/images/${name}`);
-  } catch (err) {
-    return '';
-  }
-};
-
-interface CartItemTableProps {
+interface CartItemListProps {
   items: CartItem[];
-  updateQty: (id: number, delta: number) => void;
-  removeItem: (id: number) => void;
-  clearCart: () => void;
+  updatingKey: string | null;
+  onIncrease: (item: CartItem) => void;
+  onDecrease: (item: CartItem) => void;
+  onRemove: (item: CartItem) => void;
+  onClear: () => void;
+  clearing?: boolean;
 }
 
-const CartItemTable: React.FC<CartItemTableProps> = ({
+const CartItemList: React.FC<CartItemListProps> = ({
   items,
-  updateQty,
-  removeItem,
-  clearCart,
+  updatingKey,
+  onIncrease,
+  onDecrease,
+  onRemove,
+  onClear,
+  clearing = false,
 }) => {
   return (
     <div className="cart-items-section">
-      <table className="cart-table">
-        <thead>
-          <tr>
-            <th>Sản phẩm</th>
-            <th>Đơn giá</th>
-            <th>Số lượng</th>
-            <th>Thành tiền</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => (
-            <tr key={item.id}>
-              <td>
-                <div className="product-col">
-                  <div className="product-img">
-                    <img src={getImg(item.img)} alt={item.name} />
-                  </div>
-                  <div className="product-info">
-                    <h3>{item.name}</h3>
-                    <p>{item.variant}</p>
-                  </div>
+      <div className="cart-items-section__head">
+        <h2>Sản phẩm trong giỏ</h2>
+        <span>{items.length} mặt hàng</span>
+      </div>
+
+      <div className="cart-item-list">
+        {items.map((item) => {
+          const key = getCartItemKey(item.productId, item.variantName);
+          const isUpdating = updatingKey === key || updatingKey === '__clear__';
+          const hasDiscount =
+            item.originalPrice != null &&
+            item.originalPrice > item.priceSell &&
+            item.priceSell > 0;
+          const atMax = item.quantity >= item.stockQty;
+
+          return (
+            <article key={key} className={`cart-item-row ${isUpdating ? 'is-updating' : ''}`}>
+              <Link to={`/products/${item.productId}`} className="cart-item-row__media">
+                {item.mainImage ? (
+                  <img src={resolveImageUrl(item.mainImage)} alt={item.name} loading="lazy" />
+                ) : (
+                  <span className="cart-item-row__no-img">
+                    <PictureOutlined />
+                    <em>NO IMG</em>
+                  </span>
+                )}
+              </Link>
+
+              <div className="cart-item-row__body">
+                <Link to={`/products/${item.productId}`} className="cart-item-row__name">
+                  {item.name}
+                </Link>
+                <p className="cart-item-row__variant">Biến thể: {item.variantName}</p>
+                <div className="cart-item-row__price-mobile">
+                  {formatPrice(item.priceSell)}
+                  {hasDiscount && (
+                    <del>{formatPrice(item.originalPrice)}</del>
+                  )}
                 </div>
-              </td>
-              <td className="price-col">{item.price.toLocaleString('vi-VN')}đ</td>
-              <td className="qty-col">
+              </div>
+
+              <div className="cart-item-row__unit">
+                <span className="cart-item-row__unit-label">Đơn giá</span>
+                <strong>{formatPrice(item.priceSell)}</strong>
+                {hasDiscount && <del>{formatPrice(item.originalPrice)}</del>}
+              </div>
+
+              <div className="cart-item-row__qty">
+                <span className="cart-item-row__unit-label">Số lượng</span>
                 <div className="qty-wrapper">
-                  <button onClick={() => updateQty(item.id, -1)}>-</button>
-                  <input type="text" value={item.qty} readOnly />
-                  <button onClick={() => updateQty(item.id, 1)}>+</button>
+                  <button
+                    type="button"
+                    aria-label="Giảm số lượng"
+                    disabled={isUpdating || item.quantity <= 1}
+                    onClick={() => onDecrease(item)}
+                  >
+                    <MinusOutlined />
+                  </button>
+                  <span className="qty-value">
+                    {isUpdating ? <LoadingOutlined spin /> : item.quantity}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Tăng số lượng"
+                    disabled={isUpdating || atMax}
+                    onClick={() => onIncrease(item)}
+                  >
+                    <PlusOutlined />
+                  </button>
                 </div>
-              </td>
-              <td className="subtotal-col">{(item.price * item.qty).toLocaleString('vi-VN')}đ</td>
-              <td className="action-col">
-                <button className="delete-btn" onClick={() => removeItem(item.id)} title="Xóa sản phẩm">
-                  <DeleteOutlined />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                {atMax && item.stockQty > 0 && (
+                  <em className="cart-item-row__stock-hint">Tối đa {item.stockQty}</em>
+                )}
+              </div>
+
+              <div className="cart-item-row__line-total">
+                <span className="cart-item-row__unit-label">Thành tiền</span>
+                <strong>{formatPrice(item.lineTotal)}</strong>
+              </div>
+
+              <button
+                type="button"
+                className="cart-item-row__remove"
+                title="Xóa sản phẩm"
+                disabled={isUpdating}
+                onClick={() => onRemove(item)}
+              >
+                <DeleteOutlined />
+              </button>
+            </article>
+          );
+        })}
+      </div>
 
       <div className="cart-footer-actions">
         <Link to="/products" className="continue-shopping">
           ← Tiếp tục mua sắm
         </Link>
-        <button className="clear-cart" onClick={clearCart}>
-          Xóa toàn bộ giỏ hàng
+        <button type="button" className="clear-cart" onClick={onClear} disabled={clearing}>
+          {clearing ? <LoadingOutlined spin /> : 'Xóa toàn bộ giỏ hàng'}
         </button>
       </div>
     </div>
   );
 };
 
-export default CartItemTable;
+export default CartItemList;

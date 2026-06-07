@@ -1,5 +1,11 @@
 import React from 'react';
 import { NotificationCategory, NotificationItemData } from '../types';
+import {
+  BellOutlined,
+  ShoppingOutlined,
+  GiftOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 
 interface NotificationSidebarProps {
   activeTab: NotificationCategory;
@@ -19,11 +25,11 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({
     return notifications.filter((n) => n.category === category && !n.isRead).length;
   };
 
-  const tabs: { key: NotificationCategory; label: string; icon: string; desc: string }[] = [
-    { key: 'ALL', label: 'Tất cả thông báo', icon: '🔔', desc: 'Toàn bộ thông tin từ Lunaria' },
-    { key: 'ORDER', label: 'Đơn hàng', icon: '📦', desc: 'Cập nhật trạng thái đơn hàng' },
-    { key: 'PROMOTION', label: 'Khuyến mãi & Voucher', icon: '🎁', desc: 'Ưu đãi, mã giảm giá độc quyền' },
-    { key: 'SYSTEM', label: 'Cập nhật hệ thống', icon: '⚙️', desc: 'Tin tức và bảo trì hệ thống' },
+  const tabs: { key: NotificationCategory; label: string; icon: React.ReactNode; desc: string }[] = [
+    { key: 'ALL', label: 'Tất cả thông báo', icon: <BellOutlined />, desc: 'Toàn bộ thông tin từ Lunaria' },
+    { key: 'ORDER', label: 'Đơn hàng', icon: <ShoppingOutlined />, desc: 'Cập nhật trạng thái đơn hàng' },
+    { key: 'PROMOTION', label: 'Khuyến mãi & Voucher', icon: <GiftOutlined />, desc: 'Ưu đãi, mã giảm giá độc quyền' },
+    { key: 'SYSTEM', label: 'Cập nhật hệ thống', icon: <SettingOutlined />, desc: 'Tin tức và bảo trì hệ thống' },
   ];
 
   return (

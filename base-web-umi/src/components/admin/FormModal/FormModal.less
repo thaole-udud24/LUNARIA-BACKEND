@@ -1,0 +1,298 @@
+@primary-color: #FFA78A;
+@primary-hover: #f39a7d;
+@primary-light: rgba(255, 167, 138, 0.15);
+@border-color: #f1f5f9;
+@bg-section: #ffffff;
+@text-main: #0f172a;
+@text-muted: #64748b;
+
+// 🌀 Định nghĩa các hàm chuyển động vật lý chuẩn Enterprise
+@spring-easing: cubic-bezier(0.34, 1.56, 0.64, 1); // Hiệu ứng nảy nhẹ chuyển động mượt
+@fluid-easing: cubic-bezier(0.16, 1, 0.3, 1);   // Hiệu ứng tăng tốc mượt mà tối giản
+
+// 🎬 Định nghĩa các Keyframes Hiệu ứng
+@keyframes modalEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(20px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes maskFadeIn {
+  0% { opacity: 0; backdrop-filter: blur(0px); }
+  100% { opacity: 1; backdrop-filter: blur(6px); } // Làm mờ nền phía sau dạng kính hiện đại
+}
+
+@keyframes sectionSlideUp {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.customModal {
+  :global {
+    // 1. Hiệu ứng làm mờ nền (Mask Layer)
+    .ant-modal-mask {
+      background: rgba(15, 23, 42, 0.3) !important;
+      animation: maskFadeIn 0.4s @fluid-easing forwards !important;
+    }
+
+    // 2. Khung nội dung chính Modal
+    .ant-modal-content {
+      padding: 0;
+      border-radius: 24px; // Bo góc mạnh mẽ, trẻ trung
+      overflow: hidden;
+      box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      animation: modalEntrance 0.5s @spring-easing forwards !important; // Bật lên dạng lò xo nhẹ
+    }
+    
+    // Nút Close góc phải
+    .ant-modal-close {
+      top: 24px;
+      right: 28px;
+      color: @text-muted;
+      transition: all 0.3s @fluid-easing;
+      
+      &:hover {
+        color: #ef4444;
+        background-color: #fef2f2;
+        transform: rotate(90deg); // Xoay nhẹ tinh tế khi di chuột vào
+        border-radius: 50%;
+      }
+    }
+
+    /* BODY VỚI THANH CUỘN THỦY TINH MƯỢT */
+    .ant-modal-body {
+      padding: 32px 36px;
+      max-height: calc(100vh - 240px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      background-color: #f8fafc;
+      
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        transition: all 0.3s;
+        &:hover {
+          background: #94a3b8;
+        }
+      }
+    }
+
+    /* ĐỊNH DẠNG ĐỒNG BỘ INPUT/SELECT (MICRO-INTERACTIONS) */
+    .ant-form-item-label > label {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .ant-input,
+    .ant-input-number,
+    .ant-select-selector {
+      border-radius: 12px !important; // Bo góc form items đồng bộ
+      border-color: #e2e8f0 !important;
+      background: #ffffff !important;
+      transition: all 0.25s @fluid-easing !important;
+      
+      &:hover {
+        border-color: @primary-hover !important;
+        transform: translateY(-1px); // Nhấc nhẹ lên khi lướt chuột qua
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+      }
+      
+      &:focus, &-focused {
+        border-color: @primary-color !important;
+        transform: translateY(-1px);
+        box-shadow: 0 0 0 4px @primary-light !important; // Đổ bóng dịu mắt xung quanh viền
+      }
+    }
+    
+    .ant-input-lg,
+    .ant-input-number-lg,
+    .ant-select-lg .ant-select-selector {
+      height: 46px !important;
+    }
+    
+    textarea.ant-input {
+      min-height: 110px !important;
+      padding: 14px 16px !important;
+    }
+
+    // Tương tác khi hover thẻ ảnh phụ và chính
+    .ant-upload-list-picture-card .ant-upload-list-item,
+    .ant-upload-select-picture-card {
+      border-radius: 14px !important;
+      transition: all 0.3s @spring-easing !important;
+      
+      &:hover {
+        border-color: @primary-color !important;
+        transform: scale(1.04); // Phóng to nhẹ khung ảnh khi tương tác
+        box-shadow: 0 8px 16px rgba(255, 167, 138, 0.2);
+      }
+    }
+  }
+}
+
+/* HEADER STYLES */
+.header {
+  .title {
+    font-size: 20px;
+    font-weight: 800;
+    color: @text-main;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: @text-muted;
+    margin: 4px 0 0 0;
+  }
+}
+
+/* SECTION CHUYỂN ĐỘNG THEO LỚP */
+.section {
+  background: @bg-section;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.02);
+  transition: all 0.3s @fluid-easing;
+  
+  // Hiệu ứng thác nước (Staggered-like entry): các section xuất hiện tuần tự sinh động
+  animation: sectionSlideUp 0.6s @fluid-easing both;
+  &:nth-child(1) { animation-delay: 0.1s; }
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.3s; }
+
+  &:hover {
+    border-color: rgba(255, 167, 138, 0.3);
+    box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.05); // Nổi khối rõ hơn khi người dùng đang thao tác khối đó
+  }
+
+  .sectionHeader {
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed #f1f5f9;
+    
+    .sectionTitle {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: @text-main;
+      margin: 0;
+      position: relative;
+      display: inline-block;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -15px;
+        left: 0;
+        width: 100%;
+        height: 2.5px;
+        background: linear-gradient(90deg, @primary-color, @primary-hover);
+        border-radius: 2px;
+      }
+    }
+  }
+}
+
+/* FOOTER ĐIỀU KHIỂN SANG CHẢNH */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 36px;
+  background: #ffffff;
+
+  .btnCancel {
+    border-radius: 12px;
+    height: 46px;
+    min-width: 110px;
+    font-weight: 600;
+    color: #475569;
+    border-color: #cbd5e1;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      color: @text-main;
+      border-color: #94a3b8;
+      background: #f8fafc;
+      transform: translateY(-1px);
+    }
+    &:active { transform: translateY(0); }
+  }
+
+  .btnSubmit {
+    border-radius: 12px;
+    height: 46px;
+    min-width: 160px;
+    font-weight: 600;
+    background: linear-gradient(135deg, @primary-color 0%, @primary-hover 100%) !important; // Đổ màu gradient thời thượng
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 20px rgba(255, 167, 138, 0.4);
+    transition: all 0.3s @spring-easing;
+
+    &:hover, &:focus {
+      transform: translateY(-2px); // Bay nhẹ lên cao hơn một chút khi sẵn sàng submit
+      box-shadow: 0 10px 25px rgba(255, 167, 138, 0.55);
+    }
+    
+    &:active {
+      transform: translateY(1px); // Ấn lún xuống tạo cảm giác cơ học thật lực
+      box-shadow: 0 4px 10px rgba(255, 167, 138, 0.3);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .customModal {
+    :global {
+      .ant-modal-body {
+        padding: 16px;
+        max-height: calc(100vh - 180px);
+      }
+
+      .ant-modal-close {
+        top: 16px;
+        right: 16px;
+      }
+    }
+  }
+
+  .header .title {
+    font-size: 17px;
+  }
+
+  .section {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+
+  .footer {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .btnCancel,
+    .btnSubmit {
+      flex: 1;
+      min-width: 120px;
+      height: 42px;
+    }
+  }
+}

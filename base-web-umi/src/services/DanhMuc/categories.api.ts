@@ -1,203 +1,47 @@
-import type {
-  CategoryType,
-} from '@/types/catalog';
+import request from '@/services/base/request';
 
-import {
-  MOCK_CATEGORIES,
-} from '../../../mock/catalog';
-
-const CATEGORY_KEY =
-  'categories';
-
-// =========================
-// STORAGE HELPERS
-// =========================
-
-const seedCategories =
-  () => {
-    const categories =
-      localStorage.getItem(
-        CATEGORY_KEY,
-      );
-
-    if (!categories) {
-      localStorage.setItem(
-        CATEGORY_KEY,
-        JSON.stringify(
-          MOCK_CATEGORIES,
-        ),
-      );
-    }
-  };
-
-const getStoredCategories =
-  (): CategoryType[] => {
-    try {
-      seedCategories();
-
-      return JSON.parse(
-        localStorage.getItem(
-          CATEGORY_KEY,
-        ) || '[]',
-      );
-    } catch (error) {
-      return [];
-    }
-  };
-
-const saveStoredCategories = (
-  categories: CategoryType[],
-) => {
-  localStorage.setItem(
-    CATEGORY_KEY,
-    JSON.stringify(categories),
-  );
-};
-
-// =========================
-// GET CATEGORIES
-// =========================
-
-export async function getCategories() {
-  return {
-    success: true,
-
-    data:
-      getStoredCategories(),
-  };
+export async function getCategories(params?: any) {
+  return request('/api/admin/categories', { method: 'GET', params });
 }
 
-// =========================
-// CREATE CATEGORY
-// =========================
-
-export async function createCategory(
-  payload: CategoryType,
-) {
-  const categories =
-    getStoredCategories();
-
-  const newCategory = {
-    ...payload,
-
-    id: Date.now(),
-  };
-
-  saveStoredCategories([
-    newCategory,
-    ...categories,
-  ]);
-
-  return {
-    success: true,
-
-    data: newCategory,
-  };
+export async function createCategory(data: any) {
+  return request('/api/admin/categories', { method: 'POST', data });
 }
 
-// =========================
-// UPDATE CATEGORY
-// =========================
-
-export async function updateCategory(
-  categoryId: number,
-  payload: Partial<CategoryType>,
-) {
-  const categories =
-    getStoredCategories();
-
-  const updatedCategories =
-    categories.map((item) =>
-      item.id === categoryId
-        ? {
-            ...item,
-            ...payload,
-          }
-        : item,
-    );
-
-  saveStoredCategories(
-    updatedCategories,
-  );
-
-  return {
-    success: true,
-  };
+export async function updateCategory(id: string, data: any) {
+  return request(`/api/admin/categories/${id}`, { method: 'PUT', data });
 }
 
-// =========================
-// DELETE CATEGORY
-// =========================
-
-export async function deleteCategory(
-  categoryId: number,
-) {
-  const categories =
-    getStoredCategories();
-
-  saveStoredCategories(
-    categories.filter(
-      (item) =>
-        item.id !== categoryId,
-    ),
-  );
-
-  return {
-    success: true,
-  };
+export async function deleteCategory(id: string) {
+  return request(`/api/admin/categories/${id}`, { method: 'DELETE' });
 }
 
-// =========================
-// UPDATE CATEGORY STATUS
-// =========================
+export async function updateCategoryStatus(id: string, isActive: boolean) {
+  return request(`/api/admin/categories/${id}/status`, { method: 'PATCH', data: { isActive } });
+}
 
-export async function updateCategoryStatus(
-  categoryId: number,
-  active: boolean,
-) {
-  try {
-    const categories =
-      getStoredCategories();
+export async function exportCategories(fields: string[], filters?: any) {
+  return request('/api/admin/categories/export', {
+    method: 'POST',
+    data: { fields, filters },
+    responseType: 'blob',
+  });
+}
 
-    let updatedCategory =
-      null;
+export async function previewImportCategories(file: File, mapping: Record<string, string>) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('mapping', JSON.stringify(mapping));
+  return request('/api/admin/categories/import/preview', {
+    method: 'POST',
+    data: formData,
+    requestType: 'form',
+  });
+}
 
-    const updatedCategories =
-      categories.map((item) => {
-        if (
-          item.id === categoryId
-        ) {
-          updatedCategory = {
-            ...item,
-            active,
-          };
-
-          return updatedCategory;
-        }
-
-        return item;
-      });
-
-    saveStoredCategories(
-      updatedCategories,
-    );
-
-    return {
-      success: true,
-
-      data: updatedCategory,
-
-      message:
-        'Cập nhật trạng thái thành công',
-    };
-  } catch (error) {
-    return {
-      success: false,
-
-      data: null,
-
-      message:
-        'Không thể cập nhật trạng thái',
-    };
-  }
+export async function commitImportCategories(data: any[]) {
+  return request('/api/admin/categories/import/commit', {
+    method: 'POST',
+    data: { data },
+  });
 }

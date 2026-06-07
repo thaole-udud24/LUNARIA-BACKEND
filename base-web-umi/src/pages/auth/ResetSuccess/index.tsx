@@ -1,57 +1,25 @@
+import React from 'react';
 import { history } from 'umi';
+import { CheckCircleFilled } from '@ant-design/icons';
+import AuthShell from '../components/AuthShell';
 
-export default function ResetSuccess() {
+export default function ResetSuccessPage() {
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        
-        {/* LEFT */}
-        <div className="auth-left">
-          <div className="auth-overlay">
-            <h1>LUNARIA</h1>
-            <p>
-              Mỗi buổi sáng là một khởi đầu mới, khi làn da cần được đánh thức
-              bằng sự dịu dàng.
-            </p>
-            <button>Mua ngay</button>
-          </div>
+    <AuthShell
+      title="Hoàn tất!"
+      subtitle="Mật khẩu của bạn đã được cập nhật thành công"
+      backTo="/auth/login"
+      backLabel="Đăng nhập"
+    >
+      <div className="success-box" style={{ marginTop: 0 }}>
+        <div className="success-icon" style={{ border: 'none', color: '#52c41a', fontSize: 56 }}>
+          <CheckCircleFilled />
         </div>
-
-        {/* RIGHT */}
-        <div className="auth-right">
-          <div className="auth-form">
-
-            {/* Back */}
-            <div className="auth-top">
-              <button
-                className="auth-back"
-                onClick={() => history.push('/auth/login')}
-              >
-                ← Trở lại
-              </button>
-            </div>
-
-            {/* Success content */}
-            <div className="success-box">
-              <div className="success-icon">✔</div>
-
-              <h2 className="success-title">Hoàn thành !</h2>
-
-              <p className="success-desc">
-                Mật khẩu của bạn đã được cập nhật thành công.
-              </p>
-
-              <button
-                className="auth-loginBtn"
-                onClick={() => history.push('/auth/login')}
-              >
-                Trở lại đăng nhập
-              </button>
-            </div>
-
-          </div>
-        </div>
+        <p className="success-desc">Bạn có thể đăng nhập bằng mật khẩu mới ngay bây giờ.</p>
+        <button type="button" className="auth-submit" onClick={() => history.push('/auth/login')}>
+          Đăng nhập ngay
+        </button>
       </div>
-    </div>
+    </AuthShell>
   );
 }

@@ -1,30 +1,66 @@
 import React, { useState } from 'react';
 import { StarFilled, UserOutlined } from '@ant-design/icons';
+import { getCategoryLabel, getSkinTypeLabels, formatPrice, formatWeight } from '../utils';
 
 interface ProductTabsProps {
-  productName?: string;
+  product: any;
 }
 
-const ProductTabs: React.FC<ProductTabsProps> = ({ productName = 'CC+ Cream Illumination with SPF 50+' }) => {
+const FAKE_REVIEWS = [
+  {
+    name: 'Nguyễn Phương Thảo',
+    date: '15/05/2026',
+    rating: 5,
+    comment: (name: string) =>
+      `${name} dùng rất thích, kết cấu mỏng nhẹ thấm nhanh, da căng mịn sau vài ngày. Sẽ mua lại!`,
+  },
+  {
+    name: 'Trần Mai Anh',
+    date: '10/05/2026',
+    rating: 5,
+    comment: () =>
+      'Giao hàng nhanh, đóng gói cẩn thận. Sản phẩm chính hãng, mùi thơm nhẹ, phù hợp da nhạy cảm.',
+  },
+  {
+    name: 'Lê Hoàng Yến',
+    date: '02/05/2026',
+    rating: 4,
+    comment: (name: string) =>
+      `Chất lượng ${name} ổn trong tầm giá, da không bị kích ứng. Recommend cho bạn bè.`,
+  },
+];
+
+const ProductTabs: React.FC<ProductTabsProps> = ({ product }) => {
   const [activeTab, setActiveTab] = useState<'desc' | 'info' | 'reviews'>('desc');
+
+  const productName = product?.name || 'Sản phẩm';
+  const description = product?.description || product?.detailInfo || '';
+  const detailInfo = product?.detailInfo || '';
+  const categoryName = getCategoryLabel(product);
+  const skinLabels = getSkinTypeLabels(product);
+  const variants = product?.variants || [];
+  const avgRating = 4.8;
+  const reviewCount = 12;
 
   return (
     <div className="product-tabs-section">
-      {/* Tab Navigation */}
       <div className="tabs-nav">
         <button
+          type="button"
           className={`tab-btn ${activeTab === 'desc' ? 'active' : ''}`}
           onClick={() => setActiveTab('desc')}
         >
           Mô tả
         </button>
         <button
+          type="button"
           className={`tab-btn ${activeTab === 'info' ? 'active' : ''}`}
           onClick={() => setActiveTab('info')}
         >
           Thông tin sản phẩm
         </button>
         <button
+          type="button"
           className={`tab-btn ${activeTab === 'reviews' ? 'active' : ''}`}
           onClick={() => setActiveTab('reviews')}
         >
@@ -32,16 +68,25 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ productName = 'CC+ Cream Illu
         </button>
       </div>
 
-      {/* Tab Content */}
       <div className="tab-content-container">
         {activeTab === 'desc' && (
           <div className="tab-pane desc-pane animate-fade-in">
-            <p>
-              {productName} là dòng sản phẩm chăm sóc da cao cấp được nghiên cứu và thiết kế tối ưu, kết hợp giữa khả năng phục hồi da tự nhiên và bảo vệ bề mặt biểu bì. Sản phẩm bổ sung các hoạt chất dưỡng ẩm giúp làn da mềm mượt, hỗ trợ đẩy lùi dấu hiệu mệt mỏi, khô sạm do môi trường tác động, đem lại hiệu ứng căng bóng mịn màng và khoẻ khoắn tự nhiên.
-            </p>
-            <p>
-              Kết cấu tinh chất mỏng nhẹ, dễ tán, tiệp da nhanh chóng và không gây nhờn bóng hay bít tắc lỗ chân lông. Sản phẩm được đánh giá cao nhờ tính an toàn, dịu nhẹ cho mọi loại da, kể cả da nhạy cảm hoặc da sau điều trị mụn.
-            </p>
+            {description ? (
+              description.split('\n').filter(Boolean).map((line: string, idx: number) => (
+                <p key={idx}>{line}</p>
+              ))
+            ) : (
+              <>
+                <p>
+                  {productName} là sản phẩm chăm sóc da cao cấp từ Lunaria, được nghiên cứu
+                  tối ưu cho làn da Việt, giúp dưỡng ẩm, phục hồi và bảo vệ da khỏi tác động môi trường.
+                </p>
+                <p>
+                  Kết cấu mỏng nhẹ, thấm nhanh, không gây bít tắc lỗ chân lông. Phù hợp sử dụng
+                  hàng ngày trong routine chăm sóc da.
+                </p>
+              </>
+            )}
           </div>
         )}
 
@@ -54,29 +99,59 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ productName = 'CC+ Cream Illu
                   <td className="info-value">{productName}</td>
                 </tr>
                 <tr>
-                  <td className="info-label">Thương hiệu</td>
-                  <td className="info-value">Lunaria Organic</td>
+                  <td className="info-label">SKU</td>
+                  <td className="info-value">{product?.sku || '—'}</td>
                 </tr>
                 <tr>
-                  <td className="info-label">Xuất xứ</td>
-                  <td className="info-value">Việt Nam / Nhập khẩu nguyên liệu hữu cơ</td>
+                  <td className="info-label">Danh mục</td>
+                  <td className="info-value">{categoryName || '—'}</td>
                 </tr>
                 <tr>
-                  <td className="info-label">Dung tích</td>
-                  <td className="info-value">50ml / 150ml tùy phiên bản</td>
+                  <td className="info-label">Phân loại / Biến thể</td>
+                  <td className="info-value">
+                    {variants.length > 0 ? `${variants.length} biến thể` : '—'}
+                  </td>
+                </tr>
+                {variants.length > 0 && (
+                  <tr>
+                    <td className="info-label">Chi tiết biến thể</td>
+                    <td className="info-value">
+                      <div className="variant-info-table">
+                        {variants.map((v: any, idx: number) => (
+                          <div className="variant-info-row" key={`${v.variantName}-${idx}`}>
+                            <strong>{v.variantName}</strong>
+                            <span>{formatPrice(v.priceSell)}</span>
+                            <span>Còn {Math.max((v.stockQty ?? 0) - (v.reservedQty ?? 0), 0)}</span>
+                            <span>{formatWeight(v.weight)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                <tr>
+                  <td className="info-label">Hình ảnh</td>
+                  <td className="info-value">
+                    1 ảnh chính
+                    {Array.isArray(product?.galleryImages) && product.galleryImages.length > 0
+                      ? ` + ${product.galleryImages.filter(Boolean).length} ảnh phụ`
+                      : ''}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="info-label">Quy cách mặc định</td>
+                  <td className="info-value">{variants[0]?.variantName || '—'}</td>
                 </tr>
                 <tr>
                   <td className="info-label">Loại da phù hợp</td>
-                  <td className="info-value">Mọi loại da, đặc biệt là da dầu mụn nhạy cảm và da khô thiếu ẩm</td>
+                  <td className="info-value">{skinLabels || 'Mọi loại da'}</td>
                 </tr>
-                <tr>
-                  <td className="info-label">Thành phần chính</td>
-                  <td className="info-value">Chiết xuất thiên nhiên hữu cơ, Collagen thủy phân, Peptide, Niacinamide, Hyaluronic Acid.</td>
-                </tr>
-                <tr>
-                  <td className="info-label">Hướng dẫn sử dụng</td>
-                  <td className="info-value">Lấy lượng vừa đủ tán đều lên da sạch sau bước toner/serum. Sử dụng đều đặn mỗi buổi sáng và tối.</td>
-                </tr>
+                {detailInfo && (
+                  <tr>
+                    <td className="info-label">Chi tiết</td>
+                    <td className="info-value">{detailInfo}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -86,46 +161,32 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ productName = 'CC+ Cream Illu
           <div className="tab-pane reviews-pane animate-fade-in">
             <div className="reviews-summary">
               <div className="summary-left">
-                <h3>5.0 / 5</h3>
+                <h3>{avgRating.toFixed(1)} / 5</h3>
                 <div className="stars">
                   <StarFilled /><StarFilled /><StarFilled /><StarFilled /><StarFilled />
                 </div>
-                <span>(12 bài đánh giá)</span>
+                <span>({reviewCount} bài đánh giá — dữ liệu mẫu)</span>
               </div>
             </div>
 
             <div className="reviews-list">
-              <div className="review-item">
-                <div className="reviewer-avatar"><UserOutlined /></div>
-                <div className="review-details">
-                  <div className="review-header">
-                    <span className="reviewer-name">Nguyễn Phương Thảo</span>
-                    <span className="review-date">15/05/2026</span>
+              {FAKE_REVIEWS.map((review, idx) => (
+                <div className="review-item" key={idx}>
+                  <div className="reviewer-avatar"><UserOutlined /></div>
+                  <div className="review-details">
+                    <div className="review-header">
+                      <span className="reviewer-name">{review.name}</span>
+                      <span className="review-date">{review.date}</span>
+                    </div>
+                    <div className="review-stars">
+                      {Array.from({ length: review.rating }).map((_, i) => (
+                        <StarFilled key={i} />
+                      ))}
+                    </div>
+                    <p className="review-comment">{review.comment(productName)}</p>
                   </div>
-                  <div className="review-stars">
-                    <StarFilled /><StarFilled /><StarFilled /><StarFilled /><StarFilled />
-                  </div>
-                  <p className="review-comment">
-                    Kem dùng siêu thích, lớp finish căng bóng tự nhiên không bị dày cộm. Rất hợp với da khô nhạy cảm của mình. Sẽ tiếp tục ủng hộ shop!
-                  </p>
                 </div>
-              </div>
-
-              <div className="review-item">
-                <div className="reviewer-avatar"><UserOutlined /></div>
-                <div className="review-details">
-                  <div className="review-header">
-                    <span className="reviewer-name">Trần Mai Anh</span>
-                    <span className="review-date">10/05/2026</span>
-                  </div>
-                  <div className="review-stars">
-                    <StarFilled /><StarFilled /><StarFilled /><StarFilled /><StarFilled />
-                  </div>
-                  <p className="review-comment">
-                    Giao hàng nhanh đóng gói cẩn thận. Sản phẩm chính hãng 100%, mùi thơm nhẹ, che khuyết điểm khá tốt và chống nắng hiệu quả.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}

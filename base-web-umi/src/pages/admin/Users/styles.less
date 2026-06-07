@@ -1,0 +1,204 @@
+/* =========================================================
+   ANIMATIONS & BLOBS
+   ========================================================= */
+@keyframes fluidEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  padding: 24px;
+  animation: fluidEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  
+  &::before,
+  &::after {
+    content: '';
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: -1;
+  }
+  &::before {
+    top: -250px;
+    right: -250px;
+    background: rgba(255, 167, 138, 0.05);
+  }
+  &::after {
+    bottom: -250px;
+    left: -250px;
+    background: rgba(255, 119, 146, 0.05);
+  }
+}
+
+.topBar,
+.statCard,
+.tableWrapper {
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 
+    0 10px 30px rgba(15, 23, 42, 0.08), 
+    0 4px 6px rgba(15, 23, 42, 0.04);
+  transition: all 0.35s ease;
+}
+
+.topBar:hover,
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 20px 40px rgba(15, 23, 42, 0.12),
+    0 8px 12px rgba(15, 23, 42, 0.06);
+}
+
+.tableWrapper {
+  padding: 24px;
+  overflow: hidden; /* Cực kỳ quan trọng để bảng không bị tràn ngang trên Mobile */
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff8c69, #ff6b81);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+
+  .separator { color: #cbd5e1; }
+  .active { color: #0f172a; font-weight: 600; }
+}
+
+.statCard {
+  padding: 28px;
+  height: 100%;
+  
+  :global {
+    .ant-statistic-title {
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+.statSubText {
+  color: #94a3b8;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+/* =========================================================
+   RESPONSIVE TOÀN TẬP
+   ========================================================= */
+
+/* 1. Laptop nhỏ & Tablet ngang (Dưới 1024px) */
+@media (max-width: 1024px) {
+  .container {
+    padding: 20px;
+    gap: 24px;
+  }
+  .topBar {
+    padding: 24px;
+  }
+}
+
+/* 2. Tablet dọc (Dưới 992px) */
+@media (max-width: 992px) {
+  .topBar {
+    flex-direction: column; /* Đẩy các nút actions (nếu có) rớt xuống hàng dưới */
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .pageTitle {
+    font-size: 28px;
+  }
+  .statCard {
+    padding: 24px;
+  }
+}
+
+/* 3. Màn hình Mobile (Dưới 768px) */
+@media (max-width: 768px) {
+  .container { 
+    padding: 16px; 
+    gap: 16px; 
+  }
+  .topBar { 
+    padding: 20px 16px; 
+  }
+  .pageTitle { 
+    font-size: 24px; 
+  }
+  .statCard { 
+    padding: 20px 16px; 
+  }
+  .tableWrapper { 
+    padding: 16px; 
+  }
+  
+  /* Giảm bo góc trên mobile để tiết kiệm diện tích hiển thị */
+  .topBar,
+  .statCard,
+  .tableWrapper {
+    border-radius: 16px; 
+  }
+}
+
+/* 4. Màn hình Mobile nhỏ (Dưới 480px) */
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 22px;
+  }
+  .breadcrumb {
+    font-size: 13px;
+    flex-wrap: wrap; /* Tránh việc breadcrumb dài quá làm vỡ layout ngang */
+  }
+  .statSubText {
+    font-size: 12px;
+  }
+}

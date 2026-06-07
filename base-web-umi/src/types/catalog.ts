@@ -1,57 +1,57 @@
-export interface ProductType {
-  id: number;
-
-  name: string;
-
-  category?: string;
-
-  skinType?: string;
-
-  description?: string;
-
-  detail?: string;
-
+export interface VariantType {
+  variantName?: string;
   weight: number;
-
-  importPrice: number;
-
-  price: number;
-
-  stock: number;
-
-  warningStock?: number;
-
-  images: string[];
-
-  image?: string;
-
-  active: boolean;
-
-  variants?: VariantType[];
-
-  categoryId?: number;
-
-  skinTypeId?: number;
+  priceImport: number;
+  priceSell: number;
+  stockQty: number;
+  reservedQty?: number;
+  stockAlert?: number;
+  profit?: number;
 }
 
-export interface VariantType {
-  weight: number;
-
-  importPrice: number;
-
-  price: number;
-
-  stock: number;
+export interface ProductType {
+  _id?: string;
+  id?: string | number;
+  name: string;
+  sku?: string;
+  slug?: string;
+  category?: any;
+  skinTypes?: any[];
+  mainImage?: string;
+  galleryImages?: string[];
+  description?: string;
+  detailInfo?: string;
+  variants?: VariantType[];
+  isActive?: boolean;
+  active?: boolean;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CategoryType {
-  id: number;
-
+  _id?: string;
+  id?: string | number;
   code: string;
-
   name: string;
-
+  slug?: string;
   description?: string;
+  isActive?: boolean;
+  active?: boolean;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
-  active: boolean;
+export interface SkinTypeType {
+  _id?: string;
+  id?: string | number;
+  code: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  isActive?: boolean;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

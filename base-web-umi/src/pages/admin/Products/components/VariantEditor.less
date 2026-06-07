@@ -1,0 +1,111 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.variantCard {
+  border-radius: 12px;
+  overflow: hidden;
+
+  :global(.ant-card-head) {
+    border-bottom: 1px solid #f1f5f9;
+    min-height: 60px;
+  }
+
+  :global(.ant-card-head-title) {
+    font-size: 16px;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  :global(.ant-card-body) {
+    padding: 20px;
+  }
+}
+
+.emptyCard {
+  border-radius: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+  }
+}
+
+.field {
+  width: 100%;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+:global(.ant-input),
+:global(.ant-input-number),
+:global(.ant-input-number-group-wrapper) {
+  width: 100%;
+}
+
+:global(.ant-input),
+:global(.ant-input-number) {
+  border-radius: 8px;
+}
+
+:global(.ant-input-number-group-wrapper) {
+  display: block;
+}
+
+:global(.ant-input-number-group) {
+  width: 100%;
+}
+
+:global(.ant-input-number-group .ant-input-number) {
+  border-radius: 8px 0 0 8px;
+}
+
+:global(.ant-input-number-group-addon) {
+  background: #fafafa;
+  color: #64748b;
+  font-weight: 500;
+  min-width: 48px;
+  padding: 0 12px;
+  border-radius: 0 8px 8px 0;
+}
+
+.addButton {
+  height: 48px;
+  border-radius: 10px !important;
+  border: 2px dashed #ffa78a !important;
+  color: #ffa78a !important;
+  font-size: 14px;
+  font-weight: 600;
+
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: rgba(255, 167, 138, 0.08) !important;
+    color: #ff8e68 !important;
+    border-color: #ff8e68 !important;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

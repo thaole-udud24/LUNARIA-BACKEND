@@ -1,145 +1,180 @@
-import React, { useState, useEffect } from 'react';
-import Loading from '@/components/common/Loading';
+import React, { useMemo, useState } from 'react';
 import { Link, history } from 'umi';
-import { message } from 'antd';
-import CartItemTable from './components/CartItemTable';
+import { Modal, message } from 'antd';
+import useCart from '@/hooks/useCart';
+import { applyVoucher } from '@/services/DonHang/vouchers.customer.api';
+import { extractApiError } from '@/services/GioHang/cart.utils';
+import CartItemList from './components/CartItemTable';
 import OrderSummary from './components/OrderSummary';
 import EmptyCart from './components/EmptyCart';
-import { CartItem } from './types';
+import CartSkeleton from './components/CartSkeleton';
+import {
+  CHECKOUT_META_KEY,
+  SHIPPING_FEE,
+  SHIPPING_FREE_THRESHOLD,
+  CartItem,
+} from './types';
 import './index.less';
 
 const Cart: React.FC = () => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const {
+    items,
+    loading,
+    updatingKey,
+    cartCount,
+    isAuthenticated,
+    setQuantity,
+    removeItem,
+    clearCart,
+  } = useCart();
+
   const [voucher, setVoucher] = useState('');
+  const [appliedVoucher, setAppliedVoucher] = useState('');
   const [discount, setDiscount] = useState(0);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
-  const [loading, setLoading] = useState(true);
+  const subtotal = useMemo(
+    () => items.reduce((acc, item) => acc + item.lineTotal, 0),
+    [items],
+  );
 
-  React.useEffect(() => {
-    try {
-      const stored = localStorage.getItem('lunaria_cart_items');
-      if (stored) {
-        setItems(JSON.parse(stored));
-      } else {
-        const initialMock = [
-          {
-            id: 1,
-            name: 'CC+ Cream Illumination with SPF 50+',
-            variant: 'Tone Sáng (Light)',
-            price: 430000,
-            qty: 1,
-            img: 'anh-san-pham-1.png',
-          },
-          {
-            id: 2,
-            name: 'Bye Bye Lines Foundation',
-            variant: 'Tone Tự Nhiên (Medium)',
-            price: 320000,
-            qty: 2,
-            img: 'anh-san-pham-2.png',
-          },
-          {
-            id: 3,
-            name: 'Sữa Rửa Mặt Sâm 1700',
-            variant: 'Dành cho da nhạy cảm',
-            price: 325000,
-            qty: 1,
-            img: 'anh-san-pham-3.png',
-          },
-        ];
-        localStorage.setItem('lunaria_cart_items', JSON.stringify(initialMock));
-        setItems(initialMock);
-        window.dispatchEvent(new Event('cartUpdate'));
-      }
-    } catch (e) {
-      setItems([]);
-    } finally {
-      const timer = setTimeout(() => {
-        setLoading(false);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+  const shippingFee =
+    subtotal > SHIPPING_FREE_THRESHOLD || subtotal === 0 ? 0 : SHIPPING_FEE;
+  const total = Math.max(0, subtotal + shippingFee - discount);
 
-  const updateQty = (id: number, delta: number) => {
-    setItems((prev) => {
-      const updated = prev.map((item) => {
-        if (item.id === id) {
-          const newQty = item.qty + delta;
-          return { ...item, qty: newQty < 1 ? 1 : newQty };
-        }
-        return item;
-      });
-      localStorage.setItem('lunaria_cart_items', JSON.stringify(updated));
-      window.dispatchEvent(new Event('cartUpdate'));
-      return updated;
-    });
-  };
-
-  const removeItem = (id: number) => {
-    setItems((prev) => {
-      const updated = prev.filter((item) => item.id !== id);
-      localStorage.setItem('lunaria_cart_items', JSON.stringify(updated));
-      window.dispatchEvent(new Event('cartUpdate'));
-      return updated;
-    });
-    message.success('Đã xóa sản phẩm khỏi giỏ hàng');
-  };
-
-  const clearCart = () => {
-    setItems([]);
-    localStorage.setItem('lunaria_cart_items', JSON.stringify([]));
-    window.dispatchEvent(new Event('cartUpdate'));
-    message.success('Đã làm sạch giỏ hàng');
-  };
-
-  const handleApplyVoucher = () => {
-    if (!voucher.trim()) {
-      message.warning('Vui lòng nhập mã giảm giá');
+  const handleIncrease = async (item: CartItem) => {
+    if (item.quantity >= item.stockQty) {
+      message.warning(`Chỉ còn ${item.stockQty} sản phẩm trong kho`);
       return;
     }
-    if (voucher.toUpperCase() === 'LUNARIA20') {
-      setDiscount(50000);
-      message.success('Áp dụng mã giảm giá LUNARIA20 thành công (Giảm 50,000đ)');
-    } else {
-      message.error('Mã giảm giá không hợp lệ hoặc đã hết hạn');
+    await setQuantity(item.productId, item.variantName, item.quantity + 1);
+  };
+
+  const handleDecrease = async (item: CartItem) => {
+    if (item.quantity <= 1) return;
+    await setQuantity(item.productId, item.variantName, item.quantity - 1);
+  };
+
+  const handleRemove = async (item: CartItem) => {
+    Modal.confirm({
+      title: 'Xóa sản phẩm khỏi giỏ?',
+      content: `Bạn có chắc muốn xóa "${item.name}" (${item.variantName})?`,
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        const ok = await removeItem(item.productId, item.variantName);
+        if (ok) message.success('Đã xóa sản phẩm khỏi giỏ hàng');
+      },
+    });
+  };
+
+  const handleClearCart = () => {
+    Modal.confirm({
+      title: 'Xóa toàn bộ giỏ hàng?',
+      content: 'Thao tác này không thể hoàn tác.',
+      okText: 'Xóa tất cả',
+      cancelText: 'Hủy',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        setClearing(true);
+        const ok = await clearCart();
+        setClearing(false);
+        if (ok) {
+          setDiscount(0);
+          setAppliedVoucher('');
+          setVoucher('');
+          message.success('Đã làm sạch giỏ hàng');
+        }
+      },
+    });
+  };
+
+  const handleApplyVoucher = async () => {
+    const code = voucher.trim();
+    if (!code) {
+      message.warning('Vui lòng nhập mã voucher');
+      return;
+    }
+    if (items.length === 0) {
+      message.warning('Giỏ hàng trống, không thể áp dụng voucher');
+      return;
+    }
+
+    setVoucherLoading(true);
+    try {
+      const productIds = items.map((item) => item.productId);
+      const result = await applyVoucher({
+        voucherCode: code,
+        cartTotal: subtotal,
+        productIds,
+      });
+      setDiscount(result.discountAmount || 0);
+      setAppliedVoucher(result.voucherCode || code.toUpperCase());
+      message.success(result.message || 'Áp dụng voucher thành công');
+    } catch (error) {
+      setDiscount(0);
+      setAppliedVoucher('');
+      message.error(await extractApiError(error));
+    } finally {
+      setVoucherLoading(false);
     }
   };
 
   const handleCheckout = () => {
+    if (items.length === 0) {
+      message.warning('Giỏ hàng trống');
+      return;
+    }
+
+    sessionStorage.setItem(
+      CHECKOUT_META_KEY,
+      JSON.stringify({
+        voucherCode: appliedVoucher || undefined,
+        discount,
+        subtotal,
+        shippingFee,
+        total,
+      }),
+    );
     history.push('/checkout');
   };
-
-  const subtotal = items.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const shippingFee = subtotal > 500000 || subtotal === 0 ? 0 : 30000;
-  const total = Math.max(0, subtotal + shippingFee - discount);
-
-  if (loading) return <Loading />;
 
   return (
     <div className="cart-page">
       <div className="cart-container">
-        {/* Breadcrumb */}
         <div className="cart-breadcrumb">
-          <Link to="/home">Home</Link>
+          <Link to="/home">Trang chủ</Link>
           <span>›</span>
-          <span className="current">Giỏ hàng của bạn</span>
+          <span className="current">Giỏ hàng</span>
         </div>
 
-        {/* Header */}
         <div className="cart-header">
-          <h1>Giỏ hàng của bạn <span>({items.length} sản phẩm)</span></h1>
+          <h1>
+            Giỏ hàng của bạn
+            {!loading && isAuthenticated && (
+              <span>({cartCount} sản phẩm)</span>
+            )}
+          </h1>
         </div>
 
-        {items.length === 0 ? (
+        {loading ? (
+          <CartSkeleton />
+        ) : !isAuthenticated ? (
+          <EmptyCart isGuest />
+        ) : items.length === 0 ? (
           <EmptyCart />
         ) : (
           <div className="cart-content-grid">
-            <CartItemTable
+            <CartItemList
               items={items}
-              updateQty={updateQty}
-              removeItem={removeItem}
-              clearCart={clearCart}
+              updatingKey={updatingKey}
+              onIncrease={handleIncrease}
+              onDecrease={handleDecrease}
+              onRemove={handleRemove}
+              onClear={handleClearCart}
+              clearing={clearing}
             />
 
             <OrderSummary
@@ -148,9 +183,12 @@ const Cart: React.FC = () => {
               discount={discount}
               total={total}
               voucher={voucher}
+              appliedVoucher={appliedVoucher}
+              voucherLoading={voucherLoading}
               setVoucher={setVoucher}
               handleApplyVoucher={handleApplyVoucher}
               handleCheckout={handleCheckout}
+              itemCount={cartCount}
             />
           </div>
         )}

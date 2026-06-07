@@ -7,6 +7,7 @@ import { Order, OrderSchema } from '../orders/schemas/order.schema';
 import { Product, ProductSchema } from '../catalog/schemas/product.schema';
 import { Voucher, VoucherSchema } from '../vouchers/schemas/voucher.schema';
 import { Category, CategorySchema } from '../catalog/schemas/category.schema';
+import { User, UserSchema } from '../auth/schemas/user.schema';
 
 import { ExcelBaseService } from 'src/shared/csv/excel.service';
 
@@ -16,7 +17,8 @@ import { ExcelBaseService } from 'src/shared/csv/excel.service';
       { name: Order.name, schema: OrderSchema },
       { name: Product.name, schema: ProductSchema },
       { name: Voucher.name, schema: VoucherSchema },
-      { name: Category.name, schema: CategorySchema }, 
+      { name: Category.name, schema: CategorySchema },
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   controllers: [DashboardController],

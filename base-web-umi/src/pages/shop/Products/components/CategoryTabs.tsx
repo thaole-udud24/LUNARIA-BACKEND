@@ -1,24 +1,31 @@
 import React from 'react';
+import './CategoryTabs.less';
 
 interface CategoryTabsProps {
+  tabs: string[];
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
-const CategoryTabs: React.FC<CategoryTabsProps> = ({ activeTab, onTabChange }) => {
-  const tabs = ['Tất cả', 'Làm sạch da', 'Cân bằng da', 'Dưỡng ẩm', 'Chống nắng', 'Phục hồi'];
-
+const CategoryTabs: React.FC<CategoryTabsProps> = ({
+  tabs,
+  activeTab,
+  onTabChange,
+}) => {
   return (
-    <div className="category-tabs-container sticky-tabs">
-      <div className="category-tabs">
+    <div className="category-tabs-wrapper">
+      <div className="category-tabs-container">
         {tabs.map((tab) => (
-          <div 
-            key={tab} 
-            className={`cat-tab ${activeTab === tab ? 'active' : ''}`}
+          <button
+            type="button"
+            key={tab}
+            className={`cat-tab-lunaria ${
+              activeTab === tab ? 'is-active' : ''
+            }`}
             onClick={() => onTabChange(tab)}
           >
             {tab}
-          </div>
+          </button>
         ))}
       </div>
     </div>

@@ -1,99 +1,69 @@
 import React, { useState } from 'react';
 import { history } from 'umi';
-import { message } from 'antd';
+import { Form, Input, message } from 'antd';
+import { MailOutlined, LoadingOutlined } from '@ant-design/icons';
 import { forgotPassword } from '@/services/TaiKhoan/auth.api';
+import AuthShell from '../components/AuthShell';
+import { extractAuthError, parseApiData } from '../auth.utils';
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+  const [form] = Form.useForm<{ email: string }>();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!email) {
-      return message.error('Vui lòng nhập email');
-    }
-
+  const handleSubmit = async (values: { email: string }) => {
     setLoading(true);
-
     try {
-      const res = await forgotPassword({ email });
-      console.log("API RESPONSE:", res);
-
-      if (!res || res.success === false) {
-      message.error(res?.message || 'Có lỗi xảy ra');
-      return;
-      }
-
-      message.success('Đã gửi email xác nhận');
-
-      localStorage.setItem('resetEmail', email);
-
-      //  CHUYỂN SANG ENTER CODE + truyền email
-      history.push(`/auth/verify-code?email=${encodeURIComponent(email)}`);
-
-    } catch (err) {
-      console.log("ERROR FULL:", err); 
-      message.error('Lỗi hệ thống');
+      const res = await forgotPassword({ email: values.email.trim() });
+      const data = parseApiData<{ message?: string }>(res);
+      message.success(data?.message || 'Nếu email tồn tại, mã đặt lại mật khẩu đã được gửi');
+      history.push(`/auth/verify-code?email=${encodeURIComponent(values.email.trim())}`);
+    } catch (error) {
+      message.error(extractAuthError(error));
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-
-        {/* LEFT */}
-        <div className="auth-left">
-          <div className="auth-overlay">
-            <h1>LUNARIA</h1>
-            <p>
-              Chúng tôi sẽ giúp bạn lấy lại quyền truy cập nhanh chóng.
-            </p>
-            <button>Mua ngay</button>
+    <AuthShell
+      title="Quên mật khẩu"
+      subtitle="Nhập email để nhận mã xác minh đặt lại mật khẩu"
+      backTo="/auth/login"
+      backLabel="Quay lại đăng nhập"
+      heroText="Chúng tôi sẽ giúp bạn lấy lại quyền truy cập tài khoản một cách an toàn."
+    >
+      <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false}>
+        <Form.Item
+          name="email"
+          label={<span className="auth-field-label">Email</span>}
+          rules={[
+            { required: true, message: 'Vui lòng nhập email' },
+            { type: 'email', message: 'Email không hợp lệ' },
+          ]}
+        >
+          <div className="auth-input-wrap">
+            <MailOutlined />
+            <Input className="auth-input" placeholder="email@example.com" autoComplete="email" />
           </div>
-        </div>
+        </Form.Item>
 
-        {/* RIGHT */}
-        <div className="auth-right">
-          <div className="auth-form">
+        <button type="submit" className="auth-submit" disabled={loading}>
+          {loading ? (
+            <>
+              <LoadingOutlined spin /> Đang gửi...
+            </>
+          ) : (
+            'Gửi mã xác minh'
+          )}
+        </button>
+      </Form>
 
-            <button
-              className="auth-back"
-              onClick={() => history.push('/auth/login')}
-            >
-              ← Trở lại
-            </button>
-
-            <h2>Quên mật khẩu</h2>
-            <p className="auth-desc">
-              Nhập email để nhận link đặt lại mật khẩu
-            </p>
-
-            <input
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-
-            <button
-              className="auth-loginBtn"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? 'Đang gửi...' : 'Gửi yêu cầu'}
-            </button>
-
-            <p className="auth-register">
-              Quay lại?{' '}
-              <span onClick={() => history.push('/auth/login')}>
-                Đăng nhập
-              </span>
-            </p>
-
-          </div>
-        </div>
-
-      </div>
-    </div>
+      <p className="auth-footer">
+        Nhớ mật khẩu?
+        <button type="button" onClick={() => history.push('/auth/login')}>
+          Đăng nhập ngay
+        </button>
+      </p>
+    </AuthShell>
   );
 }

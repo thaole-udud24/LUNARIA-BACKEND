@@ -27,7 +27,7 @@ interface TableToolbarProps {
 export default function TableToolbar({
   total,
   searchValue,
-  searchPlaceholder = 'Tìm kiếm...',
+  searchPlaceholder = 'Tìm kiếm dữ liệu...',
   onSearchChange,
   onSearch,
   onRefresh,
@@ -39,55 +39,85 @@ export default function TableToolbar({
   return (
     <div className={styles.toolbarContainer}>
       <div className={styles.leftGroup}>
-        <button className={styles.iconBtn} title="Cài đặt cột">
+        <button
+          type="button"
+          className={styles.iconBtn}
+        >
           <AppstoreOutlined />
         </button>
-        <button className={styles.iconBtn} title="Bộ lọc">
+
+        <button
+          type="button"
+          className={styles.iconBtn}
+        >
           <FilterOutlined />
         </button>
 
         <div className={styles.searchInput}>
           <SearchOutlined className={styles.searchIcon} />
+
           <input
-            placeholder={searchPlaceholder}
             value={searchValue}
+            placeholder={searchPlaceholder}
             onChange={(e) => onSearchChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && onSearch()}
-            disabled={loading}
           />
         </div>
 
-        <div className={styles.totalText}>
-          <DatabaseOutlined style={{ fontSize: 14 }} />
-          Tổng: <span className={styles.highlight}>{total}</span>
+       <div className={styles.totalText}>
+          <DatabaseOutlined />
+
+          <div>
+            <span>Tổng bản ghi: </span>
+            <strong>{total}</strong>
+          </div>
         </div>
       </div>
 
       <div className={styles.rightGroup}>
-        <button className={styles.iconBtn} onClick={onRefresh} title="Làm mới">
+        <button
+          type="button"
+          className={styles.refreshBtn}
+          onClick={onRefresh}
+        >
           <ReloadOutlined spin={loading} />
         </button>
 
-        {(onExport || onImport) && <div className={styles.divider} />}
+        {(onExport || onImport) && (
+          <div className={styles.divider} />
+        )}
 
         {onExport && (
-          <button className={styles.ghostBtn} onClick={onExport}>
-            <ExportOutlined /> Xuất dữ liệu
+          <button
+            type="button"
+            className={styles.secondaryBtn}
+            onClick={onExport}
+          >
+            <ExportOutlined />
+            Xuất dữ liệu
           </button>
         )}
+
         {onImport && (
-          <button className={styles.ghostBtn} onClick={onImport}>
-            <ImportOutlined /> Nhập dữ liệu
+          <button
+            type="button"
+            className={styles.outlineBtn}
+            onClick={onImport}
+          >
+            <ImportOutlined />
+            Nhập dữ liệu
           </button>
         )}
 
         {onAddNew && (
-          <>
-            <div className={styles.divider} />
-            <button className={styles.primaryBtn} onClick={onAddNew}>
-              <PlusOutlined /> Thêm mới
-            </button>
-          </>
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={onAddNew}
+          >
+            <PlusOutlined />
+            Thêm mới
+          </button>
         )}
       </div>
     </div>

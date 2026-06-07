@@ -1,69 +1,169 @@
 import React from 'react';
-import { ShippingInfo } from '../types';
+import { Input } from 'antd';
+import {
+  UserOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  HomeOutlined,
+  EditOutlined,
+} from '@ant-design/icons';
+import { CheckoutFormState, SavedAddressOption } from '../types';
+import AddressSelector from './AddressSelector';
+import { formatPhoneDisplay } from '../validators';
 
 interface ShippingFormProps {
-  info: ShippingInfo;
-  onChange: (field: keyof ShippingInfo, val: string) => void;
+  form: CheckoutFormState;
+  errors: Partial<Record<keyof CheckoutFormState, string>>;
+  savedAddresses: SavedAddressOption[];
+  selectedAddressId: string;
+  onSelectAddress: (id: string) => void;
+  onChange: (field: keyof CheckoutFormState, value: string) => void;
+  onProvinceChange: (value: string) => void;
+  onDistrictChange: (value: string) => void;
+  onWardChange: (value: string) => void;
+  onPhoneChange: (value: string) => void;
 }
 
-const ShippingForm: React.FC<ShippingFormProps> = ({ info, onChange }) => {
+const ShippingForm: React.FC<ShippingFormProps> = ({
+  form,
+  errors,
+  savedAddresses,
+  selectedAddressId,
+  onSelectAddress,
+  onChange,
+  onProvinceChange,
+  onDistrictChange,
+  onWardChange,
+  onPhoneChange,
+}) => {
   return (
-    <div className="checkout-card shipping-form-card">
-      <h2>1. Thông tin giao hàng</h2>
-      <p className="sub-title">Vui lòng điền đầy đủ thông tin để Lunaria giao hàng nhanh nhất</p>
+    <section className="checkout-card shipping-form-card">
+      <div className="checkout-card__head">
+        <span className="checkout-card__step">01</span>
+        <div>
+          <h2>Thông tin giao hàng</h2>
+          <p className="sub-title">Thông tin chính xác giúp giao hàng nhanh và đúng địa chỉ</p>
+        </div>
+      </div>
+
+      {savedAddresses.length > 0 && (
+        <div className="saved-address-list">
+          <h3>Chọn địa chỉ đã lưu</h3>
+          <div className="saved-address-grid">
+            {savedAddresses.map((addr) => (
+              <button
+                key={addr.id}
+                type="button"
+                className={`saved-address-item ${selectedAddressId === addr.id ? 'is-active' : ''}`}
+                onClick={() => onSelectAddress(addr.id)}
+              >
+                <strong>{addr.fullName}</strong>
+                <span>{formatPhoneDisplay(addr.phone)}</span>
+                <p>{addr.addressLine}, {addr.ward}, {addr.district}, {addr.province}</p>
+                {addr.isDefault && <em>Mặc định</em>}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`saved-address-item saved-address-item--new ${selectedAddressId === 'new' ? 'is-active' : ''}`}
+              onClick={() => onSelectAddress('new')}
+            >
+              <EditOutlined />
+              <span>Địa chỉ mới</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="form-grid">
         <div className="form-group col-12">
-          <label>Họ và tên <span>*</span></label>
-          <input
-            type="text"
-            placeholder="Nhập họ và tên người nhận"
-            value={info.fullName}
+          <label><UserOutlined /> Họ và tên người nhận <span>*</span></label>
+          <Input
+            size="large"
+            placeholder="VD: Nguyễn Văn An"
+            value={form.fullName}
             onChange={(e) => onChange('fullName', e.target.value)}
+            className={`checkout-input ${errors.fullName ? 'checkout-input--error' : ''}`}
           />
+          {errors.fullName ? (
+            <span className="field-error">{errors.fullName}</span>
+          ) : (
+            <span className="field-hint">Nhập đầy đủ họ tên như trên CMND/CCCD</span>
+          )}
         </div>
 
         <div className="form-group col-6">
-          <label>Số điện thoại <span>*</span></label>
-          <input
-            type="tel"
-            placeholder="Nhập số điện thoại liên hệ"
-            value={info.phone}
-            onChange={(e) => onChange('phone', e.target.value)}
+          <label><PhoneOutlined /> Số điện thoại <span>*</span></label>
+          <Input
+            size="large"
+            prefix={<span className="phone-prefix">+84</span>}
+            placeholder="912 345 678"
+            value={form.phone}
+            onChange={(e) => onPhoneChange(e.target.value)}
+            maxLength={13}
+            inputMode="numeric"
+            className={`checkout-input checkout-input--phone ${errors.phone ? 'checkout-input--error' : ''}`}
           />
+          {errors.phone ? (
+            <span className="field-error">{errors.phone}</span>
+          ) : (
+            <span className="field-hint">10–11 số, bắt đầu bằng 0</span>
+          )}
         </div>
 
         <div className="form-group col-6">
-          <label>Email liên hệ</label>
-          <input
+          <label><MailOutlined /> Email (tuỳ chọn)</label>
+          <Input
+            size="large"
             type="email"
-            placeholder="Nhập email để nhận hóa đơn"
-            value={info.email}
+            placeholder="email@example.com"
+            value={form.email}
             onChange={(e) => onChange('email', e.target.value)}
+            className={`checkout-input ${errors.email ? 'checkout-input--error' : ''}`}
+          />
+          {errors.email && <span className="field-error">{errors.email}</span>}
+        </div>
+
+        <div className="form-group col-12">
+          <label><HomeOutlined /> Số nhà, tên đường <span>*</span></label>
+          <Input
+            size="large"
+            placeholder="VD: 256 Cầu Giấy, Khu đô thị..."
+            value={form.addressLine}
+            onChange={(e) => onChange('addressLine', e.target.value)}
+            className={`checkout-input ${errors.addressLine ? 'checkout-input--error' : ''}`}
+          />
+          {errors.addressLine && <span className="field-error">{errors.addressLine}</span>}
+        </div>
+
+        <div className="form-group col-12">
+          <AddressSelector
+            province={form.province}
+            district={form.district}
+            ward={form.ward}
+            errors={{
+              province: errors.province,
+              district: errors.district,
+              ward: errors.ward,
+            }}
+            onProvinceChange={onProvinceChange}
+            onDistrictChange={onDistrictChange}
+            onWardChange={onWardChange}
           />
         </div>
 
         <div className="form-group col-12">
-          <label>Địa chỉ nhận hàng cụ thể <span>*</span></label>
-          <input
-            type="text"
-            placeholder="Số nhà, ngõ/hẻm, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
-            value={info.address}
-            onChange={(e) => onChange('address', e.target.value)}
-          />
-        </div>
-
-        <div className="form-group col-12">
-          <label>Ghi chú đơn hàng (Tùy chọn)</label>
-          <textarea
+          <label>Ghi chú cho shipper</label>
+          <Input.TextArea
             rows={3}
-            placeholder="Ghi chú về thời gian giao hàng, chỉ dẫn địa điểm..."
-            value={info.note}
+            placeholder="VD: Giao giờ hành chính, gọi trước 15 phút..."
+            value={form.note}
             onChange={(e) => onChange('note', e.target.value)}
-          ></textarea>
+            className="checkout-textarea"
+          />
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

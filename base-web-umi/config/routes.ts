@@ -1,39 +1,65 @@
 export default [
+  // ==========================================
+  // 1. AUTHENTICATION ROUTES (Giao diện Đăng nhập / Đăng ký)
+  // ==========================================
   {
     path: '/auth',
     layout: false,
     routes: [
-      { path: '/auth/login',
-        component: './auth/Login',
-        layout: false,
-       },
-      { path: '/auth/register',
+      { 
+        path: '/auth/login', 
+        component: './auth/Login', 
+        layout: false 
+      },
+      {
+        path: '/auth/register',
         component: './auth/Register',
-        layout: false, 
+        layout: false,
       },
-      { path: '/auth/forgot-password',
+      {
+        path: '/auth/verify-email',
+        component: './auth/VerifyEmail',
+        layout: false,
+      },
+      {
+        path: '/auth/forgot-password', 
         component: './auth/ForgotPassword', 
-        layout: false, 
+        layout: false 
       },
-      { path: '/auth/verify-code', 
-        component: './auth/VerifyCode' 
+      { 
+        path: '/auth/verify-code', 
+        component: './auth/VerifyCode',
+        layout: false
       },
-      { path: '/auth/reset-password', 
+      { 
+        path: '/auth/reset-password', 
         component: './auth/ResetPassword', 
-        layout: false, 
+        layout: false 
       },
-      { path: '/auth/reset-success', 
-        component: './auth/ResetSuccess' 
+      { 
+        path: '/auth/reset-success', 
+        component: './auth/ResetSuccess',
+        layout: false
       },
-      { redirect: '/auth/login' },
+      { 
+        path: '/auth',
+        redirect: '/auth/login' 
+      },
     ],
   },
   
+  // ==========================================
+  // 2. ADMIN MANAGE ROUTES (Hệ thống Quản trị viên)
+  // ==========================================
   {
     path: '/admin',
-    layout: false,
     component: '@/layouts/AdminLayout',
+    layout: false,
     routes: [
+      {
+        path: '/admin',
+        redirect: '/admin/dashboard',
+      },
       {
         path: '/admin/dashboard',
         component: '@/pages/admin/Dashboard',
@@ -59,8 +85,8 @@ export default [
         component: '@/pages/admin/Reports',
       },
       {
-      path: '/admin/vouchers',
-      component: '@/pages/admin/Vouchers',
+        path: '/admin/vouchers',
+        component: '@/pages/admin/Vouchers',
       },
       {
         path: '/admin/orders',
@@ -70,30 +96,95 @@ export default [
         path: '/admin/orders/:id',
         component: '@/pages/admin/Orders-detail',
       },
+      {
+        path: '/admin/customers',
+        component: '@/pages/admin/Users', 
+      },
+      {
+        path: '/admin/settings',
+        component: '@/pages/admin/Settings', 
+      },
+      {
+        path: '/admin/notifications',
+        component: '@/pages/admin/Notifications',
+      },
     ],
   },
 
+  // ==========================================
+  // 3. CLIENT SHOP ROUTES (Giao diện Cửa hàng / Khách mua hàng)
+  // ==========================================
   {
     path: '/',
     component: '@/layouts/ShopLayout',
     layout: false,
     routes: [
-      { path: '/home', component: '@/pages/shop/Home' },
-      { path: '/about', component: '@/pages/shop/About' },
-      { path: '/products', component: '@/pages/shop/Products' },
-      { path: '/products/:id', component: '@/pages/shop/ProductDetail' },
-      { path: '/productdetail', component: '@/pages/shop/ProductDetail' },
-      { path: '/blog/:id', component: '@/pages/shop/BlogDetail' },
-      { path: '/blog', component: '@/pages/shop/Blog' },
-      { path: '/contact', component: '@/pages/shop/Contact' },
-      { path: '/cart', component: '@/pages/shop/Cart' },
-      { path: '/checkout', component: '@/pages/shop/Checkout' },
-      { path: '/account', component: '@/pages/shop/Account' },
-      { path: '/notifications', component: '@/pages/shop/Notifications' },
-      { path: '/orders', component: '@/pages/shop/Orders' },
-      { path: '/orderdetail', component: '@/pages/shop/OrderDetail' },
-      { path: '/', redirect: '/home' },
+      { 
+        path: '/', 
+        exact: true,
+        redirect: '/home' 
+      },
+      { 
+        path: '/home', 
+        component: '@/pages/shop/Home' 
+      },
+      { 
+        path: '/about', 
+        component: '@/pages/shop/About' 
+      },
+      { 
+        path: '/products', 
+        component: '@/pages/shop/Products' 
+      },
+      { 
+        path: '/products/:id', 
+        component: '@/pages/shop/ProductDetail' 
+      },
+      { 
+        path: '/blog', 
+        component: '@/pages/shop/Blog' 
+      },
+      { 
+        path: '/blog/:id', 
+        component: '@/pages/shop/BlogDetail' 
+      },
+      { 
+        path: '/contact', 
+        component: '@/pages/shop/Contact' 
+      },
+      { 
+        path: '/cart', 
+        component: '@/pages/shop/Cart' 
+      },
+      { 
+        path: '/checkout', 
+        component: '@/pages/shop/Checkout' 
+      },
+      { 
+        path: '/account', 
+        component: '@/pages/shop/Account' 
+      },
+      { 
+        path: '/notifications', 
+        component: '@/pages/shop/Notifications' 
+      },
+      { 
+        path: '/orders', 
+        component: '@/pages/shop/Orders' 
+      },
+      { 
+        path: '/orderdetail', 
+        component: '@/pages/shop/OrderDetail' 
+      },
     ],
   },
-  // { component: './404' },
+
+  // ==========================================
+  // 4. GLOBAL CATCH-ALL ERROR ROUTES (Bẫy trang lỗi)
+  // ==========================================
+  { 
+    path: '*', 
+    component: './404',
+    layout: false
+  },
 ];

@@ -1,4 +1,4 @@
-import { request } from 'umi';
+import request from '@/services/base/request';
 
 // Báo cáo doanh thu
 export async function getReportsData(params?: { month?: string; categoryId?: string }) {

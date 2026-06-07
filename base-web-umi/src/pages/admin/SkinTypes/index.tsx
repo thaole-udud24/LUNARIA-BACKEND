@@ -1,660 +1,166 @@
-import { useEffect, useMemo, useState } from 'react';
-
-import {
-  Button,
-  Form,
-  Input,
-  Modal,
-  Select,
-  Space,
-  Switch,
-  Table,
-  message,
-  Dropdown,
-  Menu,
-  Popover,
-  Pagination,
-  Popconfirm,
-} from 'antd';
-
-import {
-  PlusOutlined,
-  SearchOutlined,
-  MenuOutlined,
-  FilterOutlined,
-  EditOutlined,
-  DeleteOutlined,
-} from '@ant-design/icons';
-
-import type { ColumnsType } from 'antd/es/table';
-
-import '@/styles/admin.less';
-
-import type { SkinType } from '@/services/DanhMuc/types';
-
-import {
-  createSkinType,
-  deleteSkinType,
-  getSkinTypes,
-  updateSkinType,
-} from '@/services/DanhMuc/skinTypes.api';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Button, Space, message } from 'antd';
+import { ImportOutlined, ExportOutlined } from '@ant-design/icons';
+import type { SkinTypeType } from '@/types/catalog';
+import { getSkinTypes, deleteSkinType, updateSkinTypeStatus, exportSkinTypes } from '@/services/LoaiDa/skin-types.api';
+import TableToolbar from '@/components/admin/TableToolbar';
+import SkinTypeTable from './components/SkinTypeTable';
+import SkinTypeModal from './components/SkinTypeModal';
+import ImportSkinTypeModal from './components/ImportSkinTypeModal';
+import styles from './styles.less';
 
 export default function SkinTypesPage() {
-  const [loading, setLoading] = useState(false);
-
-  const [data, setData] = useState<SkinType[]>([]);
-
+  const [skinTypes, setSkinTypes] = useState<SkinTypeType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
   const [openModal, setOpenModal] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [selected, setSelected] = useState<SkinTypeType | null>(null);
+  const [openImport, setOpenImport] = useState(false);
 
-  const [editingItem, setEditingItem] = useState<SkinType | null>(null);
-
-  const [searchText, setSearchText] = useState('');
-
-  const [statusFilter, setStatusFilter] =
-  useState('ALL');
-
-  const [tempStatus, setTempStatus] =
-  useState('ALL');
-
-  const [filterOpen, setFilterOpen] =
-  useState(false);
-
-  const [form] = Form.useForm();
-
-  const [currentPage, setCurrentPage] =
-    useState(1);
-
-  const [pageSize, setPageSize] =
-    useState(10);
-
-  // =========================
-  // FETCH DATA
-  // =========================
-
-  const fetchSkinTypes = async () => {
+  const fetchSkinTypes = useCallback(async (showMsg = false) => {
     try {
       setLoading(true);
-
-      const response = await getSkinTypes();
-
-      setData(response || []);
-    } catch (error) {
-      message.error('Không thể tải danh sách loại da');
+      const res: any = await getSkinTypes({ page, limit, search });
+      const dataList = res?.data || (Array.isArray(res) ? res : []);
+      setSkinTypes(dataList);
+      setTotal(res?.total || dataList.length || 0);
+      if (showMsg) message.success('Đã làm mới dữ liệu!');
+    } catch {
+      message.error('Lỗi tải danh sách loại da');
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, search]);
 
-  useEffect(() => {
-    fetchSkinTypes();
-  }, []);
+  useEffect(() => { fetchSkinTypes(); }, [fetchSkinTypes]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchText, statusFilter]);
-
-  // =========================
-  // FILTER
-  // =========================
-
-  const filteredData = useMemo(() => {
-    let result = [...data];
-
-    // Search
-    if (searchText) {
-      result = result.filter((item) =>
-        item.name.toLowerCase().includes(searchText.toLowerCase()),
+  const displayData = useMemo(() => {
+    let result = skinTypes;
+    if (search && (!total || total === skinTypes.length)) {
+      result = skinTypes.filter(s =>
+        s.name.toLowerCase().includes(search.toLowerCase()) ||
+        s.code.toLowerCase().includes(search.toLowerCase())
       );
     }
+    return result.length > limit
+      ? result.slice((page - 1) * limit, page * limit)
+      : result;
+  }, [skinTypes, search, page, limit, total]);
 
-    // Status
-    if (statusFilter !== 'ALL') {
-      result = result.filter((item) => {
-        if (statusFilter === 'ACTIVE') {
-          return item.active;
-        }
-
-        return !item.active;
-      });
-    }
-
-    return result;
-  }, [data, searchText, statusFilter]);
-
-  // =========================
-  // Paginated data 
-  // =========================
-
-  const paginatedData = useMemo(() => {
-    return filteredData.slice(
-      (currentPage - 1) * pageSize,
-      currentPage * pageSize,
-    );
-  }, [
-    filteredData,
-    currentPage,
-    pageSize,
-  ]);
-
-  // =========================
-  // OPEN CREATE
-  // =========================
-
-  const handleOpenCreate = () => {
-    setEditingItem(null);
-
-    form.resetFields();
-
-    form.setFieldsValue({
-      active: true,
-    });
-
-    setOpenModal(true);
-  };
-
-  // =========================
-  // OPEN EDIT
-  // =========================
-
-  const handleOpenEdit = (record: SkinType) => {
-    setEditingItem(record);
-
-    form.setFieldsValue({
-      code: record.code,
-      name: record.name,
-      description: record.description,
-      active: record.active,
-    });
-
-    setOpenModal(true);
-  };
-
-  // =========================
-  // SUBMIT
-  // =========================
-
-  const handleSubmit = async () => {
+  const handleDelete = async (id: string | number) => {
     try {
-      const values = await form.validateFields();
-
-      if (editingItem) {
-        await updateSkinType(editingItem.id, values);
-
-        message.success('Cập nhật loại da thành công');
-      } else {
-        await createSkinType(values);
-
-        message.success('Thêm loại da thành công');
-      }
-
-      setOpenModal(false);
-
+      await deleteSkinType(id.toString());
+      message.success('Đã xóa loại da!');
       fetchSkinTypes();
-    } catch (error) {
-      console.log(error);
+    } catch {
+      message.error('Xóa thất bại!');
     }
   };
 
-  // =========================
-  // DELETE
-  // =========================
-
-  const handleDelete = async (id: number) => {
+  const handleToggleStatus = async (checked: boolean, id: string | number) => {
     try {
-      await deleteSkinType(id);
-
-      message.success('Xóa loại da thành công');
-
-      fetchSkinTypes();
-    } catch (error) {
-      message.error('Xóa thất bại');
+      await updateSkinTypeStatus(id.toString(), checked);
+      setSkinTypes(prev =>
+        prev.map(s =>
+          ((s as any)._id || s.id) === id ? { ...s, isActive: checked } : s
+        )
+      );
+      message.success('Đã cập nhật trạng thái!');
+    } catch {
+      message.error('Lỗi khi đổi trạng thái');
     }
   };
 
-  // =========================
-  // TOGGLE ACTIVE
-  // =========================
-
-  const handleToggleStatus = async (
-    checked: boolean,
-    record: SkinType,
-  ) => {
+  const handleExport = async () => {
     try {
-      await updateSkinType(record.id, {
-        ...record,
-        active: checked,
-      });
-
-      message.success('Cập nhật trạng thái thành công');
-
-      fetchSkinTypes();
-    } catch (error) {
-      message.error('Cập nhật trạng thái thất bại');
+      setExportLoading(true);
+      const blob = await exportSkinTypes(['code', 'name', 'description', 'isActive'], { search });
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'SkinTypes.xlsx';
+      link.click();
+      window.URL.revokeObjectURL(url);
+      message.success('Xuất file thành công!');
+    } catch {
+      message.error('Xuất file thất bại!');
+    } finally {
+      setExportLoading(false);
     }
   };
-
-  // =========================
-  // COLUMNS
-  // =========================
-
-  const columns: ColumnsType<SkinType> = [
-    {
-      title: 'STT',
-
-      width: 80,
-
-      render: (_, __, index) =>
-        (currentPage - 1) * pageSize +
-        index +
-        1,
-    },
-
-    {
-      title: 'Mã',
-
-      width: 120,
-
-      dataIndex: 'code',
-    },
-
-    {
-      title: 'Loại da',
-
-      dataIndex: 'name',
-
-      render: (value) => (
-        <div className="skin-type-name">
-          {value}
-        </div>
-      ),
-    },
-
-    {
-      title: 'Mô tả',
-
-      dataIndex: 'description',
-
-      render: (value) => (
-        <div className="skin-type-description">
-          {value || 'Mô tả'}
-        </div>
-      ),
-    },
-
-    {
-      title: 'Trạng thái',
-
-      width: 140,
-
-      align: 'center',
-
-      render: (_, record) => (
-        <Switch
-          className="admin-status-switch"
-          checked={record.active}
-            onChange={(checked) =>
-              handleToggleStatus(
-                checked,
-              record,
-              )
-            }
-          />
-      ),
-    },
-
-    {
-      title: 'Thao tác',
-
-      width: 120,
-
-      align: 'center',
-
-      render: (_, record) => {
-        const menu = (
-          <Menu>
-            <Menu.Item
-              key="edit"
-              icon={<EditOutlined />}
-              onClick={() =>
-                handleOpenEdit(record)
-              }
-            >
-              Chỉnh sửa
-            </Menu.Item>
-
-            <Menu.Item
-              key="delete"
-              danger
-            >
-              <Popconfirm
-                title="Xóa loại da?"
-                okText="Xóa"
-                cancelText="Hủy"
-                placement="left"
-                onConfirm={() =>
-                  handleDelete(record.id)
-                }
-              >
-                <div className="action-item delete-item">
-                  <DeleteOutlined />
-
-                  <span>Xóa</span>
-                </div>
-              </Popconfirm>
-            </Menu.Item>
-          </Menu>
-        );
-
-        return (
-          <Dropdown
-            overlay={menu}
-            trigger={['click']}
-            placement="bottomRight"
-          >
-            <div className="admin-action">
-              <MenuOutlined />
-            </div>
-          </Dropdown>
-        );
-      },
-    },
-  ];
-
-  // =========================
-  // filter
-  // =========================
-
-  const filterContent = (
-    <div className="admin-filter-popup">
-      <div className="filter-popup-title">
-        Tùy chỉnh bộ lọc
-      </div>
-
-      <div className="filter-group">
-        <label>Trạng thái</label>
-
-        <Select
-          value={tempStatus}
-          onChange={setTempStatus}
-          style={{ width: '100%' }}
-          placeholder="Chọn trạng thái"
-          options={[
-            {
-              label: 'Tất cả',
-              value: 'ALL',
-            },
-
-            {
-              label: 'Hoạt động',
-              value: 'ACTIVE',
-            },
-
-            {
-              label: 'Ẩn',
-              value: 'INACTIVE',
-            },
-          ]}
-        />
-      </div>
-
-      <div className="filter-actions">
-        <Button
-          onClick={() => {
-            setTempStatus('ALL');
-          }}
-        >
-          Đặt lại
-        </Button>
-
-        <Button
-          type="primary"
-          className="apply-filter-btn"
-          onClick={() => {
-            setStatusFilter(
-              tempStatus,
-            );
-
-            setFilterOpen(false);
-          }}
-        >
-          Áp dụng
-        </Button>
-      </div>
-    </div>
-  );
 
   return (
-    <div className="admin-page">
-      {/* =========================
-          HEADER
-      ========================= */}
-
-      <div className="admin-header">
-        <div>
-          <h1 className="admin-title">
-            Danh sách loại da
-          </h1>
-
-          <div className="admin-breadcrumb">
-            Trang chủ {'>'} Sản phẩm {'>'} Loại da
+    <div className={styles.container}>
+      <div className={styles.topBar}>
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Loại Da</h1>
+          <div className={styles.breadcrumb}>
+            Tổng quan <span className={styles.separator}>/</span>
+            <span className={styles.active}>Loại da</span>
           </div>
         </div>
-      </div>
-
-      {/* =========================
-          FILTER
-      ========================= */}
-
-      <div className="admin-toolbar">
-        {/* SEARCH */}
-
-        <div className="admin-search">
-          <Input
-            bordered={false}
-            placeholder="Tìm kiếm"
-            value={searchText}
-            onChange={(e) =>
-              setSearchText(
-                e.target.value,
-              )
-            }
-          />
-
-          <SearchOutlined />
-        </div>
-
-        {/* ACTION */}
-
-        <Space size={16}>
-          {/* FILTER */}
-
-          <Popover
-            trigger="click"
-            visible={filterOpen}
-            onVisibleChange={setFilterOpen}
-            placement="bottomRight"
-            overlayClassName="filter-popover"
-            content={filterContent}
-          >
-            <Button
-              className="filter-btn"
-              icon={<FilterOutlined />}
-            >
-              Bộ lọc
-            </Button>
-          </Popover>
-
-          {/* ADD */}
-
+        <Space>
           <Button
-            type="primary"
-            className="add-btn"
-            icon={<PlusOutlined />}
-            onClick={handleOpenCreate}
+            className={styles.gradientBtn}
+            icon={<ImportOutlined />}
+            onClick={() => setOpenImport(true)}
           >
-            Thêm mới
+            Nhập dữ liệu
+          </Button>
+          <Button
+            className={styles.gradientBtn}
+            icon={<ExportOutlined />}
+            loading={exportLoading}
+            onClick={handleExport}
+          >
+            Xuất dữ liệu
           </Button>
         </Space>
       </div>
 
-      {/* =========================
-          TABLE
-      ========================= */}
+      <TableToolbar
+        total={total > 0 ? total : displayData.length}
+        searchValue={search}
+        searchPlaceholder="Tìm kiếm loại da..."
+        onSearchChange={setSearch}
+        onSearch={() => { setPage(1); fetchSkinTypes(); }}
+        onRefresh={() => fetchSkinTypes(true)}
+        onAddNew={() => { setSelected(null); setModalMode('create'); setOpenModal(true); }}
+        loading={loading}
+      />
 
-      <div className="admin-table">
-        <Table
-          rowKey="id"
+      <div className={styles.tableWrapper}>
+        <SkinTypeTable
           loading={loading}
-          columns={columns}
-          dataSource={paginatedData}
-          pagination={false}
+          dataSource={displayData}
+          page={page}
+          limit={limit}
+          total={total > 0 ? total : skinTypes.length}
+          onPageChange={(p, l) => { setPage(p); setLimit(l || 10); }}
+          onEdit={(r) => { setSelected(r); setModalMode('edit'); setOpenModal(true); }}
+          onDelete={handleDelete}
+          onToggleStatus={handleToggleStatus}
         />
       </div>
 
-       {/* =========================
-          CUSTOM PAGINATION
-      ========================= */}
+      <SkinTypeModal
+        open={openModal}
+        mode={modalMode}
+        skinType={selected}
+        onClose={() => setOpenModal(false)}
+        onSuccess={() => { setOpenModal(false); fetchSkinTypes(); }}
+      />
 
-      <div className="custom-pagination">
-        <div className="pagination-total">
-          Tổng số:
-          {' '}
-          {filteredData.length}
-        </div>
-
-        <Pagination
-          current={currentPage}
-          pageSize={pageSize}
-          total={filteredData.length}
-          showSizeChanger
-          pageSizeOptions={[
-            '10',
-            '20',
-            '50',
-          ]}
-          onChange={(
-            page,
-            size,
-          ) => {
-            setCurrentPage(page);
-
-            setPageSize(size || 10);
-          }}
-        />
-      </div>
-
-      {/* =========================
-          MODAL
-      ========================= */}
-
-      <Modal
-        className="admin-modal category-modal"
-        visible={openModal}
-        footer={null}
-        onCancel={() => {
-          setOpenModal(false);
-
-          form.resetFields();
-
-          setEditingItem(null);
-        }}
-        width={720}
-        centered
-        destroyOnClose
-      >
-        {/* HEADER */}
-
-        <div className="category-modal-header">
-          <div className="category-modal-title">
-            {editingItem
-              ? 'Cập nhật loại da'
-              : 'Thêm loại da'}
-          </div>
-
-          <div className="category-modal-subtitle">
-            Vui lòng hoàn thành theo biểu mẫu dưới đây để thêm dữ liệu
-          </div>
-        </div>
-
-        {/* FORM */}
-
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          {/* ROW */}
-
-          <div className="category-form-row">
-            {/* CODE */}
-
-            <Form.Item
-              label="Mã loại da *"
-              name="code"
-              className="category-form-item"
-              rules={[
-                {
-                  required: true,
-                  message:
-                    'Vui lòng nhập mã loại da',
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-
-            {/* NAME */}
-
-            <Form.Item
-              label="Tên loại da *"
-              name="name"
-              className="category-form-item"
-              rules={[
-                {
-                  required: true,
-                  message:
-                    'Vui lòng nhập tên loại da',
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-          </div>
-
-          {/* DESCRIPTION */}
-
-          <Form.Item
-            label="Mô tả"
-            name="description"
-          >
-            <Input.TextArea rows={5} />
-          </Form.Item>
-
-          {/* FOOTER */}
-
-          <div className="category-modal-footer">
-            <Button
-              onClick={() => {
-                setOpenModal(false);
-
-                form.resetFields();
-
-                setEditingItem(null);
-              }}
-            >
-              Hủy
-            </Button>
-
-            <Button
-              type="primary"
-              htmlType="submit"
-              
-            >
-              Lưu
-            </Button>
-          </div>
-        </Form>
-      </Modal>
+      <ImportSkinTypeModal
+        open={openImport}
+        onClose={() => setOpenImport(false)}
+        onSuccess={fetchSkinTypes}
+      />
     </div>
   );
 }

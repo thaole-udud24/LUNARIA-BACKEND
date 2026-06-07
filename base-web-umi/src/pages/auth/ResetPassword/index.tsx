@@ -1,125 +1,103 @@
 import React, { useState } from 'react';
 import { history, useLocation } from 'umi';
-import { message } from 'antd';
+import { Form, Input, message } from 'antd';
+import { LockOutlined, LoadingOutlined } from '@ant-design/icons';
 import { resetPassword } from '@/services/TaiKhoan/auth.api';
+import AuthShell from '../components/AuthShell';
+import { extractAuthError, parseApiData } from '../auth.utils';
 
-export default function ResetPassword() {
+export default function ResetPasswordPage() {
   const location = useLocation();
-
   const params = new URLSearchParams(location.search);
   const email = params.get('email') || '';
   const code = (params.get('code') || '').trim();
-
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [form] = Form.useForm<{ newPassword: string; confirmNewPassword: string }>();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    const pwd = password.trim();
-    const confirmPwd = confirmPassword.trim();
-
-    if (!pwd || !confirmPwd) {
-      return message.error('Vui lòng nhập đầy đủ thông tin');
-    }
-
-    if (pwd !== confirmPwd) {
-      return message.error('Mật khẩu không khớp');
+  const handleSubmit = async (values: { newPassword: string; confirmNewPassword: string }) => {
+    if (!email || !code) {
+      message.error('Thiếu email hoặc mã xác minh — vui lòng thử lại từ đầu');
+      history.push('/auth/forgot-password');
+      return;
     }
 
     setLoading(true);
-
     try {
-        const res = await resetPassword({
+      const res = await resetPassword({
         email,
-        password: pwd,
+        code,
+        newPassword: values.newPassword,
+        confirmNewPassword: values.confirmNewPassword,
       });
-
-      console.log('RES:', res);
-
-      if (!res?.success) {
-        message.error(res?.message || 'Đổi mật khẩu thất bại');
-        return;
-      }
-
-      message.success('Đổi mật khẩu thành công');
-
-      // chuyển sang trang thành công (hoặc login)
+      const data = parseApiData<{ message?: string }>(res);
+      message.success(data?.message || 'Đặt lại mật khẩu thành công');
       history.push('/auth/reset-success');
-    } catch (err) {
-      message.error('Lỗi hệ thống');
+    } catch (error) {
+      message.error(extractAuthError(error));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-
-        {/* LEFT */}
-        <div className="auth-left">
-          <div className="auth-overlay">
-            <h1>LUNARIA</h1>
-            <p>Thiết lập mật khẩu mới cho tài khoản của bạn</p>
-            <button>Mua ngay</button>
-          </div>
-        </div>
-
-        {/* RIGHT */}
-        <div className="auth-right">
-          <div className="auth-form">
-
-            <button
-              className="auth-back"
-              onClick={() => history.push('/auth/login')}
-            >
-              ← Trở lại
-            </button>
-
-            <h2>Reset Password</h2>
-            <p className="auth-desc">
-              Nhập mật khẩu mới cho tài khoản của bạn
-            </p>
-
-            <input
-              type="email"
-              value={email}
-              disabled
-            />
-
-            <input
-              type="password"
-              placeholder="Mật khẩu mới"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
-            <input
-              type="password"
-              placeholder="Xác nhận mật khẩu"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-
-            <button
-              className="auth-loginBtn"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
-            </button>
-
-            <p className="auth-register">
-              Quay lại?{' '}
-              <span onClick={() => history.push('/auth/login')}>
-                Đăng nhập
-              </span>
-            </p>
-
-          </div>
-        </div>
-
+    <AuthShell
+      title="Đặt lại mật khẩu"
+      subtitle="Tạo mật khẩu mới an toàn cho tài khoản của bạn"
+      backTo="/auth/verify-code"
+      backLabel="Quay lại nhập mã"
+    >
+      <div className="auth-form-item">
+        <label className="auth-field-label">Email</label>
+        <Input className="auth-input" value={email} disabled style={{ borderRadius: 14, minHeight: 48 }} />
       </div>
-    </div>
+
+      <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false}>
+        <Form.Item
+          name="newPassword"
+          label={<span className="auth-field-label">Mật khẩu mới</span>}
+          rules={[
+            { required: true, message: 'Vui lòng nhập mật khẩu mới' },
+            { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
+          ]}
+        >
+          <div className="auth-input-wrap">
+            <LockOutlined />
+            <Input.Password className="auth-input" placeholder="Tối thiểu 6 ký tự" autoComplete="new-password" />
+          </div>
+        </Form.Item>
+
+        <Form.Item
+          name="confirmNewPassword"
+          label={<span className="auth-field-label">Xác nhận mật khẩu</span>}
+          dependencies={['newPassword']}
+          rules={[
+            { required: true, message: 'Vui lòng xác nhận mật khẩu' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue('newPassword') === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error('Mật khẩu xác nhận không khớp'));
+              },
+            }),
+          ]}
+        >
+          <div className="auth-input-wrap">
+            <LockOutlined />
+            <Input.Password className="auth-input" placeholder="Nhập lại mật khẩu" autoComplete="new-password" />
+          </div>
+        </Form.Item>
+
+        <button type="submit" className="auth-submit" disabled={loading}>
+          {loading ? (
+            <>
+              <LoadingOutlined spin /> Đang cập nhật...
+            </>
+          ) : (
+            'Cập nhật mật khẩu'
+          )}
+        </button>
+      </Form>
+    </AuthShell>
   );
 }

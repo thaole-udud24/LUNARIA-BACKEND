@@ -8,6 +8,7 @@ export default function DataTable<T extends object>(props: TableProps<T>) {
     pagination = false,
     size = 'middle',
     locale,
+    scroll,
     ...restProps
   } = props;
 
@@ -31,6 +32,7 @@ export default function DataTable<T extends object>(props: TableProps<T>) {
         pagination={pagination}
         size={size}
         locale={customLocale}
+        scroll={{ x: 'max-content', ...scroll }}
         {...restProps}
       />
     </div>

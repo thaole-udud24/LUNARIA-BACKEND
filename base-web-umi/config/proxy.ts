@@ -1,4 +1,3 @@
-
 export default {
   dev: {
     '/v1/': {
@@ -10,8 +9,16 @@ export default {
       target: 'http://localhost:3000',
       changeOrigin: true,
     },
+    '/uploads/': {          // ← thêm dòng này
+      target: 'http://localhost:3000',
+      changeOrigin: true,
+    },
   },
   test: {
+    '/api/': {
+      target: 'http://localhost:3000',
+      changeOrigin: true,
+    },
     '/v2.2/': {
       target: 'https://apidev.sotaydangvien.com',
       changeOrigin: true,
@@ -19,6 +26,10 @@ export default {
     },
   },
   pre: {
+    '/api/': {
+      target: 'http://localhost:3000',
+      changeOrigin: true,
+    },
     '/v2.2/': {
       target: 'https://apidev.sotaydangvien.com',
       changeOrigin: true,

@@ -12,6 +12,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { VouchersModule } from './modules/vouchers/vouchers.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,6 +30,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     DashboardModule,
     VouchersModule,
     PromotionsModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}

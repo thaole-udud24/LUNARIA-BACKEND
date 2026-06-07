@@ -1,15 +1,15 @@
 import React from 'react';
 import { OrderData } from '../types';
 import { history } from 'umi';
-import { EyeOutlined, ReloadOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { EyeOutlined, ReloadOutlined, LoadingOutlined, PictureOutlined } from '@ant-design/icons';
 
 interface OrderCardProps {
   order: OrderData;
-  onCancelOrder: (id: string) => void;
+  reordering?: boolean;
   onReorder: (order: OrderData) => void;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ order, onCancelOrder, onReorder }) => {
+const OrderCard: React.FC<OrderCardProps> = ({ order, reordering, onReorder }) => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
@@ -27,13 +27,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onCancelOrder, onReorder }
     }
   };
 
-  const getImg = (name: string) => {
-    try {
-      return require(`@/assets/images/${name}`);
-    } catch (e) {
-      return '';
-    }
-  };
+  const goDetail = () => history.push(`/orderdetail?id=${order.id}`);
 
   return (
     <div className="order-card-container">
@@ -42,15 +36,15 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onCancelOrder, onReorder }
           <span className="order-code">{order.orderCode}</span>
           <span className="order-date">{order.date}</span>
         </div>
-        <div className="header-right">
-          {getStatusBadge(order.status)}
-        </div>
+        <div className="header-right">{getStatusBadge(order.status)}</div>
       </div>
 
-      <div className="order-card-body" onClick={() => history.push(`/orderdetail?code=${encodeURIComponent(order.orderCode)}`)}>
+      <div className="order-card-body" onClick={goDetail}>
         {order.items.map((item) => (
           <div key={item.id} className="order-item-row">
-            <img src={getImg(item.image)} alt={item.name} className="item-img" />
+            <div className="item-img item-img--placeholder">
+              <PictureOutlined />
+            </div>
             <div className="item-info">
               <h4 className="item-name">{item.name}</h4>
               {item.variant && <span className="item-variant">Phân loại: {item.variant}</span>}
@@ -70,20 +64,17 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onCancelOrder, onReorder }
         </div>
 
         <div className="footer-actions">
-          {order.status === 'PENDING' && (
-            <button className="btn-action btn-cancel" onClick={() => onCancelOrder(order.id)}>
-              <CloseCircleOutlined /> Hủy đơn
+          {(order.status === 'COMPLETED' || order.status === 'CANCELLED') && (
+            <button
+              className="btn-action btn-reorder"
+              onClick={() => onReorder(order)}
+              disabled={reordering}
+            >
+              {reordering ? <LoadingOutlined spin /> : <ReloadOutlined />} Mua lại
             </button>
           )}
 
-          <button className="btn-action btn-reorder" onClick={() => onReorder(order)}>
-            <ReloadOutlined /> Mua lại
-          </button>
-
-          <button
-            className="btn-action btn-detail"
-            onClick={() => history.push(`/orderdetail?code=${encodeURIComponent(order.orderCode)}`)}
-          >
+          <button className="btn-action btn-detail" onClick={goDetail}>
             <EyeOutlined /> Xem chi tiết
           </button>
         </div>

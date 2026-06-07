@@ -16,6 +16,11 @@ export class ProductsController {
     return this.productsService.findAll(query);
   }
 
+  @Get('best-sellers')
+  async findBestSellers(@Query('limit') limit?: string) {
+    return this.productsService.findBestSellers(Number(limit) || 8);
+  }
+
   @Get(':id')
   async findOnePublic(@Param('id') id: string) {
     return this.productsService.findOnePublic(id);

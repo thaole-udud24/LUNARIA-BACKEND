@@ -1,7 +1,13 @@
 import React from 'react';
 import { Modal, message } from 'antd';
 import { NotificationItemData } from '../types';
-import { CopyOutlined, ShoppingOutlined, RightOutlined } from '@ant-design/icons';
+import {
+  CopyOutlined,
+  ShoppingOutlined,
+  RightOutlined,
+  GiftOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 import { history } from 'umi';
 
 interface NotificationDetailModalProps {
@@ -26,6 +32,10 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({
 
   const handleActionClick = () => {
     onClose();
+    if (item.actionLink) {
+      history.push(item.actionLink);
+      return;
+    }
     if (item.category === 'ORDER') {
       history.push('/account?tab=ORDERS');
     } else if (item.category === 'PROMOTION') {
@@ -48,7 +58,9 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({
       <div className="modal-content-container">
         <div className="modal-header-meta">
           <span className={`cat-tag ${item.category.toLowerCase()}`}>
-            {item.category === 'ORDER' ? '📦 Đơn hàng' : item.category === 'PROMOTION' ? '🎁 Khuyến mãi' : '⚙️ Hệ thống'}
+            {item.category === 'ORDER' && <><ShoppingOutlined style={{ marginRight: '6px' }} /> Đơn hàng</>}
+            {item.category === 'PROMOTION' && <><GiftOutlined style={{ marginRight: '6px' }} /> Khuyến mãi</>}
+            {item.category === 'SYSTEM' && <><SettingOutlined style={{ marginRight: '6px' }} /> Hệ thống</>}
           </span>
           <span className="modal-time">{item.date} • {item.time}</span>
         </div>

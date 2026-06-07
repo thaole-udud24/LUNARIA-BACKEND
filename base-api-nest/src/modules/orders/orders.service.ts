@@ -11,6 +11,7 @@ import { VouchersService } from '../vouchers/vouchers.service';
 import { VoucherUsage, VoucherUsageDocument } from '../vouchers/schemas/voucher-usage.schema';
 import { PromotionsService } from '../promotions/promotions.service';
 import { ExcelBaseService } from 'src/shared/csv/excel.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class OrdersService {
@@ -23,6 +24,7 @@ export class OrdersService {
     private readonly vouchersService: VouchersService,
     private readonly promotionsService: PromotionsService,
     private readonly excelService: ExcelBaseService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async checkout(userId: string, checkoutDto: CheckoutDto) {
@@ -140,6 +142,9 @@ export class OrdersService {
       await this.cartModel.deleteOne({ userId: new Types.ObjectId(userId) }).session(session);
 
       await session.commitTransaction();
+
+      await this.notifyOrderCreated(userId, savedOrder);
+
       return savedOrder;
     } catch (error) {
       await session.abortTransaction();
@@ -175,6 +180,9 @@ export class OrdersService {
       await order.save({ session });
 
       await session.commitTransaction();
+
+      await this.notifyOrderProcessing(order);
+
       return order;
     } catch (error) {
       await session.abortTransaction();
@@ -210,6 +218,9 @@ export class OrdersService {
       await order.save({ session });
 
       await session.commitTransaction();
+
+      await this.notifyOrderCancelled(order, reason);
+
       return order;
     } catch (error) {
       await session.abortTransaction();
@@ -289,7 +300,99 @@ export class OrdersService {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Mã đơn hàng không hợp lệ.');
     const order = await this.orderModel.findByIdAndUpdate(id, { status }, { new: true }).exec();
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
+
+    await this.notifyOrderStatusChanged(order, status);
+
     return order;
+  }
+
+  private async notifyOrderCreated(userId: string, order: OrderDocument) {
+    try {
+      const firstItem = order.items?.[0];
+      const productHint = firstItem?.name
+        ? ` gồm "${firstItem.name}"${order.items.length > 1 ? ' và các sản phẩm khác' : ''}`
+        : '';
+
+      await this.notificationsService.createOrderNotification({
+        userId,
+        orderId: order._id.toString(),
+        orderCode: order.orderCode,
+        title: `Đặt hàng thành công #${order.orderCode}`,
+        message: `Đơn hàng${productHint} đã được tạo. Vui lòng hoàn tất thanh toán trong 15 phút để LURANA xử lý đơn của bạn.`,
+        actionLink: `/orderdetail?id=${order._id.toString()}`,
+      });
+    } catch (error) {
+      console.error('[Orders] Tạo thông báo đặt hàng thất bại:', error);
+    }
+  }
+
+  private async notifyOrderProcessing(order: OrderDocument) {
+    try {
+      await this.notificationsService.createOrderNotification({
+        userId: order.userId.toString(),
+        orderId: order._id.toString(),
+        orderCode: order.orderCode,
+        title: `Đơn hàng #${order.orderCode} đang được xử lý`,
+        message: 'Thanh toán đã được xác nhận. Đơn hàng của bạn đang được chuẩn bị và sẽ sớm được giao.',
+        actionLink: `/orderdetail?id=${order._id.toString()}`,
+      });
+    } catch (error) {
+      console.error('[Orders] Tạo thông báo xử lý đơn thất bại:', error);
+    }
+  }
+
+  private async notifyOrderCancelled(order: OrderDocument, reason?: string) {
+    try {
+      await this.notificationsService.createOrderNotification({
+        userId: order.userId.toString(),
+        orderId: order._id.toString(),
+        orderCode: order.orderCode,
+        title: `Đơn hàng #${order.orderCode} đã bị hủy`,
+        message: reason
+          ? `Đơn hàng đã bị hủy. Lý do: ${reason}`
+          : 'Đơn hàng của bạn đã bị hủy. Liên hệ LURANA nếu bạn cần hỗ trợ thêm.',
+        actionLink: `/account?tab=ORDERS`,
+      });
+    } catch (error) {
+      console.error('[Orders] Tạo thông báo hủy đơn thất bại:', error);
+    }
+  }
+
+  private async notifyOrderStatusChanged(order: OrderDocument, status: OrderStatus) {
+    const statusMessages: Partial<Record<OrderStatus, { title: string; message: string }>> = {
+      [OrderStatus.CONFIRMED]: {
+        title: `Đơn hàng #${order.orderCode} đã được xác nhận`,
+        message: 'Đơn hàng của bạn đã được xác nhận và sẽ sớm được xử lý.',
+      },
+      [OrderStatus.PROCESSING]: {
+        title: `Đơn hàng #${order.orderCode} đang được giao`,
+        message: 'Đơn hàng đã được bàn giao cho đơn vị vận chuyển. Vui lòng chú ý điện thoại từ shipper nhé.',
+      },
+      [OrderStatus.COMPLETED]: {
+        title: `Giao hàng thành công đơn #${order.orderCode}`,
+        message: 'Đơn hàng đã được giao thành công. Cảm ơn bạn đã mua sắm cùng LURANA!',
+      },
+      [OrderStatus.CANCELLED]: {
+        title: `Đơn hàng #${order.orderCode} đã bị hủy`,
+        message: 'Đơn hàng của bạn đã bị hủy.',
+      },
+    };
+
+    const payload = statusMessages[status];
+    if (!payload) return;
+
+    try {
+      await this.notificationsService.createOrderNotification({
+        userId: order.userId.toString(),
+        orderId: order._id.toString(),
+        orderCode: order.orderCode,
+        title: payload.title,
+        message: payload.message,
+        actionLink: `/orderdetail?id=${order._id.toString()}`,
+      });
+    } catch (error) {
+      console.error('[Orders] Tạo thông báo cập nhật trạng thái thất bại:', error);
+    }
   }
 
   async exportOrdersAdmin(query: any) {

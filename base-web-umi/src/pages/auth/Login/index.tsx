@@ -1,131 +1,121 @@
-// import styles from './index.less';
 import React, { useState } from 'react';
 import { history } from 'umi';
-import { message } from 'antd';
+import { Form, Input, message } from 'antd';
+import { MailOutlined, LockOutlined, LoadingOutlined } from '@ant-design/icons';
 import { login as loginApi } from '@/services/TaiKhoan/auth.api';
-import useAuth from '@/hooks/useAuth';
+import AuthShell from '../components/AuthShell';
+import {
+  extractAuthError,
+  getAuthRedirectPath,
+  parseLoginResponse,
+  persistAuthSession,
+} from '../auth.utils';
+
+interface LoginFormValues {
+  email: string;
+  password: string;
+}
 
 export default function LoginPage() {
-  const { login } = useAuth(); 
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form] = Form.useForm<LoginFormValues>();
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) return message.error('Vui lòng nhập đầy đủ!');
+  const handleLogin = async (values: LoginFormValues) => {
     setLoading(true);
-    message.destroy(); 
+    message.destroy();
 
     try {
-      const res: any = await loginApi({ email, password });
-      
-      console.log("🔥 [DEBUG] DỮ LIỆU TỪ BACKEND TRẢ VỀ:", res);
+      const res = await loginApi({
+        email: values.email.trim(),
+        password: values.password,
+      });
 
-      // Nếu Axios bọc dữ liệu trong trường 'data'
-      const data = res?.data || res;
-
-      // Nếu Backend cố tình trả về 200 nhưng kèm thông báo lỗi (ví dụ: success: false)
-      if (data && data.success === false) {
-        setLoading(false);
-        return message.error(data.message || 'Lỗi từ server!');
+      const payload = parseLoginResponse(res);
+      if (!payload) {
+        message.error('Đăng nhập thất bại — không nhận được token từ server');
+        return;
       }
 
-      // Quét tìm accessToken ở mọi tầng dữ liệu
-      const token = data?.accessToken || data?.data?.accessToken || res?.accessToken;
-      
-      if (!token) {
-        setLoading(false);
-        return message.error('Đăng nhập được rồi nhưng FE không tìm thấy Token (Vui lòng F12 xem Console)');
-      }
-
-      // Quét tìm user data
-      const userData = data?.user || data?.data?.user || res?.user || { email, roles: ['ADMIN'] };
-      const role = userData?.roles?.[0] || 'ADMIN';
-
-      // Lưu trữ
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('role', role);
-
+      persistAuthSession(payload);
       message.success('Đăng nhập thành công!');
-      
-      // Điều hướng
-      history.push(role === 'ADMIN' ? '/admin/orders' : '/home');
-      
-    } catch (error: any) {
-      console.error("🔥 [DEBUG] LỖI CATCH:", error);
-      // Hiển thị ĐÚNG lỗi do Backend ném ra thay vì câu fix cứng "Sai email hoặc mật khẩu"
-      const errMsg = error?.response?.data?.message || error?.message || 'Có lỗi xảy ra, F12 xem Console!';
-      message.error(typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg));
+      history.push(getAuthRedirectPath(payload.user.roles?.[0]));
+    } catch (error) {
+      const msg = extractAuthError(error);
+      if (msg.includes('EMAIL_NOT_VERIFIED') || msg.includes('xác thực email')) {
+        message.warning('Tài khoản chưa xác thực email. Vui lòng nhập mã OTP.');
+        history.push(`/auth/verify-email?email=${encodeURIComponent(values.email.trim())}`);
+        return;
+      }
+      message.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page login"> 
-      <div className="auth-container">
-        {/* LEFT */}
-        <div className="auth-left" >
-          <div className="auth-overlay">
-            <h1>LUNARIA</h1>
-            <p>
-              Mỗi buổi sáng là một khởi đầu mới, khi làn da cần được đánh thức
-              bằng sự dịu dàng.
-            </p>
-            <button onClick={() => history.push('/products')}>Mua ngay</button>
+    <AuthShell
+      title="Chào mừng trở lại"
+      subtitle="Đăng nhập để tiếp tục mua sắm và theo dõi đơn hàng của bạn"
+      backTo="/home"
+      backLabel="Trở lại trang chủ"
+    >
+      <Form form={form} layout="vertical" onFinish={handleLogin} requiredMark={false}>
+        <Form.Item
+          name="email"
+          label={<span className="auth-field-label">Email</span>}
+          rules={[
+            { required: true, message: 'Vui lòng nhập email' },
+            { type: 'email', message: 'Email không hợp lệ' },
+          ]}
+        >
+          <div className="auth-input-wrap">
+            <MailOutlined />
+            <Input className="auth-input" placeholder="email@example.com" autoComplete="email" />
           </div>
+        </Form.Item>
+
+        <Form.Item
+          name="password"
+          label={<span className="auth-field-label">Mật khẩu</span>}
+          rules={[
+            { required: true, message: 'Vui lòng nhập mật khẩu' },
+            { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
+          ]}
+        >
+          <div className="auth-input-wrap">
+            <LockOutlined />
+            <Input.Password
+              className="auth-input"
+              placeholder="••••••••"
+              autoComplete="current-password"
+            />
+          </div>
+        </Form.Item>
+
+        <div className="auth-link-row">
+          <span />
+          <button type="button" onClick={() => history.push('/auth/forgot-password')}>
+            Quên mật khẩu?
+          </button>
         </div>
 
-        {/* RIGHT */}
-        <div className="auth-right">
-          <div className="auth-form">
-            <div className="auth-top">
-              <button className="auth-back" onClick={() => history.push('/home')}>← Trở lại</button>
-            </div>
+        <button type="submit" className="auth-submit" disabled={loading}>
+          {loading ? (
+            <>
+              <LoadingOutlined spin /> Đang đăng nhập...
+            </>
+          ) : (
+            'Đăng nhập'
+          )}
+        </button>
+      </Form>
 
-            <h2>Chào mừng trở lại</h2>
-            <p className="auth-desc">
-              Nhập thông tin để truy cập tài khoản của bạn
-            </p>
-
-            <button className="auth-google" onClick={() => message.info('Tính năng đăng nhập bằng Google đang được bảo trì...')}>
-              🔵 Sign up with Google
-            </button>
-
-            <div className="auth-divider">Or use email</div>
-
-            <input
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Mật khẩu"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              disabled={loading} 
-            />
-
-            <div className="auth-forgot" onClick={() => history.push('/auth/forgot-password')}>Quên mật khẩu?</div>
-
-            <button 
-              className="auth-loginBtn" 
-              onClick={handleLogin}
-              disabled={loading} 
-            >
-              {loading ? 'Đang xử lý...' : 'Đăng nhập'}
-            </button>
-
-            <p className="auth-register">
-              Bạn chưa có tài khoản? <span onClick={() => history.push('/auth/register')}>Tạo tài khoản</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+      <p className="auth-footer">
+        Chưa có tài khoản?
+        <button type="button" onClick={() => history.push('/auth/register')}>
+          Đăng ký ngay
+        </button>
+      </p>
+    </AuthShell>
   );
 }

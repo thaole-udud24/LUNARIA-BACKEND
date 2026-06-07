@@ -8,7 +8,7 @@ const { REACT_APP_ENV } = process.env;
 export default defineConfig({
     hash: true,
     antd: {},
-   // mock: {},
+    mock: false,
     dva: {
         hmr: true,
     },
@@ -59,13 +59,16 @@ export default defineConfig({
     // mfsu: {},
     webpack5: {},
     exportStatic: {},
-    define: Object.entries(process.env).reduce((result, [key, value]) => {
-        if (key.startsWith('APP_CONFIG_')) {
-            return {
-                ...result,
-                [key]: value,
-            };
-        }
-        return result;
-    }, {}),
+    define: {
+        ...Object.entries(process.env).reduce((result, [key, value]) => {
+            if (key.startsWith('APP_CONFIG_')) {
+                return {
+                    ...result,
+                    [key]: value,
+                };
+            }
+            return result;
+        }, {} as Record<string, string | undefined>),
+        API_URL: process.env.API_URL || 'http://localhost:3000',
+    },
 });

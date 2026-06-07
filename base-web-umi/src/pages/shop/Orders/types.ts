@@ -2,6 +2,7 @@ export type OrderStatus = 'ALL' | 'PENDING' | 'PROCESSING' | 'SHIPPING' | 'COMPL
 
 export interface OrderItem {
   id: string;
+  productId?: string;
   name: string;
   image: string;
   price: number;

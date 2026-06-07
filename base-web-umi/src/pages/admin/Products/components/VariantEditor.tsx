@@ -1,185 +1,175 @@
-import {
-  Button,
-  InputNumber,
-  Switch,
-} from 'antd';
-
-import type {
-  VariantType,
-} from '@/types/catalog';
+import { Input, InputNumber, Button, Card, Empty } from 'antd';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import type { ProductVariant } from '@/services/SanPham/types';
+import styles from './VariantEditor.less';
 
 interface Props {
-  hasVariant: boolean;
-
-  variants: VariantType[];
-
-  onToggleVariant: (
-    checked: boolean,
-  ) => void;
-
-  onAddVariant: () => void;
-
-  onVariantChange: <
-    K extends keyof VariantType,
-  >(
-    index: number,
-    field: K,
-    value: VariantType[K],
-  ) => void;
+  value?: ProductVariant[];
+  onChange?: (val: ProductVariant[]) => void;
 }
 
 export default function VariantEditor({
-  hasVariant,
-  variants,
-  onToggleVariant,
-  onAddVariant,
-  onVariantChange,
+  value = [],
+  onChange,
 }: Props) {
-  const calculateProfit = (
-    price?: number | null,
-    importPrice?: number | null,
+  const handleAdd = () => {
+    const newVariant: ProductVariant = {
+      variantName: '',
+      weight: 0,
+      priceImport: 0,
+      priceSell: 0,
+      stockQty: 0,
+    };
+
+    onChange?.([...value, newVariant]);
+  };
+
+  const handleRemove = (index: number) => {
+    const newData = [...value];
+    newData.splice(index, 1);
+    onChange?.(newData);
+  };
+
+  const handleChange = (
+    index: number,
+    field: keyof ProductVariant,
+    val: string | number | null,
   ) => {
-    return (
-      Number(price || 0) -
-      Number(importPrice || 0)
-    );
+    const newData = [...value];
+
+    newData[index] = {
+      ...newData[index],
+      [field]: val ?? 0,
+    };
+
+    onChange?.(newData);
   };
 
   return (
-    <div className="variant-wrapper">
-      <div className="variant-toggle-box">
-        <div>
-          <h3>
-            Biến thể sản phẩm
-          </h3>
-
-          <p>
-            Thêm nhiều dung tích/kích thước.
-          </p>
-        </div>
-
-        <Switch
-          checked={hasVariant}
-          onChange={onToggleVariant}
-        />
-      </div>
-
-      {hasVariant && (
-        <>
-          <table className="variant-table">
-            <thead>
-              <tr>
-                <th>STT</th>
-                <th>Khối lượng</th>
-                <th>Giá nhập</th>
-                <th>Giá bán</th>
-                <th>Lợi nhuận</th>
-                <th>Tồn kho</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {variants.map(
-                (
-                  item,
-                  index,
-                ) => {
-                  const variantProfit =
-                    calculateProfit(
-                      item.price,
-                      item.importPrice,
-                    );
-
-                  return (
-                    <tr key={index}>
-                      <td>
-                        {index + 1}
-                      </td>
-
-                      <td>
-                        <InputNumber
-                          value={item.weight}
-                          placeholder="300"
-                          addonAfter="g"
-                          style={{
-                            width: '100%',
-                          }}
-                          onChange={(value) =>
-                            onVariantChange(
-                              index,
-                              'weight',
-                              Number(value || 0),
-                            )
-                          }
-                        />
-                      </td>
-
-                      <td>
-                        <InputNumber
-                          value={item.importPrice}
-                          style={{
-                            width: '100%',
-                          }}
-                          onChange={(value) =>
-                            onVariantChange(
-                              index,
-                              'importPrice',
-                              Number(value || 0),
-                            )
-                          }
-                        />
-                      </td>
-
-                      <td>
-                        <InputNumber
-                          value={item.price}
-                          style={{
-                            width: '100%',
-                          }}
-                          onChange={(value) =>
-                            onVariantChange(
-                              index,
-                              'price',
-                              Number(value || 0),
-                            )
-                          }
-                        />
-                      </td>
-
-                      <td>
-                        {variantProfit.toLocaleString()}đ
-                      </td>
-
-                      <td>
-                        <InputNumber
-                          value={item.stock}
-                          style={{
-                            width: '100%',
-                          }}
-                          onChange={(value) =>
-                            onVariantChange(
-                              index,
-                              'stock',
-                              Number(value || 0),
-                            )
-                          }
-                        />
-                      </td>
-                    </tr>
-                  );
-                },
-              )}
-            </tbody>
-          </table>
-
-          <Button
-            className="add-variant-btn"
-            onClick={onAddVariant}
+    <div className={styles.container}>
+      {value.length === 0 ? (
+        <Card className={styles.emptyCard}>
+          <Empty description="Chưa có phân loại sản phẩm" />
+        </Card>
+      ) : (
+        value.map((item, index) => (
+          <Card
+            key={index}
+            className={styles.variantCard}
+            title={`Phân loại #${index + 1}`}
+            extra={
+              <Button
+                danger
+                type="text"
+                icon={<DeleteOutlined />}
+                onClick={() => handleRemove(index)}
+              />
+            }
           >
-            + Thêm mới
-          </Button>
-        </>
+            <div className={styles.grid}>
+              <div className={styles.field}>
+                <label>Tên phân loại</label>
+                <Input
+                  size="large"
+                  placeholder="VD: Tuýp 50g"
+                  value={item.variantName}
+                  onChange={(e) =>
+                    handleChange(
+                      index,
+                      'variantName',
+                      e.target.value,
+                    )
+                  }
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Trọng lượng</label>
+                <InputNumber
+                  size="large"
+                  min={0}
+                  addonAfter="g"
+                  className={styles.fullWidth}
+                  value={item.weight}
+                  onChange={(v) =>
+                    handleChange(index, 'weight', v)
+                  }
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Giá nhập</label>
+                <InputNumber
+                  size="large"
+                  min={0}
+                  addonAfter="đ"
+                  className={styles.fullWidth}
+                  value={item.priceImport}
+                  formatter={(value) =>
+                    value !== undefined && value !== null
+                      ? Number(value).toLocaleString('vi-VN')
+                      : ''
+                  }
+                  parser={(value) =>
+                    Number(
+                      value?.replace(/[^\d]/g, '') || 0,
+                    )
+                  }
+                  onChange={(v) =>
+                    handleChange(index, 'priceImport', v)
+                  }
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Giá bán</label>
+                <InputNumber
+                  size="large"
+                  min={0}
+                  addonAfter="đ"
+                  className={styles.fullWidth}
+                  value={item.priceSell}
+                  formatter={(value) =>
+                    value !== undefined && value !== null
+                      ? Number(value).toLocaleString('vi-VN')
+                      : ''
+                  }
+                  parser={(value) =>
+                    Number(
+                      value?.replace(/[^\d]/g, '') || 0,
+                    )
+                  }
+                  onChange={(v) =>
+                    handleChange(index, 'priceSell', v)
+                  }
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Tồn kho</label>
+                <InputNumber
+                  size="large"
+                  min={0}
+                  className={styles.fullWidth}
+                  value={item.stockQty}
+                  onChange={(v) =>
+                    handleChange(index, 'stockQty', v)
+                  }
+                />
+              </div>
+            </div>
+          </Card>
+        ))
       )}
+
+      <Button
+        block
+        icon={<PlusOutlined />}
+        onClick={handleAdd}
+        className={styles.addButton}
+      >
+        Thêm phân loại sản phẩm
+      </Button>
     </div>
   );
 }

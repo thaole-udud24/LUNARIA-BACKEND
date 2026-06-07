@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MailModule } from '../../shared/mail/mail.module';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -24,8 +25,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
-    // Nếu AppModule đã ConfigModule.forRoot({ isGlobal: true }) thì vẫn để ConfigModule ở đây cũng không sao
     ConfigModule,
+    MailModule,
 
     JwtModule.registerAsync({
       imports: [ConfigModule],

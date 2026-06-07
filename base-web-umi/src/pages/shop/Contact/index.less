@@ -14,7 +14,7 @@
 .contact-page-container {
   background-color: @content-bg;
   color: @text-color;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Inter', sans-serif;
   position: relative;
   width: 100%;
   min-height: 100vh;
@@ -23,17 +23,21 @@
   margin: 0;
   box-sizing: border-box;
 
-  p, span, div, button, .card-desc, .faq-answer-content, .author-role {
-    font-family: 'Montserrat', sans-serif !important;
+  p, button, .card-desc, .faq-answer-content, .author-role, .section-label, .counter-glow-number, .status-counter-card span {
+    font-family: 'Inter', sans-serif !important;
+  }
+
+  span, div {
+    font-family: 'Inter', sans-serif !important;
   }
 
   h1, h2, h3, h4, 
   .hero-title, 
   .main-title,
   .status-panel-wrapper h3 {
-    font-family: 'Cormorant Garamond', serif !important;
-    font-style: italic !important;
-    font-weight: 600 !important;
+    font-family: 'Inter', sans-serif !important;
+    font-style: normal !important;
+    font-weight: 700 !important;
   }
 
   // LAYER NỀN GRADIENT LOANG AURA ĐA ĐIỂM
@@ -79,11 +83,14 @@
     background: transparent;
     .hero-title { font-size: 3.8rem; font-weight: 900; line-height: 1.15; color: @text-color; letter-spacing: -1.5px; margin-bottom: 24px; 
       .gradient-text { 
-        background: linear-gradient(135deg, @primary-color 0%, @primary-hover 100%); 
+        font-family: 'Inter', sans-serif !important;
+        font-style: normal !important;
+        background: linear-gradient(120deg, #e63946, #ff9a7a, #ff4d4f, #e63946);
+        background-size: 200% auto;
         -webkit-background-clip: text; 
         background-clip: text; 
         -webkit-text-fill-color: transparent; 
-        font-style: italic; 
+        animation: logo-gradient 4s linear infinite;
       } 
     }
     .hero-subtitle { max-width: 680px; margin: 0 auto; font-size: 0.98rem; line-height: 1.75; color: @text-color; font-style: normal; }
@@ -136,7 +143,7 @@
       background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(10px); border: 1px solid rgba(255, 167, 138, 0.25); padding: 40px 32px; border-radius: 24px; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(74, 44, 42, 0.03); transition: @transition-smooth; height: 100%; display: flex; flex-direction: column;
       &:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(255, 167, 138, 0.12); border-color: @primary-color; .card-hover-border { width: 100%; } .card-icon-box { transform: scale(1.12); } }
       .card-icon-box { font-size: 2.3rem; margin-bottom: 20px; color: @primary-color; display: inline-block; transition: transform 0.3s ease; }
-      .card-title { font-size: 1.35rem; font-weight: 600; color: @text-color; margin-bottom: 12px; font-style: normal !important; }
+      .card-title { font-size: 1.35rem; font-weight: 600; color: @text-color; margin-bottom: 12px; }
       .card-desc { font-family: 'Montserrat', sans-serif !important; font-size: 0.95rem; line-height: 1.65; color: @text-light; margin: 0; flex-grow: 1; font-style: normal; }
       .card-hover-border { position: absolute; bottom: 0; left: 0; width: 0; height: 3px; background: linear-gradient(90deg, @primary-color, @primary-hover); transition: width 0.4s ease; border-radius: 0 0 24px 24px; }
     }
@@ -162,7 +169,7 @@
           align-items: center; 
           justify-content: center; 
         }
-        .author-meta { .author-name { font-size: 1.05rem; font-weight: 700; color: @text-color; margin: 0; font-style: normal !important; } .author-role { font-size: 0.85rem; color: @text-light; margin-top: 2px; display: block; font-style: normal; } }
+        .author-meta { .author-name { font-size: 1.05rem; font-weight: 700; color: @text-color; margin: 0; } .author-role { font-size: 0.85rem; color: @text-light; margin-top: 2px; display: block; font-style: normal; } }
       }
     }
     .slider-dots { display: flex; justify-content: center; gap: 8px; margin-top: 40px; .dot { width: 8px; height: 8px; border-radius: 50%; background: #E2DDD9; cursor: pointer; transition: all 0.3s ease; &.active { width: 26px; border-radius: 4px; background: @primary-color; } } }
@@ -176,7 +183,7 @@
       padding: 32px 24px; border-radius: 20px; text-align: center; color: @white; box-shadow: 0 8px 25px rgba(74, 44, 42, 0.03); transition: @transition-smooth; height: 100%;
       &:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(255, 167, 138, 0.12); }
       .box-icon { font-size: 2rem; margin-bottom: 14px; }
-      .box-title { font-size: 1.2rem; font-weight: 600; color: @white; margin-bottom: 10px; font-style: normal !important; }
+      .box-title { font-size: 1.2rem; font-weight: 600; color: @white; margin-bottom: 10px; }
       .box-desc { font-family: 'Montserrat', sans-serif !important; font-size: 0.85rem; line-height: 1.55; opacity: 0.88; margin: 0; font-style: normal; }
       &.style-1 { background-color: #B46A6A; }
       &.style-2 { background-color: #CD8585; }
@@ -199,6 +206,31 @@
       }
     }
   }
+
+  // Khung chứa các phần tử rơi tự động giống About
+  .hero-fx-falling-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    overflow: hidden;
+
+    .falling-petal {
+      position: absolute;
+      background: linear-gradient(135deg, #ffc5b3 0%, @primary-color 100%);
+      border-radius: 15px 2px 15px 10px;
+      animation: elementFallEffect linear infinite;
+    }
+
+    .falling-bubble {
+      position: absolute;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 50%;
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4);
+      animation: elementFallEffect linear infinite;
+    }
+  }
 }
 
 @keyframes floatAnimation {
@@ -207,11 +239,45 @@
   100% { transform: translateY(0px) rotate(0deg); }
 }
 
+@keyframes elementFallEffect {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.4; }
+  100% {
+    transform: translateY(105vh) translateX(120px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 768px) {
   .contact-page-container {
-    .section-hero .hero-title { font-size: 2.5rem; }
+    .section-hero {
+      padding: 48px 20px;
+
+      .hero-title { font-size: 2.5rem; }
+    }
+
     .section-industry .concern-card-item { padding: 30px 24px; }
     .extended-grid .ant-col { width: 100% !important; max-width: 100% !important; }
     .decor-item { display: none !important; }
+  }
+}
+
+@media (max-width: 576px) {
+  .contact-page-container {
+    .section-hero .hero-title { font-size: 2rem; }
+
+    .section-industry .concern-card-item {
+      padding: 24px 18px;
+    }
+
+    .contact-form-section,
+    .contact-info-section {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
   }
 }

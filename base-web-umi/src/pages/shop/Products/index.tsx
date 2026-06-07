@@ -1,124 +1,245 @@
-import React, { useState, useEffect } from 'react';
-import { Row, Col, Checkbox } from 'antd';
-import { useLocation } from 'umi';
-import { SearchOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { history } from 'umi';
-import CategoryTabs from './components/CategoryTabs';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Row, Col, Checkbox, Slider, Spin, Empty, Input, Button } from 'antd';
+import { useLocation, history } from 'umi';
+import {
+  SearchOutlined,
+  CloseCircleOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons';
 import ShopHeroBanner from './components/ShopHeroBanner';
-import ProductCarouselSection from './components/ProductCarouselSection';
+import ShopAllProducts from './components/ShopAllProducts';
 import ShopGallery from './components/ShopGallery';
 import ShopNewsletter from './components/ShopNewsletter';
-import './index.less';
+import { getProducts } from '@/services/SanPham/products.customer.api';
+import { getCategories } from '@/services/DanhMuc/categories.customer.api';
+import { getSkinTypes } from '@/services/LoaiDa/skin-types.customer.api';
 
-const ALL_CATEGORIES = ['Làm sạch da', 'Cân bằng da', 'Dưỡng ẩm', 'Chống nắng', 'Phục hồi'];
+import './index.less';
 
 const Products: React.FC = () => {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('Tất cả');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
+  const [dynamicSkinTypes, setDynamicSkinTypes] = useState<any[]>([]);
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSkinTypes, setSelectedSkinTypes] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000000]);
+
+  const fetchMasterData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [prodRes, catRes, skinRes] = await Promise.all([
+        getProducts({ limit: 100 }),
+        getCategories(),
+        getSkinTypes(),
+      ]);
+      setAllProducts(prodRes?.data || prodRes?.items || prodRes || []);
+      setDynamicCategories(catRes?.data || catRes?.items || (Array.isArray(catRes) ? catRes : []));
+      setDynamicSkinTypes(skinRes?.data || skinRes?.items || (Array.isArray(skinRes) ? skinRes : []));
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu từ API:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMasterData();
+  }, [fetchMasterData]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = params.get('q') || '';
-    const tab = params.get('tab') || '';
-
-    setSearchQuery(q);
-
-    // Nếu có ?tab= thì bật tab đó
-    if (tab && ALL_CATEGORIES.includes(tab)) {
-      setActiveTab(tab);
-    } else if (!tab) {
-      // Chỉ reset tab về "Tất cả" khi không có tab param
-      if (!q) setActiveTab('Tất cả');
-    }
-
-    // Scroll xuống phần sản phẩm
-    if (q || tab) {
-      setTimeout(() => {
-        const el = document.querySelector('.shop2-main-layout');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 300);
-    }
+    setSearchKeyword(q);
   }, [location.search]);
 
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
+  const handleReload = () => {
+    setReloadKey((k) => k + 1);
+    fetchMasterData();
   };
 
-  const clearSearch = () => {
-    setSearchQuery('');
-    history.push('/products');
+  const handleSearch = () => {
+    const trimmed = searchKeyword.trim();
+    if (trimmed) {
+      history.push(`/products?q=${encodeURIComponent(trimmed)}`);
+    } else {
+      history.push('/products');
+    }
   };
 
-  const visibleCategories =
-    activeTab === 'Tất cả' ? ALL_CATEGORIES : [activeTab];
+  const finalFilteredProducts = allProducts.filter((p) => {
+    const matchSearch = !searchKeyword ||
+      (p.name && p.name.toLowerCase().includes(searchKeyword.toLowerCase())) ||
+      (p.sku && p.sku.toLowerCase().includes(searchKeyword.toLowerCase()));
+
+    const pCategoryName = (p?.category?.name || p?.category || '').toLowerCase();
+    const matchSidebarCat = selectedCategories.length === 0 ||
+      selectedCategories.some(c => pCategoryName.includes(c.toLowerCase()));
+
+    let pSkinNames = '';
+    if (Array.isArray(p.skinTypes)) {
+      pSkinNames = p.skinTypes.map((s: any) => s?.name || s).join(' ').toLowerCase();
+    } else {
+      pSkinNames = (p?.skinType?.name || p?.skinType || '').toLowerCase();
+    }
+    const matchSkin = selectedSkinTypes.length === 0 ||
+      selectedSkinTypes.some(s => pSkinNames.includes(s.toLowerCase()));
+
+    const pPrice = p.variants?.[0]?.priceSell
+      || p.variants?.[0]?.originalPrice
+      || p.price
+      || 0;
+    const matchPrice = pPrice >= priceRange[0] && pPrice <= priceRange[1];
+
+    return matchSearch && matchSidebarCat && matchSkin && matchPrice;
+  });
 
   return (
     <div className="shop2-page">
-      {/* Banner */}
       <ShopHeroBanner />
 
-      {/* Search keyword banner */}
-      {searchQuery && (
+      {searchKeyword && (
         <div className="search-keyword-bar">
-          <SearchOutlined />
-          <span>Kết quả tìm kiếm cho: <strong>"{searchQuery}"</strong></span>
-          <button className="clear-search-btn" onClick={clearSearch}>
+          <div className="search-inner-info">
+            <SearchOutlined />
+            <span>Kết quả tìm kiếm cho: <strong>&quot;{searchKeyword}&quot;</strong></span>
+          </div>
+          <button
+            type="button"
+            className="clear-search-btn"
+            onClick={() => { setSearchKeyword(''); history.push('/products'); }}
+          >
             <CloseCircleOutlined /> Xóa tìm kiếm
           </button>
         </div>
       )}
 
-      {/* Sticky Category Tabs */}
-      <CategoryTabs activeTab={activeTab} onTabChange={handleTabChange} />
-
-      {/* Main Layout: Filter sidebar + Carousel sections */}
       <div className="shop2-container shop2-main-layout">
-        <Row gutter={40} align="top">
-
-          {/* Left Sidebar — Filter */}
-          <Col xs={24} md={5}>
+        <Row gutter={[32, 32]} align="top">
+          <Col xs={24} lg={6}>
             <div className="sidebar-filter-custom">
+              <div className="sidebar-main-title">Bộ lọc sản phẩm</div>
 
               <div className="filter-block">
-                <div className="filter-header">Giá tiền</div>
+                <div className="filter-header">Khoảng giá (VND)</div>
+                <div className="filter-body filter-body--slider">
+                  <Slider
+                    range
+                    min={0}
+                    max={3000000}
+                    step={50000}
+                    value={priceRange}
+                    onChange={(val) => setPriceRange(val as [number, number])}
+                    trackStyle={[{ backgroundColor: '#FFA78A' }]}
+                    handleStyle={[{ borderColor: '#FFA78A' }, { borderColor: '#FFA78A' }]}
+                  />
+                  <div className="price-range-labels">
+                    <span>{priceRange[0].toLocaleString('vi-VN')}đ</span>
+                    <span>{priceRange[1].toLocaleString('vi-VN')}đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="filter-block">
+                <div className="filter-header">Danh mục sản phẩm</div>
                 <div className="filter-body">
-                  <Checkbox>&gt;= 500,000đ</Checkbox>
-                  <Checkbox>&lt;= 900,000đ</Checkbox>
-                  <Checkbox>&gt;= 1,200,000đ</Checkbox>
+                  <Checkbox.Group
+                    value={selectedCategories}
+                    onChange={(vals) => setSelectedCategories(vals as string[])}
+                    style={{ width: '100%' }}
+                  >
+                    <Row gutter={[0, 8]}>
+                      {dynamicCategories.map((cat, idx) => (
+                        <Col span={24} key={`cat-${idx}`}>
+                          <Checkbox value={cat.name || cat.title}>{cat.name || cat.title}</Checkbox>
+                        </Col>
+                      ))}
+                    </Row>
+                  </Checkbox.Group>
                 </div>
               </div>
 
               <div className="filter-block">
                 <div className="filter-header">Loại da phù hợp</div>
                 <div className="filter-body">
-                  <Checkbox>Da nhạy cảm</Checkbox>
-                  <Checkbox>Da dầu mụn</Checkbox>
-                  <Checkbox>Da khô</Checkbox>
-                  <Checkbox>Da thường</Checkbox>
+                  <Checkbox.Group
+                    value={selectedSkinTypes}
+                    onChange={(vals) => setSelectedSkinTypes(vals as string[])}
+                    style={{ width: '100%' }}
+                  >
+                    <Row gutter={[0, 8]}>
+                      {dynamicSkinTypes.map((skin, idx) => (
+                        <Col span={24} key={`skin-${idx}`}>
+                          <Checkbox value={skin.name || skin.title}>{skin.name || skin.title}</Checkbox>
+                        </Col>
+                      ))}
+                    </Row>
+                  </Checkbox.Group>
                 </div>
               </div>
-
-              <div className="filter-block">
-                <div className="filter-header">Đánh giá</div>
-                <div className="filter-body">
-                  <Checkbox>&gt;=4.5 sao</Checkbox>
-                  <Checkbox>&gt;=4.0 sao</Checkbox>
-                  <Checkbox>&gt;=3.5 sao</Checkbox>
-                </div>
-              </div>
-
             </div>
           </Col>
 
-          {/* Right — Carousel sections by category */}
-          <Col xs={24} md={19}>
-            {visibleCategories.map((category) => (
-              <ProductCarouselSection key={category} title={category} searchQuery={searchQuery} />
-            ))}
-          </Col>
+          <Col xs={24} lg={18}>
+            <div className="shop-products-wrapper">
+              <div className="products-toolbar">
+                <div className="products-toolbar__left">
+                  <h2 className="products-toolbar__title">Danh sách sản phẩm</h2>
+                  <p className="products-toolbar__subtitle">
+                    Tìm thấy <strong>{finalFilteredProducts.length}</strong> sản phẩm
+                  </p>
+                </div>
+                <div className="products-toolbar__actions">
+                  <Input
+                    className="products-toolbar__search"
+                    placeholder="Tìm theo tên, mã SKU..."
+                    prefix={<SearchOutlined />}
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onPressEnter={handleSearch}
+                    allowClear
+                  />
+                  <Button
+                    type="primary"
+                    icon={<SearchOutlined />}
+                    className="products-toolbar__btn products-toolbar__btn--search"
+                    onClick={handleSearch}
+                  >
+                    Tìm kiếm
+                  </Button>
+                  <Button
+                    icon={<ReloadOutlined spin={loading} />}
+                    className="products-toolbar__btn products-toolbar__btn--reload"
+                    onClick={handleReload}
+                    loading={loading}
+                  >
+                    Tải lại
+                  </Button>
+                </div>
+              </div>
 
+              {loading ? (
+                <div className="shop-loading-state">
+                  <Spin size="large" tip="Đang tải dữ liệu Lunaria..." />
+                </div>
+              ) : finalFilteredProducts.length === 0 ? (
+                <div className="shop-empty-state">
+                  <Empty description="Không tìm thấy sản phẩm nào phù hợp với bộ lọc." />
+                </div>
+              ) : (
+                <ShopAllProducts
+                  key={reloadKey}
+                  products={finalFilteredProducts}
+                  pageSize={9}
+                />
+              )}
+            </div>
+          </Col>
         </Row>
       </div>
 
@@ -129,4 +250,3 @@ const Products: React.FC = () => {
 };
 
 export default Products;
-

@@ -1,103 +1,71 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, history } from 'umi';
-import { message } from 'antd';
+import { Alert, message } from 'antd';
 import AccountSidebar from './components/AccountSidebar';
+import { MenuOutlined } from '@ant-design/icons';
+import DashboardTab from './components/DashboardTab';
 import ProfileTab from './components/ProfileTab';
 import AddressTab from './components/AddressTab';
 import OrdersTab from './components/OrdersTab';
+import VouchersTab from './components/VouchersTab';
 import PasswordTab from './components/PasswordTab';
-import { AccountTabType, UserProfile, UserAddress, UserOrder } from './types';
+import AccountSkeleton from './components/AccountSkeleton';
+import useAccount from '@/hooks/useAccount';
+import { ACCOUNT_TABS, AccountTabType, buildVoucherViews } from './account.utils';
 import './index.less';
 
 const Account: React.FC = () => {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<AccountTabType>('PROFILE');
-  const [userEmail, setUserEmail] = useState('');
+  const [activeTab, setActiveTab] = useState<AccountTabType>('DASHBOARD');
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const {
+    loading,
+    error,
+    profile,
+    addresses,
+    orders,
+    ordersLoading,
+    savedVouchers,
+    setSavedVouchers,
+    savingProfile,
+    refresh,
+    fetchOrders,
+    saveProfile,
+    handleSetDefaultAddress,
+    handleDeleteAddress,
+    handleSaveAddress,
+  } = useAccount();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const tabParam = params.get('tab') as AccountTabType;
-    if (tabParam && ['PROFILE', 'ADDRESSES', 'ORDERS', 'CHANGE_PASSWORD'].includes(tabParam)) {
+    const tabParam = params.get('tab')?.toUpperCase() as AccountTabType;
+    if (tabParam && ACCOUNT_TABS.includes(tabParam)) {
       setActiveTab(tabParam);
-    }
-
-    try {
-      const u = localStorage.getItem('user');
-      if (u) {
-        const parsed = JSON.parse(u);
-        setUserEmail(parsed.email);
-        setProfile((prev) => ({ ...prev, email: parsed.email }));
-      } else {
-        // Chưa đăng nhập thì đẩy về login
-        history.push('/auth/login');
-      }
-    } catch (e) {
-      history.push('/auth/login');
+    } else if (!params.get('tab')) {
+      setActiveTab('DASHBOARD');
     }
   }, [location.search]);
 
-  // Mock Profile State
-  const [profile, setProfile] = useState<UserProfile>({
-    fullName: 'Khách hàng Lunaria',
-    email: userEmail || 'user@gmail.com',
-    phone: '0988777666',
-    gender: 'female',
-    birthday: '1998-08-15',
-    avatar: '',
-  });
-
-  // Mock Address State
-  const [addresses, setAddresses] = useState<UserAddress[]>([
-    {
-      id: 1,
-      isDefault: true,
-      fullName: 'Khách hàng Lunaria',
-      phone: '0988777666',
-      addressDetail: 'Tòa nhà Landmark 81, 720A Điện Biên Phủ, Phường 22, Quận Bình Thạnh, TP. Hồ Chí Minh',
-    },
-    {
-      id: 2,
-      isDefault: false,
-      fullName: 'Khách hàng Lunaria (Văn phòng)',
-      phone: '0988777666',
-      addressDetail: 'Tòa nhà Bitexco, 2 Hải Triều, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-    },
-  ]);
-
-  // Mock Order State
-  const [orders] = useState<UserOrder[]>([
-    {
-      id: '1',
-      orderCode: '#LN-889922',
-      date: '18/05/2026',
-      status: 'DELIVERING',
-      total: 1075000,
-      itemCount: 3,
-      productName: 'CC+ Cream Illumination with SPF 50+',
-    },
-    {
-      id: '2',
-      orderCode: '#LN-776655',
-      date: '10/05/2026',
-      status: 'COMPLETED',
-      total: 650000,
-      itemCount: 2,
-      productName: 'Sữa Rửa Mặt Sâm 1700',
-    },
-    {
-      id: '3',
-      orderCode: '#LN-554433',
-      date: '02/05/2026',
-      status: 'CANCELLED',
-      total: 430000,
-      itemCount: 1,
-      productName: 'Bye Bye Lines Foundation',
-    },
-  ]);
+  useEffect(() => {
+    if (activeTab === 'ORDERS') {
+      fetchOrders();
+    }
+  }, [activeTab, fetchOrders]);
 
   const handleTabChange = (tab: AccountTabType) => {
     setActiveTab(tab);
     history.push(`/account?tab=${tab}`);
+  };
+
+  const voucherAvailableCount = buildVoucherViews(orders, savedVouchers).filter(
+    (v) => v.status === 'available',
+  ).length;
+
+  const sidebarBadges = {
+    orders: orders.length,
+    addresses: addresses.length,
+    vouchers: voucherAvailableCount,
   };
 
   const handleLogout = () => {
@@ -108,82 +76,94 @@ const Account: React.FC = () => {
     history.push('/home');
   };
 
-  const handleProfileChange = (field: keyof UserProfile, val: any) => {
-    setProfile((prev) => ({ ...prev, [field]: val }));
-  };
+  const renderContent = () => {
+    if (!profile) return null;
 
-  const handleSaveProfile = () => {
-    message.success('Cập nhật hồ sơ cá nhân thành công!');
-  };
-
-  const handleSetDefaultAddress = (id: number) => {
-    setAddresses((prev) =>
-      prev.map((item) => ({ ...item, isDefault: item.id === id }))
-    );
-    message.success('Đã thiết lập địa chỉ mặc định');
-  };
-
-  const handleDeleteAddress = (id: number) => {
-    setAddresses((prev) => prev.filter((item) => item.id !== id));
-    message.success('Đã xóa địa chỉ thành công');
-  };
-
-  const handleAddNewAddress = () => {
-    const newAddr: UserAddress = {
-      id: Date.now(),
-      isDefault: false,
-      fullName: profile.fullName || 'Khách hàng Lunaria',
-      phone: profile.phone || '0988777666',
-      addressDetail: '256 Cầu Giấy, Phường Quan Hoa, Quận Cầu Giấy, Hà Nội',
-    };
-    setAddresses((prev) => [...prev, newAddr]);
-    message.success('Đã thêm địa chỉ mới (Mẫu: 256 Cầu Giấy, Hà Nội)');
-  };
-
-  const handleUpdatePassword = (oldPass: string, newPass: string) => {
-    if (oldPass !== '123456') {
-      message.error('Mật khẩu hiện tại không đúng (Mật khẩu mẫu là 123456)');
-      return;
+    switch (activeTab) {
+      case 'DASHBOARD':
+        return <DashboardTab orders={orders} savedVouchers={savedVouchers} />;
+      case 'PROFILE':
+        return (
+          <ProfileTab profile={profile} saving={savingProfile} onSave={saveProfile} />
+        );
+      case 'ORDERS':
+        return <OrdersTab orders={orders} loading={ordersLoading} />;
+      case 'ADDRESSES':
+        return (
+          <AddressTab
+            addresses={addresses}
+            onSetDefault={handleSetDefaultAddress}
+            onDelete={handleDeleteAddress}
+            onSave={handleSaveAddress}
+          />
+        );
+      case 'VOUCHERS':
+        return (
+          <VouchersTab
+            orders={orders}
+            savedVouchers={savedVouchers}
+            onVouchersChange={setSavedVouchers}
+          />
+        );
+      case 'CHANGE_PASSWORD':
+        return <PasswordTab email={profile.email} />;
+      default:
+        return null;
     }
-    message.success('Đổi mật khẩu thành công! Vui lòng sử dụng mật khẩu mới cho lần đăng nhập sau.');
   };
 
   return (
     <div className="account-page">
       <div className="account-container">
-        <div className="account-layout-grid">
-          <AccountSidebar
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            userEmail={userEmail}
-            onLogout={handleLogout}
-          />
-
-          <div className="account-content-main">
-            {activeTab === 'PROFILE' && (
-              <ProfileTab
-                profile={profile}
-                onChange={handleProfileChange}
-                onSave={handleSaveProfile}
-              />
-            )}
-
-            {activeTab === 'ADDRESSES' && (
-              <AddressTab
-                addresses={addresses}
-                onSetDefault={handleSetDefaultAddress}
-                onDelete={handleDeleteAddress}
-                onAddNew={handleAddNewAddress}
-              />
-            )}
-
-            {activeTab === 'ORDERS' && <OrdersTab orders={orders} />}
-
-            {activeTab === 'CHANGE_PASSWORD' && (
-              <PasswordTab onUpdatePassword={handleUpdatePassword} />
-            )}
+        {loading ? (
+          <AccountSkeleton />
+        ) : error ? (
+          <div className="account-error">
+            <Alert
+              type="error"
+              message="Không thể tải dữ liệu tài khoản"
+              description={error}
+              showIcon
+            />
+            <button type="button" className="btn-save" onClick={refresh}>
+              Thử lại
+            </button>
           </div>
-        </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="account-mobile-toggle"
+              onClick={() => setMobileOpen((v) => !v)}
+            >
+              <MenuOutlined /> Menu tài khoản
+            </button>
+
+            {mobileOpen && (
+              <div
+                className="account-sidebar-overlay"
+                onClick={() => setMobileOpen(false)}
+                role="presentation"
+              />
+            )}
+
+            <div className="account-layout">
+              <AccountSidebar
+                activeTab={activeTab}
+                onTabChange={(tab) => {
+                  handleTabChange(tab);
+                  setMobileOpen(false);
+                }}
+                profile={profile}
+                onLogout={handleLogout}
+                mobileOpen={mobileOpen}
+                badges={sidebarBadges}
+              />
+
+              <main className="account-content-main">{renderContent()}</main>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

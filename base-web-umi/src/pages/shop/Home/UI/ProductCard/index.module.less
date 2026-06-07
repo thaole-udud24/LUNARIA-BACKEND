@@ -91,6 +91,13 @@
   }
 }
 
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
 .productCard {
   background: #ffffff;
   border-radius: 16px;
@@ -153,6 +160,64 @@
       max-height: 85%;
       object-fit: contain;
     }
+
+    .imagePlaceholder {
+      width: 72px;
+      height: 72px;
+      border-radius: 12px;
+      background: #fff5f2;
+      color: #ffb199;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+  }
+
+  .cardContent {
+    width: 100%;
+    text-align: center;
+  }
+
+  .productName {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a2c2a;
+    margin: 0 0 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    min-height: 36px;
+    line-height: 1.4;
+  }
+
+  .priceRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .price {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a2c2a;
+  }
+
+  .rating {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffa78a;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .productInfo {
@@ -190,6 +255,11 @@
     margin-top: -20px;
   }
 
+  .productGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
   .headerWrapper {
     margin-bottom: 35px;
     flex-direction: column;
@@ -218,6 +288,11 @@
 
   .containerBox {
     padding: 25px 15px;
+  }
+
+  .productGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
 
   .productCard {

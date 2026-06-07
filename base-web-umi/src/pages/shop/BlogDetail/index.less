@@ -71,6 +71,11 @@
 /* ── LAYOUT NỀN VÀ KHUNG CHỨA TOÀN TRANG ── */
 .blog-detail-page {
   background: linear-gradient(180deg, #ffffff 0%, @sidebar-bg 100%) !important;
+  font-family: 'Inter', sans-serif !important;
+
+  p, button, span, div, h1, h2, h3, h4, h5, h6, a, input, select, textarea {
+    font-family: 'Inter', sans-serif !important;
+  }
 
   /* Cấu trúc lưới Tỷ lệ vàng Quốc tế thiết kế thoáng đãng */
   .detail-layout-wrap {
@@ -109,17 +114,19 @@
       font-size: 2.8rem;
       line-height: 1.35;
       margin-bottom: 22px;
-      font-family: 'Cormorant Garamond', serif;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-style: normal;
       color: @text-color;
 
       .gradient-title-text {
         font-style: normal;
-        background: linear-gradient(90deg, #e56d44, @primary-color, #ffbe98, #e56d44);
+        background: linear-gradient(120deg, #e63946, #ff9a7a, #ff4d4f, #e63946);
         background-size: 200% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        animation: gradientMove 6s linear infinite;
+        animation: logo-gradient 4s linear infinite;
       }
     }
 
@@ -134,7 +141,7 @@
       display: flex;
       justify-content: center;
       gap: 24px;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 0.84rem;
       color: @text-light;
       font-weight: 500;
@@ -161,7 +168,7 @@
     background: transparent;
     border: none;
     color: @text-color;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.88rem;
     font-weight: 700;
     cursor: pointer;
@@ -186,7 +193,7 @@
       border: 1px solid rgba(255, 167, 138, 0.3);
       padding: 8px 18px;
       border-radius: 20px;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 0.8rem;
       font-weight: 700;
       color: @text-color;
@@ -241,7 +248,7 @@
 
   // Khối định dạng nội dung các bước Skincare/HTML động
   .bd-article-render-body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     line-height: 1.85;
     color: @text-color;
@@ -307,7 +314,7 @@
     border-top: 1px solid rgba(255, 167, 138, 0.15);
 
     .tags-title-label {
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 0.85rem;
       font-weight: 700;
       color: @text-color;
@@ -324,7 +331,7 @@
         border: 1px solid rgba(255, 167, 138, 0.25);
         padding: 4px 14px;
         border-radius: 15px;
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 0.78rem;
         font-weight: 600;
       }
@@ -347,7 +354,7 @@
       border-radius: 50%;
       background: linear-gradient(135deg, @primary-color 0%, @primary-hover 100%);
       color: #ffffff;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 1.3rem;
       font-weight: 700;
       display: flex;
@@ -358,7 +365,7 @@
 
     .author-meta-details {
       h4 {
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 0.95rem;
         font-weight: 700;
         color: @text-color;
@@ -366,14 +373,14 @@
       }
       .author-badge-sub {
         display: block;
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 0.78rem;
         color: @primary-hover;
         font-weight: 600;
         margin-bottom: 8px;
       }
       p {
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 0.84rem;
         color: @text-light;
         line-height: 1.6;
@@ -392,7 +399,7 @@
   box-shadow: 0 10px 35px rgba(74, 44, 42, 0.03);
 
   .comments-heading-title {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.1rem;
     font-weight: 700;
     color: @text-color;
@@ -414,7 +421,7 @@
     .user-submit-avatar {
       width: 44px; height: 44px; border-radius: 50%;
       background: linear-gradient(135deg, @primary-color 0%, #e56d44 100%);
-      color: #ffffff; font-family: 'Montserrat', sans-serif;
+      color: #ffffff; font-family: 'Inter', sans-serif;
       font-size: 0.92rem; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 4px 10px rgba(255, 167, 138, 0.25);
@@ -432,7 +439,7 @@
         border-radius: 16px;
         border: 1px solid rgba(255, 167, 138, 0.35);
         padding: 14px 18px;
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 0.88rem;
         color: @text-color;
         outline: none;
@@ -452,7 +459,7 @@
       .comment-send-action-btn {
         background: linear-gradient(135deg, @primary-color 0%, @primary-hover 100%);
         color: #ffffff; border: none; padding: 10px 22px; border-radius: 30px;
-        font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.82rem;
+        font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.82rem;
         cursor: pointer; display: flex; align-items: center; gap: 6px;
         box-shadow: 0 4px 12px rgba(255, 167, 138, 0.2);
         transition: all 0.25s ease;
@@ -475,7 +482,7 @@
     .comment-user-avatar-node {
       width: 42px; height: 42px; border-radius: 50%;
       background: #ffebe5; color: @primary-color;
-      font-family: 'Montserrat', sans-serif; font-size: 0.88rem; font-weight: 700;
+      font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
       border: 1px solid rgba(255, 167, 138, 0.25);
     }
@@ -484,12 +491,12 @@
 
     .comment-user-meta-info {
       display: flex; gap: 12px; align-items: center; margin-bottom: 6px;
-      strong { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; color: @text-color; }
-      .comment-time-span { font-family: 'Montserrat', sans-serif; font-size: 0.76rem; color: #bcaaaa; }
+      strong { font-family: 'Inter', sans-serif; font-size: 0.9rem; color: @text-color; }
+      .comment-time-span { font-family: 'Inter', sans-serif; font-size: 0.76rem; color: #bcaaaa; }
     }
 
     .comment-actual-text-content {
-      font-family: 'Montserrat', sans-serif; font-size: 0.88rem; color: @text-light;
+      font-family: 'Inter', sans-serif; font-size: 0.88rem; color: @text-light;
       line-height: 1.55; margin: 0 0 10px; text-align: justify;
     }
 
@@ -497,7 +504,7 @@
       display: flex; gap: 16px;
       button {
         background: transparent; border: none; padding: 0; cursor: pointer;
-        font-family: 'Montserrat', sans-serif; font-size: 0.78rem; font-weight: 600;
+        font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 600;
         color: #aaa; display: flex; align-items: center; gap: 4px; transition: color 0.2s;
         &:hover { color: @primary-color; }
       }
@@ -529,7 +536,7 @@
   }
 
   .bs-title {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.92rem;
     font-weight: 700;
     color: @text-color;
@@ -563,7 +570,7 @@
 
       // Đột phá Typography số thứ tự phong cách báo chí phương Tây
       .pop-num {
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 1.4rem; font-weight: 800;
         color: rgba(255, 167, 138, 0.25);
         min-width: 28px; text-align: center; font-style: italic;
@@ -579,7 +586,7 @@
       .pop-info {
         flex: 1;
         p {
-          font-family: 'Montserrat', sans-serif;
+          font-family: 'Inter', sans-serif;
           font-size: 0.84rem; font-weight: 600; color: @text-color;
           line-height: 1.45; margin: 0 0 6px 0;
           display: -webkit-box; 
@@ -603,7 +610,7 @@
     .bs-tag-item {
       background: #ffffff;
       color: @text-light;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 0.76rem;
       font-weight: 600;
       padding: 6px 14px;
@@ -649,7 +656,7 @@
     }
 
     h4 {
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 0.98rem;
       font-weight: 700;
       color: @text-color;
@@ -657,7 +664,7 @@
     }
 
     p {
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 0.82rem;
       color: @text-light;
       line-height: 1.6;
@@ -670,7 +677,7 @@
       border: 1px solid @primary-color;
       padding: 8px 20px;
       border-radius: 30px;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 0.78rem;
       cursor: pointer;
@@ -684,5 +691,76 @@
         box-shadow: 0 6px 16px rgba(255, 167, 138, 0.22);
       }
     }
+  }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .blog-detail-page .detail-layout-wrap {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+    padding: 0 24px;
+  }
+
+  .blog-sidebar {
+    position: static;
+    top: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .blog-hero.detail-hero-mode {
+    padding: 56px 20px 40px;
+
+    .bh-left h1 { font-size: 1.85rem; }
+    .bd-meta-hero { gap: 12px; font-size: 0.78rem; }
+  }
+
+  .bd-nav-bar-flex {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+
+    .bd-action-group {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+  }
+
+  .blog-detail-article-block {
+    padding: 24px 20px;
+
+    .bd-main-cover-wrap { height: 220px; }
+    .bd-author-profile-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  .blog-comments-luxury-zone {
+    padding: 24px 20px;
+
+    .comment-submit-form-box {
+      flex-direction: column;
+      align-items: stretch;
+
+      .user-submit-avatar { display: none; }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .blog-detail-page .detail-layout-wrap { padding: 0 16px; }
+
+  .blog-hero.detail-hero-mode .bh-left h1 { font-size: 1.55rem; }
+
+  .bd-nav-bar-flex .bd-action-group button {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
+  }
+
+  .blog-detail-article-block .bd-article-render-body {
+    font-size: 0.9rem;
+    p { text-align: left; }
   }
 }

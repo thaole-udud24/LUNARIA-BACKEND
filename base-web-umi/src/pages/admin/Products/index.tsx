@@ -1,542 +1,206 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { Dropdown, Menu, Popconfirm, message } from 'antd';
+import { EditOutlined, DeleteOutlined, MenuOutlined } from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
 
-import {
-  Button,
-  Input,
-  Pagination,
-  Popover,
-  Select,
-  Space,
-  message,
-} from 'antd';
+import type { ProductType } from '@/services/SanPham/types';
+import { getAdminProducts, deleteProduct, toggleProductStatus } from '@/services/SanPham/products.api';
+import { getCategories, getSkinTypes } from '@/services/SanPham/catalog.api';
 
-import {
-  PlusOutlined,
-  SearchOutlined,
-  FilterOutlined,
-} from '@ant-design/icons';
-
-import type { ProductType } from '@/types/catalog';
-
-import {
-  deleteProduct,
-  getAdminProducts,
-} from '@/services/SanPham/products.api';
-
+import { resolveMediaUrl } from '@/utils/adminApi';
+import TableToolbar from '@/components/admin/TableToolbar';
 import DataTable from '@/components/admin/DataTable';
+import StatusTag from '@/components/admin/StatusTag';
 
-import ProductDrawer, {
-  getProductColumns,
-} from './components/ProductDrawer';
-
-import {
-  getCategories,
-} from '@/services/DanhMuc/categories.api';
-
-import {
-  getSkinTypes,
-} from '@/services/DanhMuc/skinTypes.api';
-
-import {
-  initMockProducts,
-} from '../../../../mock/catalog';
+import ProductModal from './components/ProductModal'; 
+import styles from './styles.less';
 
 export default function ProductsPage() {
-  // =========================
-  // STATES
-  // =========================
+  const [products, setProducts] = useState<ProductType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
 
-  const [products, setProducts] = useState<
-    ProductType[]
-  >([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
 
-  const [searchText, setSearchText] =
-    useState('');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [skinTypes, setSkinTypes] = useState<any[]>([]);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
 
-  const [openProductDrawer, setOpenProductDrawer] =
-    useState(false);
-
-  const [drawerMode, setDrawerMode] =
-    useState<
-      'create' | 'edit' | 'detail'
-    >('create');
-
-  const [selectedProduct, setSelectedProduct] =
-    useState<ProductType | null>(
-      null,
-    );
-
-  const [currentPage, setCurrentPage] =
-    useState(1);
-
-  const [pageSize, setPageSize] =
-    useState(10);
-
-  const [categories, setCategories] =
-    useState<any[]>([]);
-
-  const [skinTypes, setSkinTypes] =
-    useState<any[]>([]);
-
-  const [selectedCategory, setSelectedCategory] =
-    useState<string>();
-
-  const [selectedSkinType, setSelectedSkinType] =
-    useState<string>();
-
-  const [tempCategory, setTempCategory] =
-    useState<string>();
-
-  const [tempSkinType, setTempSkinType] =
-    useState<string>();
-
-  const [filterOpen, setFilterOpen] =
-    useState(false);
-
-  // =========================
-  // FETCH PRODUCTS
-  // =========================
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async (showMsg = false) => {
     try {
       setLoading(true);
-
-      const res =
-        await getAdminProducts();
-
-      setProducts(res.data || []);
+      const res: any = await getAdminProducts({ page, limit, search });
+      setProducts(res?.data || res || []);
+      setTotal(res?.total || 0);
+      if (showMsg) message.success('Đã làm mới dữ liệu!');
     } catch (error) {
-      message.error(
-        'Không thể tải danh sách sản phẩm',
-      );
+      message.error('Lỗi tải danh sách sản phẩm');
     } finally {
       setLoading(false);
     }
-  };
-
-  // =========================
-  // FETCH CATEGORY + SKIN TYPE
-  // =========================
+  }, [page, limit, search]);
 
   const fetchFilters = async () => {
     try {
-      const categoryRes =
-        await getCategories();
-
-      const skinTypeRes =
-        await getSkinTypes();
-
-      setCategories(
-        categoryRes.data || [],
-      );
-
-      setSkinTypes(
-        skinTypeRes || [],
-      );
-    } catch (error) {
-      console.log(error);
+      const [catRes, skinRes]: [any, any] = await Promise.all([getCategories(), getSkinTypes()]);
+      setCategories(catRes?.data || (Array.isArray(catRes) ? catRes : []));
+      setSkinTypes(skinRes?.data || (Array.isArray(skinRes) ? skinRes : []));
+    } catch (error) { 
+      console.error('Lỗi tải bộ lọc (Categories/SkinTypes):', error); 
     }
   };
 
-  useEffect(() => {
-    initMockProducts();
-
-    fetchProducts();
-
-    fetchFilters();
+  useEffect(() => { 
+    fetchFilters(); 
   }, []);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchText]);
+  useEffect(() => { 
+    fetchProducts(); 
+  }, [fetchProducts]);
 
-  // =========================
-  // HANDLERS
-  // =========================
-
-  const handleDeleteProduct =
-    async (productId: number) => {
-      try {
-        await deleteProduct(productId);
-
-        setProducts((prev) =>
-          prev.filter(
-            (item) =>
-              item.id !== productId,
-          ),
-        );
-
-        message.success(
-          'Xóa sản phẩm thành công',
-        );
-      } catch (error) {
-        message.error(
-          'Xóa sản phẩm thất bại',
-        );
-      }
-    };
-
-  const handleToggleStatus = (
-    checked: boolean,
-    productId: number,
-  ) => {
-    setProducts((prev) =>
-      prev.map((item) =>
-        item.id === productId
-          ? {
-              ...item,
-              active: checked,
-            }
-          : item,
-      ),
-    );
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProduct(id);
+      message.success('Đã đưa sản phẩm vào thùng rác!');
+      fetchProducts();
+    } catch (error) { 
+      message.error('Xóa thất bại!'); 
+    }
   };
-
-  // =========================
-  // FILTER / SEARCH
-  // =========================
-
-  const filteredProducts = useMemo(() => {
-    let result =
-      products.filter((item) =>
-        (item.name || '')
-          .toLowerCase()
-          .includes(
-            searchText
-              .trim()
-              .toLowerCase(),
-          ),
-      );
-
-    // CATEGORY
-
-    if (selectedCategory) {
-      result = result.filter(
-        (item: any) =>
-          item.categoryId ===
-          selectedCategory,
-      );
-    }
-
-    // SKIN TYPE
-
-    if (selectedSkinType) {
-      result = result.filter(
-        (item: any) =>
-          item.skinTypeIds?.includes(
-            selectedSkinType,
-          ),
-      );
-    }
-
-    return result;
-  }, [
-    products,
-    searchText,
-    selectedCategory,
-    selectedSkinType,
-  ]);
-
-  // =========================
-  // PAGINATION
-  // =========================
-
-  const paginatedProducts = useMemo(() => {
-    return filteredProducts.slice(
-      (currentPage - 1) * pageSize,
-      currentPage * pageSize,
-    );
-  }, [
-    filteredProducts,
-    currentPage,
-    pageSize,
-  ]);
-
-  // =========================
-  // TABLE COLUMNS
-  // =========================
-
-  const columns = getProductColumns({
-    onDelete: handleDeleteProduct,
-
-    onToggleStatus:
-      handleToggleStatus,
-
-    onView: (product) => {
-      setDrawerMode('detail');
-
-      setSelectedProduct(product);
-
-      setOpenProductDrawer(true);
+      const handleToggleStatus = async (checked: boolean, id: string) => {
+        try {
+          await toggleProductStatus(id);
+          setProducts(prev =>
+            prev.map(p =>
+              (p._id || p.id) === id ? { ...p, isActive: checked } : p
+            )
+          );
+          message.success('Đã cập nhật trạng thái!');
+        } catch (error) {
+          message.error('Lỗi khi đổi trạng thái');
+        }
+      };
+  const columns: ColumnsType<ProductType> = [
+    {
+      title: 'Sản phẩm',
+      dataIndex: 'name',
+      render: (text, record) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img 
+            src={resolveMediaUrl(record.mainImage)} 
+            alt={text} 
+            style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '1px solid #F3E5DF' }} 
+          />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <strong style={{ color: '#1F2937', fontSize: 14 }}>{text}</strong>
+            <span style={{ color: '#6B7280', fontSize: 12 }}>SKU: {record.sku}</span>
+          </div>
+        </div>
+      ),
     },
-
-    onEdit: (product) => {
-      setDrawerMode('edit');
-
-      setSelectedProduct(product);
-
-      setOpenProductDrawer(true);
+    {
+      title: 'Danh mục',
+      render: (_, record) => <span style={{ color: '#4b5563', fontWeight: 500 }}>{record.category?.name || 'N/A'}</span>,
     },
-  });
-
-  const filterContent = (
-    <div className="admin-filter-popup">
-      <div className="filter-popup-title">
-        Tùy chỉnh bộ lọc
-      </div>
-
-      {/* CATEGORY */}
-
-      <div className="filter-group">
-        <label>
-          Loại sản phẩm
-        </label>
-
-        <Select
-          placeholder="Chọn loại"
-          style={{ width: '100%' }}
-          value={tempCategory}
-          onChange={setTempCategory}
-          allowClear
-          options={categories.map(
-            (item) => ({
-              label: item.name,
-              value: item.id,
-            }),
-          )}
+    {
+      title: 'Giá bán',
+      align: 'right',
+      render: (_, record) => {
+        const price = record.variants?.[0]?.priceSell || 0;
+        return <strong style={{ color: '#FFA78A', fontSize: 14 }}>{price.toLocaleString('vi-VN')} đ</strong>;
+      },
+    },
+    {
+      title: 'Tồn kho',
+      align: 'center',
+      render: (_, record) => {
+        const stock = record.variants?.reduce((sum: number, v: any) => sum + (v.stockQty || 0), 0) || 0;
+        return <span style={{ fontWeight: 600, color: stock > 0 ? '#10b981' : '#ef4444' }}>{stock}</span>;
+      },
+    },
+    {
+      title: 'Trạng thái',
+      align: 'center',
+      render: (_, record) => (
+        <StatusTag
+          status={record.isActive}
+          editable
+          onChange={(checked) => handleToggleStatus(checked, record._id || record.id || '')}
         />
-      </div>
-
-      {/* SKIN TYPE */}
-
-      <div className="filter-group">
-        <label>Loại da</label>
-
-        <Select
-          placeholder="Chọn loại da"
-          style={{ width: '100%' }}
-          value={tempSkinType}
-          onChange={setTempSkinType}
-          allowClear
-          options={skinTypes.map(
-            (item) => ({
-              label: item.name,
-              value: item.id,
-            }),
-          )}
-        />
-      </div>
-
-      {/* ACTIONS */}
-
-      <div className="filter-actions">
-        <Button
-          onClick={() => {
-            setTempCategory(
-              undefined,
-            );
-
-            setTempSkinType(
-              undefined,
-            );
-          }}
+      ),
+    },
+    {
+      title: 'Thao tác',
+      align: 'center',
+      width: 100,
+      render: (_, record) => (
+        <Dropdown
+          overlay={
+            <Menu>
+              <Menu.Item key="edit" icon={<EditOutlined />} onClick={() => { setSelectedProduct(record); setModalMode('edit'); setOpenModal(true); }}>
+                Chỉnh sửa
+              </Menu.Item>
+              <Menu.Item key="delete" danger>
+                <Popconfirm title="Đưa sản phẩm vào thùng rác?" okText="Xóa" cancelText="Hủy" onConfirm={() => handleDelete(record._id || record.id || '')}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><DeleteOutlined /> Xóa</div>
+                </Popconfirm>
+              </Menu.Item>
+            </Menu>
+          }
+          trigger={['click']} placement="bottomRight"
         >
-          Đặt lại
-        </Button>
-
-        <Button
-          type="primary"
-          className="apply-filter-btn"
-          onClick={() => {
-            setSelectedCategory(
-              tempCategory,
-            );
-
-            setSelectedSkinType(
-              tempSkinType,
-            );
-
-            setFilterOpen(false);
-          }}
-        >
-          Áp dụng
-        </Button>
-      </div>
-    </div>
-  );
+          <div style={{ padding: 8, cursor: 'pointer', color: '#6B7280' }}><MenuOutlined /></div>
+        </Dropdown>
+      ),
+    },
+  ];
 
   return (
-    <div className="admin-page">
-      {/* =========================
-          HEADER
-      ========================= */}
-
-      <div className="admin-header">
-        <div>
-          <div className="admin-title">
-            Danh sách sản phẩm
-          </div>
-
-          <div className="admin-breadcrumb">
-            Trang chủ &gt; Sản phẩm
-            &gt; Danh sách sản phẩm
-          </div>
+    <div className={styles.container}>
+      <div className={styles.topBar}>
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Quản lý Sản phẩm</h1>
+          <div className={styles.breadcrumb}>Tổng quan <span className={styles.separator}>/</span> <span className={styles.active}>Sản phẩm</span></div>
         </div>
       </div>
 
-      {/* =========================
-          TOOLBAR
-      ========================= */}
+      <TableToolbar
+        total={total}
+        searchValue={search}
+        searchPlaceholder="Tìm theo tên sản phẩm, SKU..."
+        onSearchChange={setSearch}
+        onSearch={() => { setPage(1); fetchProducts(); }}
+        onRefresh={() => fetchProducts(true)}
+        onAddNew={() => { setSelectedProduct(null); setModalMode('create'); setOpenModal(true); }}
+        loading={loading}
+      />
 
-      <div className="admin-toolbar">
-        <div className="admin-search">
-          <Input
-            placeholder="Tìm kiếm"
-            bordered={false}
-            allowClear
-            value={searchText}
-            onChange={(e) =>
-              setSearchText(
-                e.target.value,
-              )
-            }
-          />
-
-          <SearchOutlined />
-        </div>
-
-        <Space size={14}>
-
-          <Popover
-            content={filterContent}
-            trigger="click"
-            placement="bottomRight"
-            visible={filterOpen}
-            onVisibleChange={setFilterOpen}
-            overlayClassName="filter-popover"
-          >
-            <Button
-              icon={<FilterOutlined />}
-              className="filter-btn"
-            >
-              Bộ lọc
-            </Button>
-          </Popover>
-
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            className="add-btn"
-            onClick={() => {
-              setDrawerMode('create');
-
-              setSelectedProduct(null);
-
-              setOpenProductDrawer(
-                true,
-              );
-            }}
-          >
-            Thêm mới
-          </Button>
-        </Space>
-      </div>
-
-      {/* =========================
-          TABLE
-      ========================= */}
-
-      <div className="admin-table">
-        <DataTable
-          rowKey="id"
+      <div className={styles.tableWrapper}>
+        <DataTable<ProductType>
+          rowKey={(record) => record._id || record.id || record.sku}
           loading={loading}
           columns={columns}
-          dataSource={
-            paginatedProducts
-          }
-          locale={{
-            emptyText:
-              'Không tìm thấy sản phẩm',
+          dataSource={products}
+          pagination={{
+            current: page, pageSize: limit, total: total, showSizeChanger: true,
+            onChange: (p, l) => { setPage(p); setLimit(l || 10); },
           }}
         />
       </div>
 
-      {/* =========================
-          PAGINATION
-      ========================= */}
-
-      <div className="custom-pagination">
-        <div className="pagination-total">
-          Tổng số:
-          {' '}
-          {filteredProducts.length}
-        </div>
-
-        <Pagination
-          current={currentPage}
-          pageSize={pageSize}
-          total={
-            filteredProducts.length
-          }
-          showSizeChanger
-          pageSizeOptions={[
-            '10',
-            '20',
-            '50',
-          ]}
-          onChange={(page, size) => {
-            setCurrentPage(page);
-
-            setPageSize(size || 10);
-          }}
-        />
-      </div>
-
-      {/* =========================
-          PRODUCT DRAWER
-      ========================= */}
-
-      <ProductDrawer
-        open={openProductDrawer}
-        mode={drawerMode}
+      <ProductModal
+        open={openModal}
+        mode={modalMode}
         product={selectedProduct}
-        onClose={() =>
-          setOpenProductDrawer(false)
-        }
-        onSuccess={(newProduct) => {
-
-          // EDIT
-          if (drawerMode === 'edit') {
-            setProducts((prev) =>
-              prev.map((item) =>
-                item.id === newProduct.id
-                  ? newProduct
-                  : item,
-              ),
-            );
-
-            message.success(
-              'Cập nhật sản phẩm thành công',
-            );
-          }
-
-          // CREATE
-          else {
-            setProducts((prev) => [
-              newProduct,
-              ...prev,
-            ]);
-
-            message.success(
-              'Thêm sản phẩm thành công',
-            );
-          }
-
-          setOpenProductDrawer(false);
-        }}
+        categories={categories}
+        skinTypes={skinTypes}
+        onClose={() => setOpenModal(false)}
+        onSuccess={() => { setOpenModal(false); fetchProducts(); }}
       />
     </div>
   );

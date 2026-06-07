@@ -1,0 +1,352 @@
+@primary-color: #FFA78A;
+@primary-hover: #F39A7D;
+
+@primary-light: #FFF4F0;
+@primary-border: #FFD8CC;
+
+@text-main: #1E293B;
+@text-secondary: #64748B;
+
+@border-color: #F4E3DD;
+
+.importModal {
+  :global {
+    .ant-modal-content {
+      padding: 0 !important;
+      border-radius: 20px !important;
+      overflow: hidden !important;
+
+      box-shadow:
+        0 20px 60px rgba(255, 167, 138, 0.18) !important;
+    }
+
+    .ant-modal-header {
+      padding: 24px 32px 16px !important;
+      border-bottom: none !important;
+      margin-bottom: 0 !important;
+
+      background: linear-gradient(
+        180deg,
+        #FFF8F6 0%,
+        #FFFFFF 100%
+      ) !important;
+    }
+
+    .ant-modal-title {
+      color: @text-main !important;
+      font-weight: 700 !important;
+      font-size: 20px !important;
+    }
+
+    .ant-modal-body {
+      padding: 0 32px 24px !important;
+      background: #ffffff !important;
+    }
+
+    /* ===================== */
+    /* STEPS */
+    /* ===================== */
+
+    .ant-steps {
+      margin-top: 8px;
+    }
+
+    .ant-steps-item-icon {
+      width: 34px !important;
+      height: 34px !important;
+    }
+
+    .ant-steps-item-process .ant-steps-item-icon {
+      background: @primary-color !important;
+      border-color: @primary-color !important;
+    }
+
+    .ant-steps-item-process .ant-steps-icon {
+      color: #fff !important;
+    }
+
+    .ant-steps-item-finish .ant-steps-item-icon {
+      border-color: @primary-color !important;
+    }
+
+    .ant-steps-item-finish .ant-steps-icon {
+      color: @primary-color !important;
+    }
+
+    .ant-steps-item-title {
+      font-weight: 500 !important;
+      color: #94A3B8 !important;
+    }
+
+    .ant-steps-item-process .ant-steps-item-title {
+      color: @primary-color !important;
+      font-weight: 700 !important;
+    }
+
+    .ant-steps-item-finish .ant-steps-item-tail::after {
+      background-color: @primary-color !important;
+    }
+
+    /* ===================== */
+    /* DRAG UPLOAD */
+    /* ===================== */
+
+    .ant-upload-wrapper .ant-upload-drag {
+      background: #FFFDFC !important;
+
+      border: 2px dashed @primary-border !important;
+
+      border-radius: 18px !important;
+
+      transition: all .3s ease !important;
+
+      padding: 36px 20px !important;
+
+      &:hover {
+        border-color: @primary-color !important;
+
+        background: @primary-light !important;
+
+        transform: translateY(-2px);
+      }
+    }
+
+    .ant-upload-drag-icon {
+      color: @primary-color !important;
+
+      svg {
+        font-size: 54px !important;
+      }
+    }
+
+    .ant-upload-text {
+      color: @text-main !important;
+
+      font-size: 16px !important;
+
+      font-weight: 600 !important;
+
+      margin-top: 12px !important;
+    }
+
+    .ant-upload-hint {
+      color: @text-secondary !important;
+
+      font-size: 14px !important;
+    }
+
+    /* ===================== */
+    /* TABLE PREVIEW */
+    /* ===================== */
+
+    .ant-table {
+      border-radius: 12px !important;
+      overflow: hidden !important;
+    }
+
+    .ant-table-thead > tr > th {
+      background: #FFF6F2 !important;
+      color: @text-main !important;
+      font-weight: 600 !important;
+    }
+
+    /* ===================== */
+    /* ALERT */
+    /* ===================== */
+
+    .ant-alert-success {
+      border-color: rgba(255, 167, 138, .3) !important;
+      background: #FFF8F6 !important;
+    }
+
+    .ant-alert-success .ant-alert-icon {
+      color: @primary-color !important;
+    }
+  }
+}
+
+.stepContent {
+  margin-top: 24px;
+
+  background: #ffffff;
+
+  min-height: 250px;
+
+  border-radius: 12px;
+}
+
+.uploadArea {
+  margin-top: 0;
+}
+
+.footerActions {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-top: 32px;
+
+  padding-top: 24px;
+
+  border-top: 1px solid @border-color;
+
+  .btnOutline {
+    height: 42px;
+
+    min-width: 110px;
+
+    padding: 0 20px;
+
+    border-radius: 12px !important;
+
+    font-weight: 600;
+
+    background: #fff;
+
+    color: @primary-color;
+
+    border: 1px solid @primary-border;
+
+    transition: all .25s ease;
+
+    &:hover,
+    &:focus {
+      color: @primary-hover;
+
+      border-color: @primary-hover;
+
+      background: @primary-light;
+    }
+  }
+
+  .btnPrimary {
+    height: 42px;
+
+    min-width: 130px;
+
+    padding: 0 22px;
+
+    border-radius: 12px !important;
+
+    font-weight: 600;
+
+    border: none !important;
+
+    color: #fff !important;
+
+    background: linear-gradient(
+      135deg,
+      #FFA78A 0%,
+      #FF9678 100%
+    ) !important;
+
+    box-shadow:
+      0 8px 20px rgba(255, 167, 138, 0.25) !important;
+
+    transition: all .25s ease;
+
+    &:hover,
+    &:focus {
+      background: linear-gradient(
+        135deg,
+        #F39A7D 0%,
+        #FF8B6A 100%
+      ) !important;
+
+      transform: translateY(-1px);
+
+      box-shadow:
+        0 12px 24px rgba(255, 167, 138, 0.35) !important;
+    }
+
+    &:disabled {
+      background: #E2E8F0 !important;
+      color: #94A3B8 !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+  }
+}
+
+.mappingGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 32px;
+}
+
+.stepRow {
+  display: flex;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.stepRowCol {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .importModal {
+    :global {
+      .ant-modal-header {
+        padding: 16px 18px 12px !important;
+      }
+
+      .ant-modal-body {
+        padding: 0 16px 16px !important;
+      }
+
+      .ant-modal-title {
+        font-size: 17px !important;
+      }
+
+      .ant-steps-item-title {
+        font-size: 12px !important;
+      }
+
+      .ant-steps-horizontal {
+        overflow-x: auto;
+      }
+    }
+  }
+
+  .mappingGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .stepRow {
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .footerActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+
+    .btnOutline,
+    .btnPrimary {
+      width: 100%;
+      min-width: 0;
+    }
+
+    :global(.ant-space) {
+      width: 100%;
+      flex-direction: column;
+
+      .ant-space-item {
+        width: 100%;
+
+        .ant-btn {
+          width: 100%;
+        }
+      }
+    }
+  }
+}

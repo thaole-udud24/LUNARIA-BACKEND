@@ -1,142 +1,134 @@
 import React, { useState } from 'react';
 import { history } from 'umi';
-import { message } from 'antd';
+import { Form, Input, message } from 'antd';
+import { UserOutlined, MailOutlined, LockOutlined, LoadingOutlined } from '@ant-design/icons';
 import { register as registerApi } from '@/services/TaiKhoan/auth.api';
+import AuthShell from '../components/AuthShell';
+import { extractAuthError, parseApiData } from '../auth.utils';
+
+interface RegisterFormValues {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-
+  const [form] = Form.useForm<RegisterFormValues>();
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: any) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleRegister = async () => {
-    const { name, email, password, confirmPassword } = form;
-
-    if (!name || !email || !password || !confirmPassword) {
-      return message.error('Vui lòng nhập đầy đủ thông tin');
-    }
-
-    if (password !== confirmPassword) {
-      return message.error('Mật khẩu xác nhận không khớp');
-    }
-
+  const handleRegister = async (values: RegisterFormValues) => {
     setLoading(true);
     message.destroy();
 
     try {
-      const res: any = await registerApi({ name, email, password, confirmPassword });
-      const data = res?.data || res;
+      const res = await registerApi({
+        name: values.name.trim(),
+        email: values.email.trim(),
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+      });
 
-      message.success(data?.message || 'Đăng ký thành công! Vui lòng đăng nhập.');
-      history.push('/auth/login');
+      const data = parseApiData<{ message?: string; email?: string }>(res);
+      message.success(data?.message || 'Đăng ký thành công! Kiểm tra email để lấy mã OTP.');
 
-    } catch (error: any) {
-      const errMsg =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Lỗi hệ thống, vui lòng thử lại!';
-      message.error(typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg));
+      history.push(
+        `/auth/verify-email?email=${encodeURIComponent(values.email.trim())}`,
+      );
+    } catch (error) {
+      message.error(extractAuthError(error));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page register">
-      <div className="auth-container">
-
-        {/* LEFT */}
-        <div className="auth-left">
-          <div className="auth-overlay">
-            <h1>LUNARIA</h1>
-            <p>
-              Mỗi buổi sáng là một khởi đầu mới, khi làn da cần được đánh thức
-              bằng sự dịu dàng.
-            </p>
-            <button onClick={() => history.push('/products')}>Mua ngay</button>
+    <AuthShell
+      title="Tạo tài khoản"
+      subtitle="Tham gia LURANA để nhận ưu đãi và theo dõi đơn hàng dễ dàng"
+      backTo="/auth/login"
+      backLabel="Quay lại đăng nhập"
+      heroText="Bắt đầu hành trình chăm sóc da cùng những sản phẩm được chọn lọc dành riêng cho bạn."
+    >
+      <Form form={form} layout="vertical" onFinish={handleRegister} requiredMark={false}>
+        <Form.Item
+          name="name"
+          label={<span className="auth-field-label">Họ và tên</span>}
+          rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+        >
+          <div className="auth-input-wrap">
+            <UserOutlined />
+            <Input className="auth-input" placeholder="Nguyễn Văn A" autoComplete="name" />
           </div>
-        </div>
+        </Form.Item>
 
-        {/* RIGHT */}
-        <div className="auth-right">
-          <div className="auth-form">
-
-            <button className="auth-back" onClick={() => history.push('/home')}>
-              ← Trở lại
-            </button>
-
-            <h2>TẠO TÀI KHOẢN CỦA BẠN</h2>
-            <p className="auth-desc">Tạo tài khoản mua sắm của bạn</p>
-
-            <button
-              className="auth-google"
-              onClick={() => message.info('Tính năng đăng ký bằng Google đang được bảo trì...')}
-            >
-              🔵 Sign up with Google
-            </button>
-
-            <div className="auth-divider">Or use email</div>
-
-            <input
-              name="name"
-              placeholder="Họ và tên"
-              value={form.name}
-              onChange={handleChange}
-              disabled={loading}
-            />
-
-            <input
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              disabled={loading}
-            />
-
-            <input
-              name="password"
-              type="password"
-              placeholder="Mật khẩu"
-              value={form.password}
-              onChange={handleChange}
-              disabled={loading}
-            />
-
-            <input
-              name="confirmPassword"
-              type="password"
-              placeholder="Xác nhận mật khẩu"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
-              disabled={loading}
-            />
-
-            <button
-              className="auth-loginBtn"
-              onClick={handleRegister}
-              disabled={loading}
-            >
-              {loading ? 'Đang đăng ký...' : 'Đăng ký'}
-            </button>
-
-            <p className="auth-register">
-              Bạn đã có tài khoản?{' '}
-              <span onClick={() => history.push('/auth/login')}>Đăng nhập</span>
-            </p>
-
+        <Form.Item
+          name="email"
+          label={<span className="auth-field-label">Email</span>}
+          rules={[
+            { required: true, message: 'Vui lòng nhập email' },
+            { type: 'email', message: 'Email không hợp lệ' },
+          ]}
+        >
+          <div className="auth-input-wrap">
+            <MailOutlined />
+            <Input className="auth-input" placeholder="email@example.com" autoComplete="email" />
           </div>
-        </div>
+        </Form.Item>
 
-      </div>
-    </div>
+        <Form.Item
+          name="password"
+          label={<span className="auth-field-label">Mật khẩu</span>}
+          rules={[
+            { required: true, message: 'Vui lòng nhập mật khẩu' },
+            { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
+          ]}
+        >
+          <div className="auth-input-wrap">
+            <LockOutlined />
+            <Input.Password className="auth-input" placeholder="Tối thiểu 6 ký tự" autoComplete="new-password" />
+          </div>
+        </Form.Item>
+
+        <Form.Item
+          name="confirmPassword"
+          label={<span className="auth-field-label">Xác nhận mật khẩu</span>}
+          dependencies={['password']}
+          rules={[
+            { required: true, message: 'Vui lòng xác nhận mật khẩu' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue('password') === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error('Mật khẩu xác nhận không khớp'));
+              },
+            }),
+          ]}
+        >
+          <div className="auth-input-wrap">
+            <LockOutlined />
+            <Input.Password className="auth-input" placeholder="Nhập lại mật khẩu" autoComplete="new-password" />
+          </div>
+        </Form.Item>
+
+        <button type="submit" className="auth-submit" disabled={loading}>
+          {loading ? (
+            <>
+              <LoadingOutlined spin /> Đang tạo tài khoản...
+            </>
+          ) : (
+            'Đăng ký'
+          )}
+        </button>
+      </Form>
+
+      <p className="auth-footer">
+        Đã có tài khoản?
+        <button type="button" onClick={() => history.push('/auth/login')}>
+          Đăng nhập
+        </button>
+      </p>
+    </AuthShell>
   );
 }

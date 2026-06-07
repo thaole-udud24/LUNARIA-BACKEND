@@ -1,145 +1,124 @@
-import React, { useState, useEffect } from 'react';
-import { Row, Col } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Row, Col, Empty, Button } from 'antd';
 import { useParams, history } from 'umi';
-import CategoryTabs from '../Products/components/CategoryTabs';
 import Loading from '@/components/common/Loading';
 import ShopNewsletter from '../Products/components/ShopNewsletter';
 import ProductImages from './components/ProductImages';
 import AddToCartBar from './components/AddToCartBar';
 import ProductTabs from './components/ProductTabs';
 import RelatedProducts from './components/RelatedProducts';
+import { getProductById } from '@/services/SanPham/products.customer.api';
+import {
+  getCategoryLabel,
+  getProductId,
+  getSkinTypeNames,
+  mapVariants,
+  parseApiData,
+} from './utils';
 import './index.less';
 
-const getProductById = (idStr?: string) => {
-  const id = idStr ? parseInt(idStr, 10) : 1;
-  const names = [
-    'CC+ Cream Illumination with SPF 50+',
-    'Bye Bye Lines Foundation',
-    'Ceramide Hydrating Cream',
-    'Vitamin C Brightening Serum',
-    'Green Tea Foaming Cleanser',
-    'Hyaluronic Acid Toner',
-    'Daily SPF 50+ Sunscreen',
-    'B5 Skin Recovery Gel',
-    'Retinol Night Renewal Serum'
-  ];
-  
-  const prices = [
-    '430,000đ',
-    '320,000đ',
-    '450,000đ',
-    '380,000đ',
-    '280,000đ',
-    '310,000đ',
-    '390,000đ',
-    '350,000đ',
-    '480,000đ'
-  ];
-
-  const skus = [
-    'CS-0005-1',
-    'CS-0005-2',
-    'CS-0005-3',
-    'CS-0005-4',
-    'CS-0005-5',
-    'CS-0005-6',
-    'CS-0005-7',
-    'CS-0005-8',
-    'CS-0005-9'
-  ];
-
-  // Map ID to an index in our arrays
-  const index = isNaN(id) ? 0 : id % names.length;
-  const name = names[index];
-  const price = prices[index];
-  const sku = skus[index];
-  
-  // Determine index of main image, cyclic between 1 and 8
-  const mainImageIndex = isNaN(id) ? 1 : (id % 8) + 1;
-  
-  const images = [
-    `anh-san-pham-${mainImageIndex}.png`,
-    `anh-san-pham-${((mainImageIndex) % 8) + 1}.png`,
-    `anh-san-pham-${((mainImageIndex + 1) % 8) + 1}.png`,
-    `anh-san-pham-${((mainImageIndex + 2) % 8) + 1}.png`,
-    `anh-san-pham-${((mainImageIndex + 3) % 8) + 1}.png`,
-  ];
-
-  return {
-    id,
-    name,
-    price,
-    sku,
-    rating: 4.5 + (isNaN(id) ? 0 : id % 6) * 0.1,
-    images
-  };
-};
-
 const ProductDetail: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState('Tất cả');
   const { id } = useParams<{ id: string }>();
-  const product = getProductById(id);
-
+  const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    // Scroll to top instantly to simulate page load
-    window.scrollTo(0, 0);
-    
-    // Simulate loading for detail switch
+  const fetchProduct = useCallback(async () => {
+    if (!id) return;
     setLoading(true);
-    const timer = setTimeout(() => {
+    setError(false);
+    try {
+      const res = await getProductById(id);
+      const data = parseApiData<any>(res);
+      if (!data || !data.name) {
+        setError(true);
+        setProduct(null);
+      } else {
+        setProduct(data);
+      }
+    } catch (err) {
+      console.error('Lỗi tải chi tiết sản phẩm:', err);
+      setError(true);
+      setProduct(null);
+    } finally {
       setLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
+    }
   }, [id]);
 
-  const handleCategoryChange = (tab: string) => {
-    setActiveCategory(tab);
-    history.push(tab === 'Tất cả' ? '/products' : `/products?tab=${encodeURIComponent(tab)}`);
-  };
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    fetchProduct();
+  }, [fetchProduct]);
 
   if (loading) return <Loading />;
 
+  if (error || !product) {
+    return (
+      <div className="product-detail-page">
+        <div className="product-detail-container product-detail-empty">
+          <Empty description="Không tìm thấy sản phẩm hoặc sản phẩm đã ngừng kinh doanh." />
+          <Button type="primary" onClick={() => history.push('/products')}>
+            Quay lại danh sách
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const productId = getProductId(product);
+  const categoryName = getCategoryLabel(product);
+  const skinTypeNames = getSkinTypeNames(product);
+  const variants = mapVariants(product.variants || []);
+
   return (
     <div className="product-detail-page">
-      {/* Category Tabs Bar */}
-      <CategoryTabs activeTab={activeCategory} onTabChange={handleCategoryChange} />
-
-      <div key={product.id} className="product-detail-container animate-fade-in">
-        {/* Breadcrumb */}
+      <div key={productId} className="product-detail-container animate-fade-in">
         <div className="product-breadcrumb">
-          <span>Shop</span> &gt; <span>Làm sạch da</span> &gt; <span>Da nhạy cảm</span> &gt; <span className="current">{product.name}</span>
+          <span onClick={() => history.push('/products')}>Shop</span>
+          <span>&gt;</span>
+          {categoryName && (
+            <>
+              <span onClick={() => history.push('/products')}>{categoryName}</span>
+              <span>&gt;</span>
+            </>
+          )}
+          <span className="current">{product.name}</span>
         </div>
 
-        {/* Main Product Info Section (Images + Summary/AddToCart) */}
         <div className="product-main-overview">
-          <Row gutter={[48, 48]} align="top">
-            {/* Left: Images Gallery */}
-            <Col xs={24} md={12}>
-              <ProductImages images={product.images} />
+          <Row gutter={[40, 32]} align="top">
+            <Col xs={24} lg={11}>
+              <div className="pd-media-card">
+                <ProductImages
+                  mainImage={product.mainImage}
+                  galleryImages={product.galleryImages}
+                />
+              </div>
             </Col>
-
-            {/* Right: Summary & Add to Cart */}
-            <Col xs={24} md={12}>
-              <AddToCartBar 
-                productName={product.name} 
-                sku={product.sku} 
-                rating={product.rating} 
-                price={product.price} 
+            <Col xs={24} lg={13}>
+              <div className="pd-info-card">
+                <AddToCartBar
+                productId={productId}
+                productName={product.name}
+                sku={product.sku}
+                rating={product.rating || 5.0}
+                mainImage={product.mainImage}
+                variants={variants}
               />
+              </div>
             </Col>
           </Row>
         </div>
 
-        {/* Product Tabs (Description, Info, Reviews) */}
-        <ProductTabs productName={product.name} />
+        <ProductTabs product={product} />
 
-        {/* Related Products */}
-        <RelatedProducts />
+        <RelatedProducts
+          currentProductId={productId}
+          categoryName={categoryName}
+          skinTypeNames={skinTypeNames}
+        />
       </div>
 
-      {/* Newsletter */}
       <ShopNewsletter />
     </div>
   );

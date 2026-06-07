@@ -1,4 +1,6 @@
 declare module '*.less';
+declare const API_URL: string;
+
 declare namespace API {
   type User = {
     id: number;

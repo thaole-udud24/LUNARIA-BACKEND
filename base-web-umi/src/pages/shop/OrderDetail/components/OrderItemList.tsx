@@ -1,4 +1,5 @@
 import React from 'react';
+import { PictureOutlined } from '@ant-design/icons';
 import { OrderItem } from '../../Orders/types';
 
 interface OrderItemListProps {
@@ -6,14 +7,6 @@ interface OrderItemListProps {
 }
 
 const OrderItemList: React.FC<OrderItemListProps> = ({ items }) => {
-  const getImg = (name: string) => {
-    try {
-      return require(`@/assets/images/${name}`);
-    } catch (e) {
-      return '';
-    }
-  };
-
   return (
     <div className="order-items-detail-card">
       <div className="card-header-title">
@@ -35,7 +28,9 @@ const OrderItemList: React.FC<OrderItemListProps> = ({ items }) => {
               <tr key={item.id}>
                 <td>
                   <div className="product-col-info">
-                    <img src={getImg(item.image)} alt={item.name} className="p-img" />
+                    <div className="p-img p-img--placeholder">
+                      <PictureOutlined />
+                    </div>
                     <div className="p-details">
                       <h4 className="p-name">{item.name}</h4>
                       {item.variant && <span className="p-variant">Phân loại: {item.variant}</span>}
