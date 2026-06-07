@@ -273,7 +273,6 @@ export class VouchersService {
     };
   }
 
-  // ✅ Đưa vào đúng trong class
   async exportExcel(fields: string[], filters: any) {
     const filter = this.buildFilter(filters || {});
     const data = await this.voucherModel

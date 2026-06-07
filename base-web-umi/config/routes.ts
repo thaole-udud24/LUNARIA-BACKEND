@@ -189,7 +189,7 @@ export default [
   // ==========================================
   { 
     path: '*', 
-    component: './404',
+    component: './exception/404',
     layout: false
   },
 ];

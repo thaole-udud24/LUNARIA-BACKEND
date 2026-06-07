@@ -23,7 +23,7 @@ export class UserProfile {
   @Prop({ type: String, default: null })
   banner_url?: string;
 
-  // ✅ BỔ SUNG 2 TRƯỜNG MỚI ĐỂ LƯU DATA TỪ FRONTEND
+  // Extended profile fields (bio, phone, saved vouchers, preferences)
   @Prop({ type: String, default: '' })
   bio?: string;
 

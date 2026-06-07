@@ -58,7 +58,8 @@ export default defineConfig({
     },
     // mfsu: {},
     webpack5: {},
-    exportStatic: {},
+    // exportStatic tạo thư mục dist/* trên Windows với catch-all route — dùng server fallback thay vì SSG
+    // exportStatic: {},
     define: {
         ...Object.entries(process.env).reduce((result, [key, value]) => {
             if (key.startsWith('APP_CONFIG_')) {

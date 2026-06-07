@@ -47,7 +47,6 @@ export class UserAddress {
   @Prop({ type: String, required: true })
   address_line!: string;
 
-  // 🔥 CHỖ BỊ LỖI CỦA BẠN
   @Prop({ type: String, default: null })
   postal_code!: string;
 

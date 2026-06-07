@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import { Model, Connection, Types } from 'mongoose';
 import { Order, OrderDocument } from './schemas/order.schema';
@@ -17,6 +17,8 @@ import { calcShippingFee } from 'src/common/constants/shipping.constant';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Cart.name) private cartModel: Model<Cart>,
@@ -288,7 +290,6 @@ export class OrdersService {
     return { data, total, page, limit };
   }
 
-  // ✅ THÊM MỚI
   async findOneAdmin(id: string) {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Mã đơn hàng không hợp lệ.');
     const order = await this.orderModel
@@ -351,7 +352,7 @@ export class OrdersService {
         });
       }
     } catch (error) {
-      console.error('[Orders] Tạo thông báo đặt hàng thất bại:', error);
+      this.logger.error('[Orders] Tạo thông báo đặt hàng thất bại:', error);
     }
   }
 
@@ -366,7 +367,7 @@ export class OrdersService {
         actionLink: `/orderdetail?id=${order._id.toString()}`,
       });
     } catch (error) {
-      console.error('[Orders] Tạo thông báo xử lý đơn thất bại:', error);
+      this.logger.error('[Orders] Tạo thông báo xử lý đơn thất bại:', error);
     }
   }
 
@@ -397,7 +398,7 @@ export class OrdersService {
         });
       }
     } catch (error) {
-      console.error('[Orders] Tạo thông báo hủy đơn thất bại:', error);
+      this.logger.error('[Orders] Tạo thông báo hủy đơn thất bại:', error);
     }
   }
 
@@ -434,7 +435,7 @@ export class OrdersService {
         actionLink: `/orderdetail?id=${order._id.toString()}`,
       });
     } catch (error) {
-      console.error('[Orders] Tạo thông báo cập nhật trạng thái thất bại:', error);
+      this.logger.error('[Orders] Tạo thông báo cập nhật trạng thái thất bại:', error);
     }
   }
 

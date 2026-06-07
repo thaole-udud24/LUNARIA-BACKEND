@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   UnauthorizedException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -37,6 +38,8 @@ import { Role } from '../../common/constants/roles.constant';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
@@ -55,6 +58,7 @@ export class AuthService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    if (process.env.NODE_ENV === 'production') return;
     await this.seedAdminAccount();
   }
 
@@ -74,13 +78,13 @@ export class AuthService implements OnModuleInit {
         isEmailVerified: true,
       });
       await admin.save();
-      console.log(`[SEED] Đã tạo tài khoản Admin xịn: ${adminEmail} / ${adminPassword}`);
+      this.logger.log(`[SEED] Created default admin account: ${adminEmail}`);
     } else {
       const valid = await this.verifyPassword(adminPassword, admin.password);
       if (!valid) {
         admin.password = await this.hashPassword(adminPassword);
         await admin.save();
-        console.log('[SEED] Đã cập nhật lại mật khẩu Admin (bcrypt).');
+        this.logger.log('[SEED] Reset default admin password.');
       }
     }
   }
@@ -151,7 +155,7 @@ export class AuthService implements OnModuleInit {
     try {
       await this.createAndSendVerifyCode(user._id as Types.ObjectId, email);
     } catch (error) {
-      console.error('[Auth] Gửi email xác thực thất bại:', error);
+      this.logger.error('[Auth] Gửi email xác thực thất bại:', error);
       throw new BadRequestException(
         'Tạo tài khoản thành công nhưng không gửi được email. Vui lòng dùng "Gửi lại mã" hoặc kiểm tra cấu hình SMTP.',
       );
@@ -178,7 +182,7 @@ export class AuthService implements OnModuleInit {
     try {
       await this.createAndSendVerifyCode(user._id as Types.ObjectId, email);
     } catch (error) {
-      console.error('[Auth] Gửi lại email xác thực thất bại:', error);
+      this.logger.error('[Auth] Gửi lại email xác thực thất bại:', error);
       throw new BadRequestException('Không gửi được email. Vui lòng thử lại sau.');
     }
 
@@ -324,7 +328,7 @@ export class AuthService implements OnModuleInit {
     try {
       await this.mailService.sendResetCode(email, code);
     } catch (error) {
-      console.error('[Auth] Gửi email reset thất bại:', error);
+      this.logger.error('[Auth] Gửi email reset thất bại:', error);
       throw new BadRequestException('Không gửi được email. Vui lòng thử lại sau.');
     }
 

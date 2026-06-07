@@ -40,7 +40,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         return {
           secret,
           signOptions: {
-            // ✅ fix TS type mismatch (jsonwebtoken StringValue)
+            // jsonwebtoken StringValue type compatibility
             expiresIn: expiresIn as any,
           },
         };

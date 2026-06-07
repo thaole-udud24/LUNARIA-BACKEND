@@ -55,7 +55,7 @@ export class UsersService {
 
   // ================= PROFILE (LẤY & CẬP NHẬT THÔNG TIN CÁ NHÂN) =================
   
-  // ✅ FIX: HÀM NÀY SẼ LẤY FULL DATA TỪ 4 BẢNG ĐỂ FRONTEND HIỂN THỊ ĐỦ EMAIL, ROLE, NGÀY TẠO
+  /** Load account, profile, phones, and addresses for the current user. */
   async getMe(userId: string) {
     const objectId = this.toObjectId(userId);
     
@@ -90,7 +90,7 @@ export class UsersService {
     if (dto.bio !== undefined) payload.bio = dto.bio; 
     if (dto.phone !== undefined) payload.phone = dto.phone;
     if (dto.date_of_birth !== undefined) {
-      payload.date_of_birth = dto.date_of_birth ? new Date(dto.date_of_birth) : null;
+      payload.date_of_birth = dto.date_of_birth ? new Date(dto.date_of_birth) : undefined;
     }
 
     return this.userProfileModel
@@ -362,7 +362,7 @@ export class UsersService {
     return { id: user._id, status: user.status };
   }
 
-  // ✅ XUẤT EXCEL CHO ADMIN
+  /** Export customer list to Excel for admin. */
   async exportForAdmin(
     search: string = '',
     exportOptions?: string,
@@ -669,7 +669,7 @@ export class UsersService {
       code,
       name: dto.name || `Voucher ${code}`,
       discount_amount: dto.discount_amount ?? 0,
-      expires_at: dto.expires_at ? new Date(dto.expires_at) : null,
+      expires_at: dto.expires_at ? new Date(dto.expires_at) : undefined,
       min_order: dto.min_order ?? 0,
       saved_at: new Date(),
     };

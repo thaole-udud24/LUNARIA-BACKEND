@@ -22,13 +22,12 @@ export const envSchema = Joi.object({
 
   FRONTEND_URL: Joi.string().default('http://localhost:8000'),
 })
-// 🔥 QUAN TRỌNG
 .unknown(true);
 
 export function validateEnv(config: Record<string, any>) {
   const { error, value } = envSchema.validate(config, {
     abortEarly: false,
-    allowUnknown: true, // 🔥 QUAN TRỌNG
+    allowUnknown: true,
   });
 
   if (error) {
