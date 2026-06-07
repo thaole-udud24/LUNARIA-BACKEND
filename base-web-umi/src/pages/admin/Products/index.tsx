@@ -1,206 +1,324 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Dropdown, Menu, Popconfirm, message } from 'antd';
-import { EditOutlined, DeleteOutlined, MenuOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
-
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Select, InputNumber, Tooltip, Empty, Button, message } from 'antd';
+import { SyncOutlined } from '@ant-design/icons';
 import type { ProductType } from '@/services/SanPham/types';
-import { getAdminProducts, deleteProduct, toggleProductStatus } from '@/services/SanPham/products.api';
-import { getCategories, getSkinTypes } from '@/services/SanPham/catalog.api';
-
-import { resolveMediaUrl } from '@/utils/adminApi';
+import {
+  getAdminProducts,
+  deleteProduct,
+  updateProductStatus,
+} from '@/services/SanPham/products.api';
+import { getCategories } from '@/services/DanhMuc/categories.api';
+import { getSkinTypes } from '@/services/LoaiDa/skin-types.api';
+import { unwrapListResponse } from '@/utils/adminApi';
 import TableToolbar from '@/components/admin/TableToolbar';
-import DataTable from '@/components/admin/DataTable';
-import StatusTag from '@/components/admin/StatusTag';
-
-import ProductModal from './components/ProductModal'; 
+import ProductTable from './components/ProductTable';
+import ProductModal from './components/ProductModal';
 import styles from './styles.less';
+
+const STATUS_FILTER_OPTIONS = [
+  { value: '', label: 'Tất cả trạng thái' },
+  { value: 'true', label: 'Đang hiển thị' },
+  { value: 'false', label: 'Đang ẩn' },
+];
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [total, setTotal] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [skinTypeFilter, setSkinTypeFilter] = useState('');
+  const [activeFilter, setActiveFilter] = useState('');
+  const [minPriceFilter, setMinPriceFilter] = useState<number | null>(null);
+  const [maxPriceFilter, setMaxPriceFilter] = useState<number | null>(null);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [skinTypes, setSkinTypes] = useState<any[]>([]);
 
   const [openModal, setOpenModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+
+  const filterActiveCount = useMemo(
+    () =>
+      [categoryFilter, skinTypeFilter, activeFilter, minPriceFilter, maxPriceFilter].filter(
+        (v) => v !== '' && v !== null && v !== undefined,
+      ).length,
+    [categoryFilter, skinTypeFilter, activeFilter, minPriceFilter, maxPriceFilter],
+  );
+
+  const listQueryParams = useMemo(
+    () => ({
+      page,
+      limit,
+      search: search || undefined,
+      category: categoryFilter || undefined,
+      ...(skinTypeFilter ? { skinTypes: [skinTypeFilter] } : {}),
+      ...(activeFilter ? { isActive: activeFilter } : {}),
+      ...(minPriceFilter != null ? { minPrice: minPriceFilter } : {}),
+      ...(maxPriceFilter != null ? { maxPrice: maxPriceFilter } : {}),
+    }),
+    [page, limit, search, categoryFilter, skinTypeFilter, activeFilter, minPriceFilter, maxPriceFilter],
+  );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const fetchFilterOptions = useCallback(async () => {
+    try {
+      const [catRes, skinRes] = await Promise.all([
+        getCategories({ page: 1, limit: 500 }),
+        getSkinTypes({ page: 1, limit: 500 }),
+      ]);
+      const { list: catList } = unwrapListResponse<any>(catRes);
+      const { list: skinList } = unwrapListResponse<any>(skinRes);
+      setCategories(catList);
+      setSkinTypes(skinList);
+    } catch {
+      message.warning('Không thể tải danh mục / loại da cho bộ lọc');
+    }
+  }, []);
 
   const fetchProducts = useCallback(async (showMsg = false) => {
     try {
       setLoading(true);
-      const res: any = await getAdminProducts({ page, limit, search });
-      setProducts(res?.data || res || []);
-      setTotal(res?.total || 0);
+      setFetchError(false);
+      const res = await getAdminProducts(listQueryParams);
+      const { list, total: totalCount } = unwrapListResponse<ProductType>(res);
+      setProducts(list);
+      setTotal(totalCount);
+      setLastUpdated(new Date());
       if (showMsg) message.success('Đã làm mới dữ liệu!');
-    } catch (error) {
+    } catch {
+      setProducts([]);
+      setTotal(0);
+      setFetchError(true);
       message.error('Lỗi tải danh sách sản phẩm');
     } finally {
       setLoading(false);
     }
-  }, [page, limit, search]);
+  }, [listQueryParams]);
 
-  const fetchFilters = async () => {
-    try {
-      const [catRes, skinRes]: [any, any] = await Promise.all([getCategories(), getSkinTypes()]);
-      setCategories(catRes?.data || (Array.isArray(catRes) ? catRes : []));
-      setSkinTypes(skinRes?.data || (Array.isArray(skinRes) ? skinRes : []));
-    } catch (error) { 
-      console.error('Lỗi tải bộ lọc (Categories/SkinTypes):', error); 
-    }
-  };
+  useEffect(() => {
+    fetchFilterOptions();
+  }, [fetchFilterOptions]);
 
-  useEffect(() => { 
-    fetchFilters(); 
-  }, []);
-
-  useEffect(() => { 
-    fetchProducts(); 
+  useEffect(() => {
+    fetchProducts();
   }, [fetchProducts]);
+
+  const handleSearch = () => {
+    setSearch(searchInput.trim());
+    setPage(1);
+  };
 
   const handleDelete = async (id: string) => {
     try {
       await deleteProduct(id);
       message.success('Đã đưa sản phẩm vào thùng rác!');
       fetchProducts();
-    } catch (error) { 
-      message.error('Xóa thất bại!'); 
+    } catch (error: any) {
+      const msg = error?.response?.data?.message;
+      message.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Xóa thất bại!');
     }
   };
-      const handleToggleStatus = async (checked: boolean, id: string) => {
-        try {
-          await toggleProductStatus(id);
-          setProducts(prev =>
-            prev.map(p =>
-              (p._id || p.id) === id ? { ...p, isActive: checked } : p
-            )
-          );
-          message.success('Đã cập nhật trạng thái!');
-        } catch (error) {
-          message.error('Lỗi khi đổi trạng thái');
-        }
-      };
-  const columns: ColumnsType<ProductType> = [
-    {
-      title: 'Sản phẩm',
-      dataIndex: 'name',
-      render: (text, record) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img 
-            src={resolveMediaUrl(record.mainImage)} 
-            alt={text} 
-            style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '1px solid #F3E5DF' }} 
-          />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <strong style={{ color: '#1F2937', fontSize: 14 }}>{text}</strong>
-            <span style={{ color: '#6B7280', fontSize: 12 }}>SKU: {record.sku}</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: 'Danh mục',
-      render: (_, record) => <span style={{ color: '#4b5563', fontWeight: 500 }}>{record.category?.name || 'N/A'}</span>,
-    },
-    {
-      title: 'Giá bán',
-      align: 'right',
-      render: (_, record) => {
-        const price = record.variants?.[0]?.priceSell || 0;
-        return <strong style={{ color: '#FFA78A', fontSize: 14 }}>{price.toLocaleString('vi-VN')} đ</strong>;
-      },
-    },
-    {
-      title: 'Tồn kho',
-      align: 'center',
-      render: (_, record) => {
-        const stock = record.variants?.reduce((sum: number, v: any) => sum + (v.stockQty || 0), 0) || 0;
-        return <span style={{ fontWeight: 600, color: stock > 0 ? '#10b981' : '#ef4444' }}>{stock}</span>;
-      },
-    },
-    {
-      title: 'Trạng thái',
-      align: 'center',
-      render: (_, record) => (
-        <StatusTag
-          status={record.isActive}
-          editable
-          onChange={(checked) => handleToggleStatus(checked, record._id || record.id || '')}
-        />
-      ),
-    },
-    {
-      title: 'Thao tác',
-      align: 'center',
-      width: 100,
-      render: (_, record) => (
-        <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item key="edit" icon={<EditOutlined />} onClick={() => { setSelectedProduct(record); setModalMode('edit'); setOpenModal(true); }}>
-                Chỉnh sửa
-              </Menu.Item>
-              <Menu.Item key="delete" danger>
-                <Popconfirm title="Đưa sản phẩm vào thùng rác?" okText="Xóa" cancelText="Hủy" onConfirm={() => handleDelete(record._id || record.id || '')}>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><DeleteOutlined /> Xóa</div>
-                </Popconfirm>
-              </Menu.Item>
-            </Menu>
-          }
-          trigger={['click']} placement="bottomRight"
-        >
-          <div style={{ padding: 8, cursor: 'pointer', color: '#6B7280' }}><MenuOutlined /></div>
-        </Dropdown>
-      ),
-    },
-  ];
+
+  const handleToggleStatus = async (checked: boolean, id: string) => {
+    try {
+      await updateProductStatus(id, checked);
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p._id || p.id) === id ? { ...p, isActive: checked } : p,
+        ),
+      );
+      message.success('Đã cập nhật trạng thái!');
+    } catch {
+      message.error('Lỗi khi đổi trạng thái');
+      fetchProducts();
+    }
+  };
 
   return (
     <div className={styles.container}>
       <div className={styles.topBar}>
         <div className={styles.pageHeader}>
           <h1 className={styles.pageTitle}>Quản lý Sản phẩm</h1>
-          <div className={styles.breadcrumb}>Tổng quan <span className={styles.separator}>/</span> <span className={styles.active}>Sản phẩm</span></div>
+          <div className={styles.breadcrumb}>
+            Tổng quan <span className={styles.separator}>/</span>
+            <span className={styles.active}>Sản phẩm</span>
+          </div>
+        </div>
+        <div className={styles.metaRow}>
+          Cập nhật lúc: {lastUpdated.toLocaleTimeString('vi-VN')}
+          <Tooltip title="Làm mới">
+            <SyncOutlined
+              spin={loading}
+              className={styles.refreshIcon}
+              onClick={() => fetchProducts(true)}
+            />
+          </Tooltip>
         </div>
       </div>
 
       <TableToolbar
         total={total}
-        searchValue={search}
-        searchPlaceholder="Tìm theo tên sản phẩm, SKU..."
-        onSearchChange={setSearch}
-        onSearch={() => { setPage(1); fetchProducts(); }}
+        searchValue={searchInput}
+        searchPlaceholder="Tìm theo tên, SKU, mô tả..."
+        onSearchChange={setSearchInput}
+        onSearch={handleSearch}
         onRefresh={() => fetchProducts(true)}
-        onAddNew={() => { setSelectedProduct(null); setModalMode('create'); setOpenModal(true); }}
+        onAddNew={() => {
+          setSelectedProductId(null);
+          setModalMode('create');
+          setOpenModal(true);
+        }}
         loading={loading}
+        filterActiveCount={filterActiveCount}
+        filterContent={
+          <div className={styles.extendedFilters}>
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>Danh mục</label>
+              <Select
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                value={categoryFilter || undefined}
+                placeholder="Tất cả danh mục"
+                onChange={(val) => {
+                  setCategoryFilter(val || '');
+                  setPage(1);
+                }}
+                options={[
+                  { value: '', label: 'Tất cả danh mục' },
+                  ...categories.map((c) => ({
+                    label: c.name,
+                    value: String(c._id || c.id),
+                  })),
+                ]}
+                style={{ minWidth: 200 }}
+              />
+            </div>
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>Loại da</label>
+              <Select
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                value={skinTypeFilter || undefined}
+                placeholder="Tất cả loại da"
+                onChange={(val) => {
+                  setSkinTypeFilter(val || '');
+                  setPage(1);
+                }}
+                options={[
+                  { value: '', label: 'Tất cả loại da' },
+                  ...skinTypes.map((s) => ({
+                    label: s.name,
+                    value: String(s._id || s.id),
+                  })),
+                ]}
+                style={{ minWidth: 200 }}
+              />
+            </div>
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>Trạng thái</label>
+              <Select
+                value={activeFilter}
+                onChange={(val) => {
+                  setActiveFilter(val);
+                  setPage(1);
+                }}
+                options={STATUS_FILTER_OPTIONS}
+                style={{ minWidth: 180 }}
+              />
+            </div>
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>Giá từ (đ)</label>
+              <InputNumber
+                min={0}
+                className={styles.filterNumber}
+                value={minPriceFilter}
+                placeholder="Tối thiểu"
+                formatter={(v) => (v != null ? Number(v).toLocaleString('vi-VN') : '')}
+                parser={(v) => Number(v?.replace(/[^\d]/g, '') || 0)}
+                onChange={(v) => {
+                  setMinPriceFilter(v ?? null);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div className={styles.filterField}>
+              <label className={styles.filterLabel}>Giá đến (đ)</label>
+              <InputNumber
+                min={0}
+                className={styles.filterNumber}
+                value={maxPriceFilter}
+                placeholder="Tối đa"
+                formatter={(v) => (v != null ? Number(v).toLocaleString('vi-VN') : '')}
+                parser={(v) => Number(v?.replace(/[^\d]/g, '') || 0)}
+                onChange={(v) => {
+                  setMaxPriceFilter(v ?? null);
+                  setPage(1);
+                }}
+              />
+            </div>
+          </div>
+        }
       />
 
       <div className={styles.tableWrapper}>
-        <DataTable<ProductType>
-          rowKey={(record) => record._id || record.id || record.sku}
-          loading={loading}
-          columns={columns}
-          dataSource={products}
-          pagination={{
-            current: page, pageSize: limit, total: total, showSizeChanger: true,
-            onChange: (p, l) => { setPage(p); setLimit(l || 10); },
-          }}
-        />
+        {fetchError && !loading ? (
+          <div className={styles.errorState}>
+            <Empty description="Không thể tải danh sách sản phẩm">
+              <Button type="primary" onClick={() => fetchProducts()}>
+                Thử lại
+              </Button>
+            </Empty>
+          </div>
+        ) : (
+          <ProductTable
+            loading={loading}
+            dataSource={products}
+            page={page}
+            limit={limit}
+            total={total}
+            onPageChange={(p, l) => {
+              setPage(p);
+              setLimit(l || 10);
+            }}
+            onEdit={(id) => {
+              setSelectedProductId(id);
+              setModalMode('edit');
+              setOpenModal(true);
+            }}
+            onDelete={handleDelete}
+            onToggleStatus={handleToggleStatus}
+          />
+        )}
       </div>
 
       <ProductModal
         open={openModal}
         mode={modalMode}
-        product={selectedProduct}
+        productId={selectedProductId}
         categories={categories}
         skinTypes={skinTypes}
         onClose={() => setOpenModal(false)}
-        onSuccess={() => { setOpenModal(false); fetchProducts(); }}
+        onSuccess={() => {
+          setOpenModal(false);
+          fetchProducts();
+        }}
       />
     </div>
   );

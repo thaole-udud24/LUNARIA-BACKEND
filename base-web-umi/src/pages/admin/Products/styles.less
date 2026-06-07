@@ -94,6 +94,56 @@
   .active { color: @text-primary; font-weight: 600; }
 }
 
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.refreshIcon {
+  font-size: 16px;
+  color: #ff8c69;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: rotate(90deg);
+    color: #ff6b81;
+  }
+}
+
+.extendedFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filterLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+}
+
+.filterNumber {
+  width: 100%;
+  min-width: 160px;
+}
+
+.errorState {
+  padding: 48px 16px;
+  text-align: center;
+}
+
 @media (max-width: 992px) {
   .topBar { flex-direction: column; align-items: flex-start; gap: 16px; }
   .pageTitle { font-size: 28px; }
@@ -101,6 +151,10 @@
 
 @media (max-width: 768px) {
   .container { padding: 16px; gap: 16px; }
-  .topBar, .statCard, .tableWrapper { padding: 16px; border-radius: 16px; }
+  .topBar, .tableWrapper { padding: 16px; border-radius: 16px; }
   .pageTitle { font-size: 24px; }
+  .metaRow { width: 100%; justify-content: flex-start; }
+  .extendedFilters { flex-direction: column; }
+  .filterField :global(.ant-select),
+  .filterNumber { width: 100% !important; min-width: 0 !important; }
 }

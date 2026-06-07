@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import DataTable from '@/components/admin/DataTable';
+import { resolveMediaUrl } from '@/utils/adminApi';
 import styles from './DetailTable.less';
 
 interface DetailTableProps {
@@ -17,7 +18,7 @@ export default function DetailTable({ products = [], vouchers = [] }: DetailTabl
       key: 'name',
       render: (_: any, record: any) => (
         <div className={styles.productCell}>
-          <img src={record.image || '/images/placeholder.png'} alt={record.name} />
+          <img src={resolveMediaUrl(record.image) || '/images/placeholder.png'} alt={record.name} />
           <div>
             <div className={styles.name}>{record.name}</div>
             <div className={styles.sku}>SKU: {record.sku}</div>

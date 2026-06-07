@@ -16,6 +16,8 @@ export interface DashboardStats {
 export interface RecentOrder {
   id: string;
   orderId?: string;
+  orderCode?: string;
+  status?: string;
   productName: string;
   quantity: number;
   price: number;
@@ -39,6 +41,7 @@ export interface BestSeller {
   id: string;
   name: string;
   imageUrl: string;
+  sales?: number;
 }
 
 export interface DashboardResponse {

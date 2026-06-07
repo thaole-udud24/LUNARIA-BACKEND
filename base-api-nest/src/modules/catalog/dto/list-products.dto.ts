@@ -26,6 +26,10 @@ export class ListProductsDto {
   maxPrice?: number;
 
   @IsOptional()
+  @IsString()
+  isActive?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)

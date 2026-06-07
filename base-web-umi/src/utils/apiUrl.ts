@@ -8,6 +8,19 @@ export const getApiBaseUrl = (): string => {
   }
 };
 
+/** Dev local (localhost:8000) → dùng proxy Umi, không gọi thẳng URL production */
+export const isLocalDev = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1';
+};
+
+/** Prefix cho umi-request: dev = '' (proxy /api → localhost:3000), prod = API_URL */
+export const getRequestPrefix = (): string => {
+  if (isLocalDev()) return '';
+  return getApiBaseUrl();
+};
+
 /** Ghép path API: /api/... → {API_URL}/api/... */
 export const buildApiUrl = (path: string): string => {
   const base = getApiBaseUrl();
@@ -21,7 +34,7 @@ export const resolveMediaUrl = (raw?: string | null): string => {
   if (raw.startsWith('blob:') || raw.startsWith('data:')) return raw;
   if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
 
-  const base = getApiBaseUrl();
+  const base = isLocalDev() ? '' : getApiBaseUrl();
   const path = raw.startsWith('/') ? raw : `/${raw}`;
   return base ? `${base}${path}` : path;
 };

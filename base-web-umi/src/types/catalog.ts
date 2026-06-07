@@ -37,7 +37,6 @@ export interface CategoryType {
   slug?: string;
   description?: string;
   isActive?: boolean;
-  active?: boolean;
   isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string;

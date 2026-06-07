@@ -12,6 +12,12 @@ export async function getAdminProducts(params?: any) {
   });
 }
 
+export async function getAdminProductById(id: string) {
+  return request(`/api/admin/products/${id}`, {
+    method: 'GET',
+  });
+}
+
 export async function createProduct(data: CreateProductDto) {
   return request('/api/admin/products', {
     method: 'POST',
@@ -32,6 +38,14 @@ export async function updateProduct(id: string, data: UpdateProductDto) {
   });
 }
 
+export async function updateProductStatus(id: string, isActive: boolean) {
+  return request(`/api/admin/products/${id}/status`, {
+    method: 'PATCH',
+    data: { isActive },
+  });
+}
+
+/** @deprecated dùng updateProductStatus */
 export async function toggleProductStatus(id: string) {
   return request(`/api/admin/products/${id}/toggle`, {
     method: 'PATCH',

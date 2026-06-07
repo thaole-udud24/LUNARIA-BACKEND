@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import classNames from 'classnames';
 import {
   ReloadOutlined,
   PlusOutlined,
@@ -22,6 +23,10 @@ interface TableToolbarProps {
   onImport?: () => void;
   onAddNew?: () => void;
   loading?: boolean;
+  /** Nội dung bộ lọc mở rộng (hiện khi bấm icon Filter) */
+  filterContent?: React.ReactNode;
+  /** Số filter đang áp dụng — hiển thị badge trên icon */
+  filterActiveCount?: number;
 }
 
 export default function TableToolbar({
@@ -35,9 +40,17 @@ export default function TableToolbar({
   onImport,
   onAddNew,
   loading = false,
+  filterContent,
+  filterActiveCount = 0,
 }: TableToolbarProps) {
+  const [filterOpen, setFilterOpen] = useState(false);
+  const hasActiveFilter = filterActiveCount > 0;
+
   return (
-    <div className={styles.toolbarContainer}>
+    <div className={styles.toolbarWrapper}>
+    <div className={classNames(styles.toolbarContainer, {
+      [styles.toolbarContainerExpanded]: filterContent && filterOpen,
+    })}>
       <div className={styles.leftGroup}>
         <button
           type="button"
@@ -46,12 +59,19 @@ export default function TableToolbar({
           <AppstoreOutlined />
         </button>
 
-        <button
-          type="button"
-          className={styles.iconBtn}
-        >
-          <FilterOutlined />
-        </button>
+        {filterContent && (
+          <button
+            type="button"
+            className={classNames(styles.iconBtn, {
+              [styles.iconBtnActive]: filterOpen || hasActiveFilter,
+            })}
+            onClick={() => setFilterOpen((prev) => !prev)}
+            title="Bộ lọc mở rộng"
+          >
+            <FilterOutlined />
+            {hasActiveFilter && !filterOpen && <span className={styles.filterBadge} />}
+          </button>
+        )}
 
         <div className={styles.searchInput}>
           <SearchOutlined className={styles.searchIcon} />
@@ -120,6 +140,13 @@ export default function TableToolbar({
           </button>
         )}
       </div>
+    </div>
+
+    {filterContent && filterOpen && (
+      <div className={styles.filterPanel}>
+        {filterContent}
+      </div>
+    )}
     </div>
   );
 }

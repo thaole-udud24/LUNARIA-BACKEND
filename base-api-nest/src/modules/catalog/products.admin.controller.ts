@@ -40,10 +40,7 @@ const imageFilter = (req: any, file: Express.Multer.File, cb: any) => {
   cb(null, true);
 };
 
-const getImageUrl = (filename: string): string => {
-  const baseUrl = process.env.APP_URL || 'http://localhost:3000';
-  return `${baseUrl}/uploads/products/${filename}`;
-};
+const getImageUrl = (filename: string): string => `/uploads/products/${filename}`;
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -124,6 +121,11 @@ export class ProductsAdminController {
       updateProductDto.galleryImages = files.galleryImages.map(f => getImageUrl(f.filename));
     }
     return this.productsService.update(id, updateProductDto);
+  }
+
+  @Patch(':id/status')
+  updateStatus(@Param('id') id: string, @Body() body: { isActive: boolean }) {
+    return this.productsService.updateStatus(id, body.isActive);
   }
 
   @Patch(':id/toggle')

@@ -51,9 +51,9 @@ export default function CategoryTable({
       width: 150,
       render: (_, record) => (
         <StatusTag
-          status={record.isActive ?? record.active ?? true} // ← hỗ trợ cả 2 field
+          status={record.isActive ?? true}
           editable
-          onChange={(checked) => onToggleStatus(checked, (record as any)._id || record.id)}
+          onChange={(checked) => onToggleStatus(checked, record._id || record.id || '')}
         />
       ),
     },
@@ -73,7 +73,7 @@ export default function CategoryTable({
                   title="Bạn có chắc chắn muốn xóa?"
                   okText="Xóa"
                   cancelText="Hủy"
-                  onConfirm={() => onDelete((record as any)._id || record.id)}
+                  onConfirm={() => onDelete(record._id || record.id || '')}
                 >
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <DeleteOutlined /> Xóa
@@ -95,7 +95,7 @@ export default function CategoryTable({
 
   return (
     <DataTable<CategoryType>
-      rowKey={(record) => ((record as any)._id || record.id || '').toString()}
+      rowKey={(record) => String(record._id || record.id || '')}
       loading={loading}
       columns={columns}
       dataSource={dataSource}

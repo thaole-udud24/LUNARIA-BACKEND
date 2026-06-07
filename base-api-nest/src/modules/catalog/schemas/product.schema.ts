@@ -36,10 +36,10 @@ export class Product {
   @Prop({ required: true, index: true })
   name!: string;
 
-  @Prop({ required: true, unique: true, index: true })
+  @Prop({ required: true, index: true })
   sku!: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   slug!: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Category', required: true })
@@ -72,3 +72,12 @@ export class Product {
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
 ProductSchema.index({ name: 'text', description: 'text' });
+
+ProductSchema.index(
+  { sku: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);
+ProductSchema.index(
+  { slug: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);

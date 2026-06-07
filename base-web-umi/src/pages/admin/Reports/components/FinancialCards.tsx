@@ -32,9 +32,11 @@ export default function FinancialCards({ kpis }: any) {
             <AnimatedNumber value={kpis?.netProfit?.value || 0} />
             <span className={styles.currency}>VNĐ</span>
           </h2>
-          <div className={styles.trendBadge}>
-            Tiềm năng ↑ {kpis?.netProfit?.trend || 0}%
-          </div>
+          {typeof kpis?.netProfit?.trend === 'number' && (
+            <div className={styles.trendBadge}>
+              So với tháng trước {kpis.netProfit.trend >= 0 ? '↑' : '↓'} {Math.abs(kpis.netProfit.trend)}%
+            </div>
+          )}
         </div>
       </div>
 

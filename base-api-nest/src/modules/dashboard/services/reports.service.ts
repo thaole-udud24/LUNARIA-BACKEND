@@ -7,6 +7,8 @@ import { Voucher, VoucherDocument } from '../../vouchers/schemas/voucher.schema'
 import { Category, CategoryDocument } from '../../catalog/schemas/category.schema';
 import { ExcelBaseService } from 'src/shared/csv/excel.service';
 
+const PROFIT_MARGIN = 0.35;
+
 @Injectable()
 export class ReportsService {
   constructor(
@@ -17,59 +19,138 @@ export class ReportsService {
     private excelService: ExcelBaseService,
   ) {}
 
+  /** Biên tháng theo múi giờ VN (UTC+7) */
   private getMonthRange(monthStr?: string) {
-    let year = new Date().getUTCFullYear();
-    let month = new Date().getUTCMonth();
+    const now = new Date();
+    let year = now.getFullYear();
+    let month = now.getMonth() + 1;
 
     if (monthStr) {
       const parts = monthStr.split('-');
       year = parseInt(parts[0], 10);
-      month = parseInt(parts[1], 10) - 1;
+      month = parseInt(parts[1], 10);
     }
 
-    const startOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
-    const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
-    
-    return { startOfMonth, endOfMonth };
+    const mm = String(month).padStart(2, '0');
+    const lastDay = new Date(year, month, 0).getDate();
+    const startOfMonth = new Date(`${year}-${mm}-01T00:00:00+07:00`);
+    const endOfMonth = new Date(`${year}-${mm}-${String(lastDay).padStart(2, '0')}T23:59:59.999+07:00`);
+
+    return { startOfMonth, endOfMonth, year, month, daysInMonth: lastDay };
+  }
+
+  private shiftMonth(monthStr: string, delta: number) {
+    const [y, m] = monthStr.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  private buildBaseMatchStage(startOfMonth: Date, endOfMonth: Date) {
+    return {
+      $match: {
+        status: 'COMPLETED',
+        paymentStatus: 'PAID',
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+      },
+    };
+  }
+
+  private productLookupStages() {
+    return [
+      { $unwind: { path: '$items', preserveNullAndEmptyArrays: false } },
+      {
+        $addFields: {
+          safeProductId: {
+            $convert: { input: '$items.productId', to: 'objectId', onError: null, onNull: null },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'safeProductId',
+          foreignField: '_id',
+          as: 'productInfo',
+        },
+      },
+      { $unwind: { path: '$productInfo', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          safeCategoryId: {
+            $convert: { input: '$productInfo.category', to: 'objectId', onError: null, onNull: null },
+          },
+        },
+      },
+    ];
+  }
+
+  private categoryMatchStage(categoryId?: string) {
+    if (categoryId && Types.ObjectId.isValid(categoryId)) {
+      return [{ $match: { safeCategoryId: new Types.ObjectId(categoryId) } }];
+    }
+    return [];
+  }
+
+  private calcTrendPercent(current: number, previous: number): number | null {
+    if (previous <= 0) {
+      return current > 0 ? 100 : null;
+    }
+    return Math.round(((current - previous) / previous) * 1000) / 10;
+  }
+
+  private fillTrendWeeks(
+    rows: Array<{ _id: number; revenue: number; profit?: number }>,
+    daysInMonth: number,
+  ) {
+    const maxWeek = Math.ceil(daysInMonth / 7);
+    const map = new Map(rows.map((r) => [r._id, r]));
+    return Array.from({ length: maxWeek }, (_, i) => {
+      const week = i + 1;
+      const item = map.get(week);
+      const revenue = item?.revenue ?? 0;
+      const profit = item?.profit ?? revenue * PROFIT_MARGIN;
+      return { label: `Tuần ${week}`, revenue, profit };
+    });
   }
 
   async getRevenueData(monthStr?: string, categoryId?: string) {
-    const { startOfMonth, endOfMonth } = this.getMonthRange(monthStr);
+    const { startOfMonth, endOfMonth, daysInMonth } = this.getMonthRange(monthStr);
+    const matchStage = this.buildBaseMatchStage(startOfMonth, endOfMonth);
 
-    const matchStage: any = {
-      $match: {
-        status: 'COMPLETED',
-        createdAt: {
-          $gte: startOfMonth,
-          $lte: endOfMonth
-        }
-      },
-    };
-
-    // 1. TÍNH KPI THEO BỘ LỌC
     const current = await this.calculateKPIs(matchStage, categoryId);
 
-    // 2. LẤY DATA BIỂU ĐỒ & TOP
-    const trendData = await this.buildTrendData(matchStage, categoryId);
+    let netProfitTrend: number | null = null;
+    if (monthStr) {
+      const prevRange = this.getMonthRange(this.shiftMonth(monthStr, -1));
+      const prevMatch = this.buildBaseMatchStage(prevRange.startOfMonth, prevRange.endOfMonth);
+      const prev = await this.calculateKPIs(prevMatch, categoryId);
+      netProfitTrend = this.calcTrendPercent(current.netProfit, prev.netProfit);
+    }
+
+    const trendData = await this.buildTrendData(matchStage, categoryId, daysInMonth);
     const categoryData = await this.buildCategoryData(matchStage, categoryId);
     const topProducts = await this.buildTopProducts(matchStage, categoryId);
     const topVouchers = await this.buildTopVouchers(matchStage, categoryId);
 
-    // 3. LẤY DANH SÁCH DANH MỤC CHO BỘ LỌC
     const rawCategories = await this.categoryModel.find().select('_id name').exec();
     const availableCategories = rawCategories
-      .filter(cat => cat.name && cat.name.trim() !== '') 
-      .map(cat => ({
+      .filter((cat) => cat.name && cat.name.trim() !== '')
+      .map((cat) => ({
         value: cat._id.toString(),
-        label: cat.name
+        label: cat.name,
       }));
 
     return {
       kpis: {
         totalRevenue: { value: current.totalRevenue },
-        netProfit: { value: current.netProfit, trend: 15.5 },
+        netProfit: {
+          value: current.netProfit,
+          ...(netProfitTrend !== null ? { trend: netProfitTrend } : {}),
+        },
         discounts: { value: current.discounts },
-        aov: { value: current.totalOrders > 0 ? Math.round(current.totalRevenue / current.totalOrders) : 0 },
+        aov: {
+          value: current.totalOrders > 0 ? Math.round(current.totalRevenue / current.totalOrders) : 0,
+        },
       },
       trendData,
       categoryData,
@@ -80,109 +161,129 @@ export class ReportsService {
   }
 
   private async calculateKPIs(matchStage: any, categoryId?: string) {
-    const pipeline: any[] = [matchStage];
-    
     if (categoryId && Types.ObjectId.isValid(categoryId)) {
-      pipeline.push(
-        { $unwind: { path: '$items', preserveNullAndEmptyArrays: true } },
-        { $addFields: { safeProductId: { $convert: { input: '$items.productId', to: 'objectId', onError: null, onNull: null } } } },
-        { $lookup: { from: 'products', localField: 'safeProductId', foreignField: '_id', as: 'p' } },
-        { $unwind: { path: '$p', preserveNullAndEmptyArrays: true } },
-        { $addFields: { safeCategoryId: { $convert: { input: '$p.category', to: 'objectId', onError: null, onNull: null } } } },
-        { $match: { safeCategoryId: new Types.ObjectId(categoryId) } },
+      const pipeline: any[] = [
+        matchStage,
+        ...this.productLookupStages(),
+        ...this.categoryMatchStage(categoryId),
         {
           $group: {
-            _id: '$_id', 
-            orderRevenue: { $sum: { $multiply: [{ $ifNull: ['$items.priceSell', 0] }, { $ifNull: ['$items.quantity', 0] }] } },
-          }
+            _id: '$_id',
+            categoryRevenue: {
+              $sum: {
+                $multiply: [{ $ifNull: ['$items.priceSell', 0] }, { $ifNull: ['$items.quantity', 0] }],
+              },
+            },
+            discountAmount: { $first: '$discountAmount' },
+            originalTotal: { $first: '$originalTotal' },
+          },
+        },
+        {
+          $addFields: {
+            allocatedDiscount: {
+              $cond: [
+                { $gt: [{ $ifNull: ['$originalTotal', 0] }, 0] },
+                {
+                  $multiply: [
+                    { $ifNull: ['$discountAmount', 0] },
+                    { $divide: ['$categoryRevenue', '$originalTotal'] },
+                  ],
+                },
+                0,
+              ],
+            },
+          },
         },
         {
           $group: {
             _id: null,
-            totalRevenue: { $sum: '$orderRevenue' },
-            discounts: { $sum: 0 }, 
+            totalRevenue: { $sum: '$categoryRevenue' },
+            discounts: { $sum: '$allocatedDiscount' },
             totalOrders: { $sum: 1 },
-            netProfit: { $sum: { $multiply: ['$orderRevenue', 0.35] } },
-          }
-        }
-      );
-    } else {
-      pipeline.push({
+            netProfit: { $sum: { $multiply: ['$categoryRevenue', PROFIT_MARGIN] } },
+          },
+        },
+      ];
+
+      const res = await this.orderModel.aggregate(pipeline);
+      return res[0] || { totalRevenue: 0, discounts: 0, totalOrders: 0, netProfit: 0 };
+    }
+
+    const pipeline: any[] = [
+      matchStage,
+      {
         $group: {
           _id: null,
           totalRevenue: { $sum: '$totalAmount' },
           discounts: { $sum: '$discountAmount' },
           totalOrders: { $sum: 1 },
-          netProfit: { $sum: { $multiply: ['$totalAmount', 0.35] } },
-        }
-      });
-    }
+          netProfit: { $sum: { $multiply: ['$totalAmount', PROFIT_MARGIN] } },
+        },
+      },
+    ];
 
     const res = await this.orderModel.aggregate(pipeline);
     return res[0] || { totalRevenue: 0, discounts: 0, totalOrders: 0, netProfit: 0 };
   }
 
-  private async buildTrendData(matchStage: any, categoryId?: string) {
-    const pipeline: any[] = [matchStage];
+  private async buildTrendData(matchStage: any, categoryId?: string, daysInMonth = 30) {
+    const weekField = {
+      weekInMonth: {
+        $ceil: { $divide: [{ $dayOfMonth: '$createdAt' }, 7] },
+      },
+    };
+
+    let pipeline: any[];
 
     if (categoryId && Types.ObjectId.isValid(categoryId)) {
-      pipeline.push(
-        { $unwind: { path: '$items', preserveNullAndEmptyArrays: true } },
-        { $addFields: { safeProductId: { $convert: { input: '$items.productId', to: 'objectId', onError: null, onNull: null } } } },
-        { $lookup: { from: 'products', localField: 'safeProductId', foreignField: '_id', as: 'productInfo' } },
-        { $unwind: { path: '$productInfo', preserveNullAndEmptyArrays: true } },
-        { $addFields: { safeCategoryId: { $convert: { input: '$productInfo.category', to: 'objectId', onError: null, onNull: null } } } },
-        { $match: { safeCategoryId: new Types.ObjectId(categoryId) } },
+      pipeline = [
+        matchStage,
+        ...this.productLookupStages(),
+        ...this.categoryMatchStage(categoryId),
+        { $addFields: weekField },
         {
           $group: {
-            _id: { $week: '$createdAt' },
-            revenue: { $sum: { $multiply: [{ $ifNull: ['$items.priceSell', 0] }, { $ifNull: ['$items.quantity', 0] }] } },
-          }
+            _id: '$weekInMonth',
+            revenue: {
+              $sum: {
+                $multiply: [{ $ifNull: ['$items.priceSell', 0] }, { $ifNull: ['$items.quantity', 0] }],
+              },
+            },
+          },
         },
-        { $addFields: { profit: { $multiply: ['$revenue', 0.35] } } }
-      );
+        { $addFields: { profit: { $multiply: ['$revenue', PROFIT_MARGIN] } } },
+      ];
     } else {
-      pipeline.push({
-        $group: {
-          _id: { $week: '$createdAt' },
-          revenue: { $sum: '$totalAmount' },
-          profit: { $sum: { $multiply: ['$totalAmount', 0.35] } },
+      pipeline = [
+        matchStage,
+        { $addFields: weekField },
+        {
+          $group: {
+            _id: '$weekInMonth',
+            revenue: { $sum: '$totalAmount' },
+            profit: { $sum: { $multiply: ['$totalAmount', PROFIT_MARGIN] } },
+          },
         },
-      });
+      ];
     }
 
     pipeline.push({ $sort: { _id: 1 } });
     const weeklyData = await this.orderModel.aggregate(pipeline);
-    
-    return weeklyData.map((item, index) => ({
-      label: `Tuần ${index + 1}`,
-      revenue: item.revenue,
-      profit: item.profit,
+
+    const normalized = weeklyData.map((item) => ({
+      _id: typeof item._id === 'object' ? item._id.weekInMonth : item._id,
+      revenue: item.revenue ?? 0,
+      profit: item.profit ?? (item.revenue ?? 0) * PROFIT_MARGIN,
     }));
+
+    return this.fillTrendWeeks(normalized, daysInMonth);
   }
 
   private async buildCategoryData(matchStage: any, categoryId?: string) {
     const pipeline: any[] = [
       matchStage,
-      { $unwind: { path: '$items', preserveNullAndEmptyArrays: true } },
-      { $addFields: { safeProductId: { $convert: { input: '$items.productId', to: 'objectId', onError: null, onNull: null } } } },
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'safeProductId',
-          foreignField: '_id',
-          as: 'product',
-        },
-      },
-      { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
-      { $addFields: { safeCategoryId: { $convert: { input: '$product.category', to: 'objectId', onError: null, onNull: null } } } },
-    ];
-
-    if (categoryId && Types.ObjectId.isValid(categoryId)) {
-      pipeline.push({ $match: { safeCategoryId: new Types.ObjectId(categoryId) } });
-    }
-
-    pipeline.push(
+      ...this.productLookupStages(),
+      ...this.categoryMatchStage(categoryId),
       {
         $lookup: {
           from: 'categories',
@@ -195,49 +296,48 @@ export class ReportsService {
       {
         $group: {
           _id: '$categoryInfo.name',
-          value: { 
-            $sum: { 
-              $multiply: [
-                { $ifNull: ['$items.priceSell', 0] },
-                { $ifNull: ['$items.quantity', 0] }
-              ] 
-            } 
+          value: {
+            $sum: {
+              $multiply: [{ $ifNull: ['$items.priceSell', 0] }, { $ifNull: ['$items.quantity', 0] }],
+            },
           },
         },
       },
-    );
+    ];
 
     const data = await this.orderModel.aggregate(pipeline);
     const colors = ['#FFA78A', '#A7C7E7', '#E6E6FA', '#FFD1DC', '#D8BFD8', '#B0E0E6', '#FFB6C1', '#87CEFA'];
-    
+
     return data.map((d, i) => ({
       name: d._id || 'Chưa phân loại',
       value: d.value,
-      color: colors[i % colors.length], 
+      color: colors[i % colors.length],
     }));
   }
 
   private async buildTopProducts(matchStage: any, categoryId?: string) {
     const pipeline: any[] = [
       matchStage,
-      { $unwind: { path: '$items', preserveNullAndEmptyArrays: true } },
+      ...this.productLookupStages(),
+      ...this.categoryMatchStage(categoryId),
       {
         $group: {
           _id: '$items.productId',
           sales: { $sum: { $ifNull: ['$items.quantity', 0] } },
-          revenue: { 
-            $sum: { 
-              $multiply: [
-                { $ifNull: ['$items.priceSell', 0] },
-                { $ifNull: ['$items.quantity', 0] }
-              ] 
-            } 
+          revenue: {
+            $sum: {
+              $multiply: [{ $ifNull: ['$items.priceSell', 0] }, { $ifNull: ['$items.quantity', 0] }],
+            },
           },
         },
       },
       { $sort: { revenue: -1 } },
       { $limit: 5 },
-      { $addFields: { safeProductId: { $convert: { input: '$_id', to: 'objectId', onError: null, onNull: null } } } },
+      {
+        $addFields: {
+          safeProductId: { $convert: { input: '$_id', to: 'objectId', onError: null, onNull: null } },
+        },
+      },
       {
         $lookup: {
           from: 'products',
@@ -247,62 +347,54 @@ export class ReportsService {
         },
       },
       { $unwind: { path: '$productInfo', preserveNullAndEmptyArrays: true } },
-      { $addFields: { safeCategoryId: { $convert: { input: '$productInfo.category', to: 'objectId', onError: null, onNull: null } } } },
+      {
+        $addFields: {
+          safeCategoryId: {
+            $convert: { input: '$productInfo.category', to: 'objectId', onError: null, onNull: null },
+          },
+        },
+      },
       {
         $lookup: {
           from: 'categories',
           localField: 'safeCategoryId',
           foreignField: '_id',
           as: 'categoryInfo',
-        }
+        },
       },
       { $unwind: { path: '$categoryInfo', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          id: '$_id',
+          name: { $ifNull: ['$productInfo.name', 'Sản phẩm đã xóa'] },
+          sku: { $ifNull: ['$productInfo.sku', 'N/A'] },
+          categoryName: { $ifNull: ['$categoryInfo.name', 'Chưa phân loại'] },
+          sales: 1,
+          revenue: 1,
+          profit: { $multiply: ['$revenue', PROFIT_MARGIN] },
+          image: '$productInfo.mainImage',
+        },
+      },
     ];
-
-    if (categoryId && Types.ObjectId.isValid(categoryId)) {
-      pipeline.push({
-        $match: { 'safeCategoryId': new Types.ObjectId(categoryId) },
-      });
-    }
-
-    pipeline.push({
-      $project: {
-        id: '$_id',
-        name: { $ifNull: ['$productInfo.name', 'Sản phẩm đã xóa'] },
-        sku: { $ifNull: ['$productInfo.sku', 'N/A'] },
-        categoryName: { $ifNull: ['$categoryInfo.name', 'Chưa phân loại'] },
-        sales: 1,
-        revenue: 1,
-        profit: { $multiply: ['$revenue', 0.35] },
-        image: '$productInfo.mainImage',
-      }
-    });
 
     return this.orderModel.aggregate(pipeline);
   }
 
   private async buildTopVouchers(matchStage: any, categoryId?: string) {
-    const pipeline: any[] = [
-      matchStage,
-      { $match: { appliedVoucher: { $nin: [null, ''] } } }
-    ];
+    const pipeline: any[] = [matchStage, { $match: { appliedVoucher: { $nin: [null, ''] } } }];
 
     if (categoryId && Types.ObjectId.isValid(categoryId)) {
       pipeline.push(
-        { $unwind: { path: '$items', preserveNullAndEmptyArrays: true } },
-        { $addFields: { safeProductId: { $convert: { input: '$items.productId', to: 'objectId', onError: null, onNull: null } } } },
-        { $lookup: { from: 'products', localField: 'safeProductId', foreignField: '_id', as: 'productInfo' } },
-        { $unwind: { path: '$productInfo', preserveNullAndEmptyArrays: true } },
-        { $addFields: { safeCategoryId: { $convert: { input: '$productInfo.category', to: 'objectId', onError: null, onNull: null } } } },
-        { $match: { safeCategoryId: new Types.ObjectId(categoryId) } },
+        ...this.productLookupStages(),
+        ...this.categoryMatchStage(categoryId),
         {
           $group: {
             _id: '$_id',
             appliedVoucher: { $first: '$appliedVoucher' },
             discountAmount: { $first: '$discountAmount' },
-            totalAmount: { $first: '$totalAmount' }
-          }
-        }
+            totalAmount: { $first: '$totalAmount' },
+          },
+        },
       );
     }
 
@@ -333,38 +425,38 @@ export class ReportsService {
           usageCount: 1,
           totalDiscount: 1,
           generatedRevenue: 1,
-        }
-      }
+        },
+      },
     );
 
     return this.orderModel.aggregate(pipeline);
   }
 
-  async exportRevenueData(monthStr?: string, fields?: string | string[]) {
+  async exportRevenueData(monthStr?: string, fields?: string | string[], categoryId?: string) {
     const { startOfMonth, endOfMonth } = this.getMonthRange(monthStr);
+    const matchStage = this.buildBaseMatchStage(startOfMonth, endOfMonth);
 
-    const matchStage = {
-      $match: {
-        status: 'COMPLETED',
-        createdAt: {
-          $gte: startOfMonth,
-          $lte: endOfMonth
-        }
-      },
-    };
-
-    const productsSold = await this.orderModel.aggregate([
+    const pipeline: any[] = [
       matchStage,
-      { $unwind: '$items' },
+      ...this.productLookupStages(),
+      ...this.categoryMatchStage(categoryId),
       {
         $group: {
           _id: '$items.productId',
-          sales: { $sum: '$items.quantity' },
-          revenue: { $sum: { $multiply: ['$items.priceSell', '$items.quantity'] } }, 
+          sales: { $sum: { $ifNull: ['$items.quantity', 0] } },
+          revenue: {
+            $sum: {
+              $multiply: [{ $ifNull: ['$items.priceSell', 0] }, { $ifNull: ['$items.quantity', 0] }],
+            },
+          },
         },
       },
       { $sort: { revenue: -1 } },
-      { $addFields: { safeProductId: { $convert: { input: '$_id', to: 'objectId', onError: null, onNull: null } } } },
+      {
+        $addFields: {
+          safeProductId: { $convert: { input: '$_id', to: 'objectId', onError: null, onNull: null } },
+        },
+      },
       {
         $lookup: {
           from: 'products',
@@ -373,42 +465,46 @@ export class ReportsService {
           as: 'productInfo',
         },
       },
-      { $unwind: '$productInfo' },
-      { $addFields: { safeCategoryId: { $convert: { input: '$productInfo.category', to: 'objectId', onError: null, onNull: null } } } },
+      { $unwind: { path: '$productInfo', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          safeCategoryId: {
+            $convert: { input: '$productInfo.category', to: 'objectId', onError: null, onNull: null },
+          },
+        },
+      },
       {
         $lookup: {
           from: 'categories',
           localField: 'safeCategoryId',
           foreignField: '_id',
           as: 'categoryInfo',
-        }
+        },
       },
       { $unwind: { path: '$categoryInfo', preserveNullAndEmptyArrays: true } },
-    ]);
+    ];
 
-    // MAP CHỨA TOÀN BỘ CÁC TRƯỜNG CÓ THỂ XUẤT
+    const productsSold = await this.orderModel.aggregate(pipeline);
+
     const allFieldsMap: Record<string, (item: any) => any> = {
-      'Ten_San_Pham': (item) => item.productInfo?.name || 'Không xác định',
-      'SKU': (item) => item.productInfo?.sku || 'N/A',
-      'Loai_San_Pham': (item) => item.categoryInfo?.name || 'Chưa phân loại',
-      'So_Luong_Ban': (item) => item.sales,
-      'Doanh_Thu_VND': (item) => item.revenue,
-      'Loi_Nhuan_VND': (item) => item.revenue * 0.35,
+      Ten_San_Pham: (item) => item.productInfo?.name || 'Không xác định',
+      SKU: (item) => item.productInfo?.sku || 'N/A',
+      Loai_San_Pham: (item) => item.categoryInfo?.name || 'Chưa phân loại',
+      So_Luong_Ban: (item) => item.sales,
+      Doanh_Thu_VND: (item) => item.revenue,
+      Loi_Nhuan_VND: (item) => item.revenue * PROFIT_MARGIN,
     };
 
-    // XÁC ĐỊNH DANH SÁCH TRƯỜNG ĐƯỢC CHỌN TỪ FRONTEND
     let fieldsToExport = Object.keys(allFieldsMap);
     if (fields) {
       fieldsToExport = Array.isArray(fields) ? fields : fields.split(',');
     }
 
-    // LOẠI BỎ NHỮNG TRƯỜNG KHÔNG HỢP LỆ
-    const validFieldsToExport = fieldsToExport.filter(field => allFieldsMap[field]);
+    const validFieldsToExport = fieldsToExport.filter((field) => allFieldsMap[field]);
 
-    // BUILD DỮ LIỆU CHUẨN ĐỂ XUẤT RA EXCEL
     const excelData = productsSold.map((item) => {
       const row: any = {};
-      validFieldsToExport.forEach(field => {
+      validFieldsToExport.forEach((field) => {
         row[field] = allFieldsMap[field](item);
       });
       return row;

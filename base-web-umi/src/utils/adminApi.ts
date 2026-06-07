@@ -27,6 +27,18 @@ export const unwrapListResponse = <T>(res: unknown) => {
   return { list: [] as T[], total: 0 };
 };
 
+/** List admin dạng { success, data: { data: T[], meta: { total } } } */
+export const unwrapAdminPaginatedResponse = <T>(res: unknown) => {
+  const inner = unwrapApiData<{ data?: T[]; meta?: { total?: number } }>(res);
+  if (inner && Array.isArray(inner.data)) {
+    return {
+      list: inner.data,
+      total: inner.meta?.total ?? inner.data.length,
+    };
+  }
+  return unwrapListResponse<T>(res);
+};
+
 export const unwrapDashboardOverview = <T>(res: unknown): T | null => {
   if (!res || typeof res !== 'object') return null;
 

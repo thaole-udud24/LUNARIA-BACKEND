@@ -37,7 +37,7 @@ export default function CategoryModal({ open, mode, category, onClose, onSuccess
       const categoryId = category?.id || (category as any)?._id;
 
       if (mode === 'create') {
-        await createCategory({ ...values, active: true });
+        await createCategory(values);
         message.success('Thêm loại sản phẩm thành công!');
       } else if (categoryId) { 
         // TypeScript tự hiểu ở đây categoryId chắc chắn tồn tại (hết báo đỏ)
@@ -73,7 +73,7 @@ export default function CategoryModal({ open, mode, category, onClose, onSuccess
       >
         <FormSection title="Thông tin cơ bản">
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item 
                 name="code" 
                 label="Mã loại sản phẩm" 
@@ -82,7 +82,7 @@ export default function CategoryModal({ open, mode, category, onClose, onSuccess
                 <Input size="large" placeholder="Ví dụ: KCN, SRM..." />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item 
                 name="name" 
                 label="Tên loại sản phẩm" 

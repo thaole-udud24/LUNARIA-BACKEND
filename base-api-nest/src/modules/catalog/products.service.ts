@@ -46,13 +46,41 @@ export class ProductsService {
     return `${categoryCode.toUpperCase()}-${acronym}${year}-${random}`;
   }
 
+  private applySearchFilter(filters: Record<string, unknown>, search?: string) {
+    if (!search?.trim()) return;
+    const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    filters.$or = [
+      { name: { $regex: escaped, $options: 'i' } },
+      { sku: { $regex: escaped, $options: 'i' } },
+      { description: { $regex: escaped, $options: 'i' } },
+    ];
+  }
+
+  private applyIsActiveFilter(filters: Record<string, unknown>, isActive?: string) {
+    if (isActive === 'true') filters.isActive = true;
+    else if (isActive === 'false') filters.isActive = false;
+  }
+
+  private validateVariants(variants?: CreateProductDto['variants']) {
+    if (!variants?.length) {
+      throw new BadRequestException('Sản phẩm phải có ít nhất một phân loại');
+    }
+    for (const variant of variants) {
+      if (!variant.variantName?.trim()) {
+        throw new BadRequestException('Tên phân loại không được để trống');
+      }
+    }
+  }
+
   async create(dto: CreateProductDto): Promise<ProductDocument> {
+    this.validateVariants(dto.variants);
+
     const category = await this.categoryModel.findById(dto.category).exec();
-    if (!category) throw new NotFoundException('Category not found');
+    if (!category) throw new NotFoundException('Không tìm thấy danh mục');
 
     const sku = this.generateAutoSKU(category.code || 'GEN', dto.name);
     const existingProduct = await this.productModel.findOne({ sku }).exec();
-    if (existingProduct) throw new BadRequestException('SKU already exists, please try again');
+    if (existingProduct) throw new BadRequestException('Mã SKU đã tồn tại, vui lòng thử lại');
 
     const slug = this.generateSlug(dto.name);
     
@@ -85,7 +113,7 @@ export class ProductsService {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid Product ID');
     
     const product = await this.productModel.findOne({ _id: id, isDeleted: false }).exec();
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Không tìm thấy sản phẩm');
 
     try {
       if (product.category && Types.ObjectId.isValid(product.category.toString())) {
@@ -130,7 +158,11 @@ export class ProductsService {
   async update(id: string, dto: UpdateProductDto): Promise<ProductDocument> {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid Product ID');
     const existing = await this.productModel.findById(id).exec();
-    if (!existing || existing.isDeleted) throw new NotFoundException('Product not found');
+    if (!existing || existing.isDeleted) throw new NotFoundException('Không tìm thấy sản phẩm');
+
+    if (dto.variants) {
+      this.validateVariants(dto.variants as CreateProductDto['variants']);
+    }
 
     const updateData: any = { ...dto };
 
@@ -175,7 +207,7 @@ export class ProductsService {
     const { search, category, skinTypes, minPrice, maxPrice, page = 1, limit = 10 } = query;
     const filters: any = { isDeleted: false, isActive: true };
 
-    if (search) filters.$text = { $search: search };
+    this.applySearchFilter(filters, search);
     
     if (category && Types.ObjectId.isValid(category)) {
       filters.category = new Types.ObjectId(category);
@@ -241,10 +273,11 @@ export class ProductsService {
   }
 
   async findAllAdmin(query: ListProductsDto) {
-    const { search, category, skinTypes, minPrice, maxPrice, page = 1, limit = 10 } = query;
+    const { search, category, skinTypes, minPrice, maxPrice, isActive, page = 1, limit = 10 } = query;
     const filters: any = { isDeleted: false };
 
-    if (search) filters.$text = { $search: search };
+    this.applySearchFilter(filters, search);
+    this.applyIsActiveFilter(filters, isActive);
 
     if (category && Types.ObjectId.isValid(category)) {
       filters.category = new Types.ObjectId(category);
@@ -401,24 +434,43 @@ export class ProductsService {
   }
 
   async remove(id: string) {
-    if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid Product ID');
-    const res = await this.productModel.findByIdAndUpdate(id, { isDeleted: true });
-    if (!res) throw new NotFoundException('Product not found');
-    return { message: 'Product moved to trash' };
+    if (!Types.ObjectId.isValid(id)) throw new BadRequestException('ID sản phẩm không hợp lệ');
+
+    const product = await this.productModel.findOne({ _id: id, isDeleted: false });
+    if (!product) throw new NotFoundException('Không tìm thấy sản phẩm');
+
+    const activeOrderCount = await this.orderModel.countDocuments({
+      status: { $nin: [OrderStatus.CANCELLED, OrderStatus.COMPLETED] },
+      'items.productId': new Types.ObjectId(id),
+    });
+    if (activeOrderCount > 0) {
+      throw new BadRequestException(
+        `Không thể xóa sản phẩm "${product.name}" vì còn ${activeOrderCount} đơn hàng đang xử lý.`,
+      );
+    }
+
+    await this.productModel.findByIdAndUpdate(id, { isDeleted: true });
+    return { message: 'Đã đưa sản phẩm vào thùng rác' };
   }
 
-    async toggleStatus(id: string): Promise<ProductDocument> {
-      if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid Product ID');
-      const product = await this.productModel.findById(id);
-      if (!product) throw new NotFoundException('Product not found');
+  async updateStatus(id: string, isActive: boolean): Promise<ProductDocument> {
+    if (!Types.ObjectId.isValid(id)) throw new BadRequestException('ID sản phẩm không hợp lệ');
 
-      const updated = await this.productModel.findByIdAndUpdate(
-        id,
-        { $set: { isActive: !product.isActive } },
-        { new: true, runValidators: false }, // ← bỏ qua validate khi toggle
-      );
-  return updated!;
-}
+    const updated = await this.productModel.findByIdAndUpdate(
+      id,
+      { $set: { isActive } },
+      { new: true, runValidators: false },
+    );
+    if (!updated || updated.isDeleted) throw new NotFoundException('Không tìm thấy sản phẩm');
+    return updated;
+  }
+
+  async toggleStatus(id: string): Promise<ProductDocument> {
+    const product = await this.productModel.findOne({ _id: id, isDeleted: false });
+    if (!product) throw new NotFoundException('Không tìm thấy sản phẩm');
+    return this.updateStatus(id, !product.isActive);
+  }
+
   // ==== KHO HÀNG ====
 
   async holdStock(productId: string, variantName: string, quantity: number, session?: any): Promise<void> {

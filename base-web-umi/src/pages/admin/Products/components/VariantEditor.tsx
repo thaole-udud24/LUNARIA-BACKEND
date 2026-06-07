@@ -8,10 +8,7 @@ interface Props {
   onChange?: (val: ProductVariant[]) => void;
 }
 
-export default function VariantEditor({
-  value = [],
-  onChange,
-}: Props) {
+export default function VariantEditor({ value = [], onChange }: Props) {
   const handleAdd = () => {
     const newVariant: ProductVariant = {
       variantName: '',
@@ -19,8 +16,8 @@ export default function VariantEditor({
       priceImport: 0,
       priceSell: 0,
       stockQty: 0,
+      stockAlert: 0,
     };
-
     onChange?.([...value, newVariant]);
   };
 
@@ -36,12 +33,10 @@ export default function VariantEditor({
     val: string | number | null,
   ) => {
     const newData = [...value];
-
     newData[index] = {
       ...newData[index],
       [field]: val ?? 0,
     };
-
     onChange?.(newData);
   };
 
@@ -73,13 +68,7 @@ export default function VariantEditor({
                   size="large"
                   placeholder="VD: Tuýp 50g"
                   value={item.variantName}
-                  onChange={(e) =>
-                    handleChange(
-                      index,
-                      'variantName',
-                      e.target.value,
-                    )
-                  }
+                  onChange={(e) => handleChange(index, 'variantName', e.target.value)}
                 />
               </div>
 
@@ -91,9 +80,7 @@ export default function VariantEditor({
                   addonAfter="g"
                   className={styles.fullWidth}
                   value={item.weight}
-                  onChange={(v) =>
-                    handleChange(index, 'weight', v)
-                  }
+                  onChange={(v) => handleChange(index, 'weight', v)}
                 />
               </div>
 
@@ -105,19 +92,11 @@ export default function VariantEditor({
                   addonAfter="đ"
                   className={styles.fullWidth}
                   value={item.priceImport}
-                  formatter={(value) =>
-                    value !== undefined && value !== null
-                      ? Number(value).toLocaleString('vi-VN')
-                      : ''
+                  formatter={(v) =>
+                    v !== undefined && v !== null ? Number(v).toLocaleString('vi-VN') : ''
                   }
-                  parser={(value) =>
-                    Number(
-                      value?.replace(/[^\d]/g, '') || 0,
-                    )
-                  }
-                  onChange={(v) =>
-                    handleChange(index, 'priceImport', v)
-                  }
+                  parser={(v) => Number(v?.replace(/[^\d]/g, '') || 0)}
+                  onChange={(v) => handleChange(index, 'priceImport', v)}
                 />
               </div>
 
@@ -129,19 +108,11 @@ export default function VariantEditor({
                   addonAfter="đ"
                   className={styles.fullWidth}
                   value={item.priceSell}
-                  formatter={(value) =>
-                    value !== undefined && value !== null
-                      ? Number(value).toLocaleString('vi-VN')
-                      : ''
+                  formatter={(v) =>
+                    v !== undefined && v !== null ? Number(v).toLocaleString('vi-VN') : ''
                   }
-                  parser={(value) =>
-                    Number(
-                      value?.replace(/[^\d]/g, '') || 0,
-                    )
-                  }
-                  onChange={(v) =>
-                    handleChange(index, 'priceSell', v)
-                  }
+                  parser={(v) => Number(v?.replace(/[^\d]/g, '') || 0)}
+                  onChange={(v) => handleChange(index, 'priceSell', v)}
                 />
               </div>
 
@@ -152,22 +123,38 @@ export default function VariantEditor({
                   min={0}
                   className={styles.fullWidth}
                   value={item.stockQty}
-                  onChange={(v) =>
-                    handleChange(index, 'stockQty', v)
-                  }
+                  onChange={(v) => handleChange(index, 'stockQty', v)}
                 />
               </div>
+
+              <div className={styles.field}>
+                <label>Ngưỡng cảnh báo tồn</label>
+                <InputNumber
+                  size="large"
+                  min={0}
+                  className={styles.fullWidth}
+                  value={item.stockAlert ?? 0}
+                  onChange={(v) => handleChange(index, 'stockAlert', v)}
+                />
+              </div>
+
+              {(item.reservedQty ?? 0) > 0 && (
+                <div className={styles.field}>
+                  <label>Đang giữ chỗ (readonly)</label>
+                  <InputNumber
+                    size="large"
+                    className={styles.fullWidth}
+                    value={item.reservedQty}
+                    disabled
+                  />
+                </div>
+              )}
             </div>
           </Card>
         ))
       )}
 
-      <Button
-        block
-        icon={<PlusOutlined />}
-        onClick={handleAdd}
-        className={styles.addButton}
-      >
+      <Button block icon={<PlusOutlined />} onClick={handleAdd} className={styles.addButton}>
         Thêm phân loại sản phẩm
       </Button>
     </div>

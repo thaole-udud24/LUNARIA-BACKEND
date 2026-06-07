@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Category, CategoryDocument } from './schemas/category.schema';
+import { Product, ProductDocument } from './schemas/product.schema';
 import { ExcelBaseService } from '../../shared/csv/excel.service';
 import { QueryBuilder } from '../../common/utils/pagination.util';
 
@@ -9,6 +10,7 @@ import { QueryBuilder } from '../../common/utils/pagination.util';
 export class CategoriesService {
   constructor(
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
+    @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private readonly excelService: ExcelBaseService,
   ) {}
 
@@ -90,10 +92,20 @@ export class CategoriesService {
   }
 
   async delete(id: string) {
-    const res = await this.categoryModel.findByIdAndUpdate(
-      id, { isDeleted: true }, { new: true }
-    );
-    if (!res) throw new NotFoundException('Không tìm thấy danh mục');
+    const category = await this.categoryModel.findOne({ _id: id, isDeleted: false });
+    if (!category) throw new NotFoundException('Không tìm thấy danh mục');
+
+    const productCount = await this.productModel.countDocuments({
+      category: id,
+      isDeleted: false,
+    });
+    if (productCount > 0) {
+      throw new BadRequestException(
+        `Không thể xóa danh mục "${category.name}" vì còn ${productCount} sản phẩm đang sử dụng.`,
+      );
+    }
+
+    await this.categoryModel.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
     return { message: 'Đã xóa danh mục' };
   }
 

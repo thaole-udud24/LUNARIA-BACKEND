@@ -1,20 +1,27 @@
-import { useState, useEffect } from 'react';
-import { FileExcelOutlined, FilterOutlined } from '@ant-design/icons';
-import { DatePicker, message, Select } from 'antd';
+import { useState, useEffect, useCallback } from 'react';
+import { FileExcelOutlined, FilterOutlined, SyncOutlined } from '@ant-design/icons';
+import { DatePicker, message, Select, Tooltip, Empty, Button } from 'antd';
 import moment from 'moment';
 
 import { getReportsData, exportRevenueReport } from '@/services/Admin/dashboard.api';
+import { unwrapApiData } from '@/utils/adminApi';
 
 import FinancialCards from './components/FinancialCards';
 import TrendChart from './components/TrendChart';
 import CategoryDonut from './components/CategoryDonut';
 import DetailTable from './components/DetailTable';
 import Loading from '@/components/common/Loading';
-
-// Import Component Modal Xuất Dữ Liệu Dùng Chung
 import ExportModal, { ExportOption } from '@/components/admin/ExportModal';
 
 import styles from './styles.less';
+
+const EMPTY_REPORT = {
+  kpis: {},
+  trendData: [],
+  categoryData: [],
+  topProducts: [],
+  topVouchers: [],
+};
 
 const EXPORT_OPTIONS: ExportOption[] = [
   { label: 'Tên sản phẩm', value: 'Ten_San_Pham' },
@@ -28,60 +35,62 @@ const EXPORT_OPTIONS: ExportOption[] = [
 export default function Reports() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const [selectedMonth, setSelectedMonth] = useState<string>(moment().format('YYYY-MM'));
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [categories, setCategories] = useState<{ value: string; label: string }[]>([
-    { value: '', label: 'Tất cả loại sản phẩm' }
+    { value: '', label: 'Tất cả loại sản phẩm' },
   ]);
 
-  // State quản lý Modal Xuất
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-  const handleMonthChange = (date: any) => {
-    if (date) {
-      setSelectedMonth(date.format('YYYY-MM'));
+  const fetchReportData = useCallback(async (showMsg = false) => {
+    try {
+      setLoading(true);
+      setFetchError(false);
+      const res = await getReportsData({
+        month: selectedMonth,
+        categoryId: selectedCategory || undefined,
+      });
+
+      const payload = unwrapApiData<any>(res);
+      if (!payload) {
+        setData(EMPTY_REPORT);
+        setFetchError(true);
+        message.error('Không thể tải dữ liệu báo cáo.');
+        return;
+      }
+
+      setData(payload);
+      setLastUpdated(new Date());
+
+      if (payload.availableCategories) {
+        setCategories([
+          { value: '', label: 'Tất cả loại sản phẩm' },
+          ...payload.availableCategories,
+        ]);
+      }
+
+      if (showMsg) message.success('Đã cập nhật báo cáo!');
+    } catch {
+      setData(EMPTY_REPORT);
+      setFetchError(true);
+      message.error('Không thể kết nối đến máy chủ API.');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [selectedMonth, selectedCategory]);
 
   useEffect(() => {
-    const fetchReportData = async () => {
-      try {
-        setLoading(true);
-        const res = await getReportsData({
-          month: selectedMonth,
-          categoryId: selectedCategory || undefined,
-        });
-
-        if (!res?.success) {
-          message.error(res?.message || 'Không thể tải dữ liệu báo cáo.');
-          return;
-        }
-
-        if (!res?.data) {
-          setData({ kpis: {}, trendData: [], categoryData: [], topProducts: [], topVouchers: [] });
-          message.warning('Không có dữ liệu cho tháng này.');
-          return;
-        }
-
-        setData(res.data);
-
-        if (res.data.availableCategories) {
-          setCategories([
-            { value: '', label: 'Tất cả loại sản phẩm' },
-            ...res.data.availableCategories,
-          ]);
-        }
-      } catch (error) {
-        message.error('Không thể kết nối đến máy chủ API.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchReportData();
-  }, [selectedMonth, selectedCategory]);
+  }, [fetchReportData]);
+
+  const handleMonthChange = (date: moment.Moment | null) => {
+    if (date) setSelectedMonth(date.format('YYYY-MM'));
+  };
 
   const handleExecuteExport = async (selectedFields: string[]) => {
     if (selectedFields.length === 0) {
@@ -95,7 +104,8 @@ export default function Reports() {
 
       const blob = await exportRevenueReport({
         month: selectedMonth,
-        fields: selectedFields, // API mới nhận thêm fields
+        categoryId: selectedCategory || undefined,
+        fields: selectedFields,
       });
 
       const url = window.URL.createObjectURL(new Blob([blob]));
@@ -109,26 +119,34 @@ export default function Reports() {
 
       message.success({ content: 'Tải báo cáo thành công!', key: 'exportFile' });
       setIsExportModalOpen(false);
-    } catch (error) {
+    } catch {
       message.error({ content: 'Có lỗi xảy ra khi tải báo cáo.', key: 'exportFile' });
     } finally {
       setExportLoading(false);
     }
   };
 
-  if (loading || !data) {
+  if (loading && !data) {
     return <Loading />;
   }
+
+  const reportData = data || EMPTY_REPORT;
 
   return (
     <div className={styles.reportsContainer}>
       <div className={styles.topBar}>
         <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Báo cáo Doanh thu </h1>
+          <h1 className={styles.pageTitle}>Báo cáo Doanh thu</h1>
           <div className={styles.breadcrumb}>
             <span>Tổng quan</span>
             <span className={styles.separator}>/</span>
             <span className={styles.active}>Báo cáo doanh thu</span>
+          </div>
+          <div className={styles.metaRow}>
+            Cập nhật lúc: {lastUpdated.toLocaleTimeString('vi-VN')}
+            <Tooltip title="Làm mới">
+              <SyncOutlined spin={loading} className={styles.refreshIcon} onClick={() => fetchReportData(true)} />
+            </Tooltip>
           </div>
         </div>
 
@@ -136,7 +154,7 @@ export default function Reports() {
           <DatePicker
             picker="month"
             allowClear={false}
-            value={selectedMonth ? moment(selectedMonth, 'YYYY-MM') : moment()}
+            value={moment(selectedMonth, 'YYYY-MM')}
             onChange={handleMonthChange}
             format="MM/YYYY"
             className={styles.datePickerResponsive}
@@ -144,38 +162,44 @@ export default function Reports() {
 
           <Select
             value={selectedCategory}
-            onChange={(value) => setSelectedCategory(value)}
+            onChange={setSelectedCategory}
             options={categories}
             className={styles.selectResponsive}
             suffixIcon={<FilterOutlined style={{ color: '#94a3b8' }} />}
           />
 
-          <button
-            className={styles.exportBtn}
-            onClick={() => setIsExportModalOpen(true)}
-          >
+          <button type="button" className={styles.exportBtn} onClick={() => setIsExportModalOpen(true)}>
             <FileExcelOutlined />
             <span>Xuất dữ liệu</span>
           </button>
         </div>
       </div>
 
-      <FinancialCards kpis={data?.kpis || {}} />
-
-      <div className={styles.chartZone}>
-        <div className={styles.trendBox}>
-          <TrendChart data={data?.trendData || []} />
+      {fetchError ? (
+        <div className={styles.errorBox}>
+          <Empty description="Không tải được báo cáo doanh thu">
+            <Button type="primary" onClick={() => fetchReportData(true)}>Thử lại</Button>
+          </Empty>
         </div>
+      ) : (
+        <>
+          <FinancialCards kpis={reportData.kpis || {}} />
 
-        <div className={styles.donutBox}>
-          <CategoryDonut data={data?.categoryData || []} />
-        </div>
-      </div>
+          <div className={styles.chartZone}>
+            <div className={styles.trendBox}>
+              <TrendChart data={reportData.trendData || []} />
+            </div>
+            <div className={styles.donutBox}>
+              <CategoryDonut data={reportData.categoryData || []} />
+            </div>
+          </div>
 
-      <DetailTable
-        products={data?.topProducts || []}
-        vouchers={data?.topVouchers || []}
-      />
+          <DetailTable
+            products={reportData.topProducts || []}
+            vouchers={reportData.topVouchers || []}
+          />
+        </>
+      )}
 
       <ExportModal
         open={isExportModalOpen}

@@ -5,13 +5,13 @@ export type CategoryDocument = Category & Document;
 
 @Schema({ timestamps: true })
 export class Category {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   name!: string;
 
-  @Prop({ required: true, unique: true, uppercase: true, default: 'GEN' })
+  @Prop({ required: true, uppercase: true, default: 'GEN' })
   code!: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   slug!: string;
 
   @Prop({ default: '' })
@@ -25,3 +25,16 @@ export class Category {
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
+
+CategorySchema.index(
+  { name: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);
+CategorySchema.index(
+  { code: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);
+CategorySchema.index(
+  { slug: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);

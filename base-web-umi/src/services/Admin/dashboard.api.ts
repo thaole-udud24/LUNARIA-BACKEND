@@ -9,12 +9,13 @@ export async function getReportsData(params?: { month?: string; categoryId?: str
 }
 
 // ĐÃ FIX: Thêm fields?: string[] vào đây
-export async function exportRevenueReport(params?: { month?: string; fields?: string[] }) {
+export async function exportRevenueReport(params?: { month?: string; fields?: string[]; categoryId?: string }) {
   return request('/api/admin/dashboard/revenue/export', {
     method: 'GET',
     params: {
       month: params?.month,
-      fields: params?.fields?.join(','), // Biến mảng thành chuỗi (vd: 'SKU,Ten_San_Pham')
+      categoryId: params?.categoryId || undefined,
+      fields: params?.fields?.join(','),
     },
     responseType: 'blob',
   });

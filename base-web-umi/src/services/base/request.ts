@@ -1,10 +1,10 @@
 import { extend } from 'umi-request';
 import { message } from 'antd';
 import { history } from 'umi';
-import { getApiBaseUrl } from '@/utils/apiUrl';
+import { getRequestPrefix } from '@/utils/apiUrl';
 
 const request = extend({
-  prefix: getApiBaseUrl(),
+  prefix: getRequestPrefix(),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

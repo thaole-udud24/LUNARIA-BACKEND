@@ -31,9 +31,14 @@ export class DashboardController {
       data: await this.reportsService.getRevenueData(query.month, query.categoryId),
     };
   }
+
   @Get('revenue/export')
-  async exportRevenue(@Query() query: any, @Res() res: Response) {
-    const buffer = await this.reportsService.exportRevenueData(query.month, query.fields);
+  async exportRevenue(@Query() query: GetRevenueDto & { fields?: string | string[] }, @Res() res: Response) {
+    const buffer = await this.reportsService.exportRevenueData(
+      query.month,
+      query.fields,
+      query.categoryId,
+    );
     
     const fileName = `Bao_Cao_Doanh_Thu_${query.month || 'Hien_Tai'}.xlsx`;
 

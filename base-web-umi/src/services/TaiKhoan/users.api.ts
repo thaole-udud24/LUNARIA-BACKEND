@@ -1,5 +1,39 @@
 import request from '@/services/base/request';
 
+export type AppLocale = 'vi-VN' | 'en-US';
+
+export interface NotificationPrefs {
+  emailAlerts: boolean;
+  pushAlerts: boolean;
+  newOrderAlerts: boolean;
+  cancelOrderAlerts: boolean;
+}
+
+export interface RegionalPrefs {
+  timezone: string;
+  dateFormat: string;
+  currency: string;
+}
+
+export interface UserPreferences {
+  locale: AppLocale;
+  notification_prefs: NotificationPrefs;
+  regional_prefs: RegionalPrefs;
+}
+
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  emailAlerts: true,
+  pushAlerts: true,
+  newOrderAlerts: true,
+  cancelOrderAlerts: true,
+};
+
+export const DEFAULT_REGIONAL_PREFS: RegionalPrefs = {
+  timezone: 'gmt7',
+  dateFormat: 'dmy',
+  currency: 'vnd',
+};
+
 // =========================================================
 // API DÀNH CHO KHÁCH HÀNG (END-USER)
 // =========================================================
@@ -20,6 +54,7 @@ export async function updateProfile(data: {
   full_name?: string;
   gender?: string;
   avatar_url?: string;
+  banner_url?: string;
   bio?: string;
   phone?: string;
 }) {
@@ -153,7 +188,28 @@ export async function removeAddress(addressId: string) {
 /**
  * 1. Lấy danh sách khách hàng (Có phân trang, bộ lọc tìm kiếm)
  */
-export async function getAdminUsers(params: { page: number; limit: number; search?: string }) {
+export interface AdminUserListParams {
+  page: number;
+  limit: number;
+  search?: string;
+  status?: 'active' | 'blocked';
+  verified?: 'true' | 'false';
+  vip?: 'true';
+}
+
+export interface AdminUserListItem {
+  _id: string;
+  email: string;
+  name: string;
+  avatar?: string | null;
+  isEmailVerified: boolean;
+  status?: 'active' | 'blocked';
+  createdAt?: string;
+  totalOrders: number;
+  totalSpent: number;
+}
+
+export async function getAdminUsers(params: AdminUserListParams) {
   return request('/api/admin/users', {
     method: 'GET',
     params,
@@ -172,10 +228,44 @@ export async function getAdminUserDetail(userId: string) {
 /**
  * 3. Xuất file Excel danh sách khách hàng từ hệ thống
  */
-export async function exportUsersAdmin(params?: { search?: string; exportOptions?: string }) {
+export async function exportUsersAdmin(params?: {
+  search?: string;
+  exportOptions?: string;
+  status?: string;
+  verified?: string;
+  vip?: string;
+}) {
   return request('/api/admin/users/export', {
     method: 'GET',
     params,
     responseType: 'blob', // Định dạng bắt buộc để xử lý tải xuống file nhị phân (Excel)
   });
+}
+
+export async function getAdminUserStats() {
+  return request('/api/admin/users/stats', { method: 'GET' });
+}
+
+export async function updateAdminUserStatus(userId: string, status: 'active' | 'blocked') {
+  return request(`/api/admin/users/${userId}/status`, {
+    method: 'PATCH',
+    data: { status },
+  });
+}
+
+export async function getPreferences() {
+  return request('/api/users/me/preferences', { method: 'GET' }) as Promise<{
+    success: boolean;
+    data: UserPreferences;
+  }>;
+}
+
+export async function updatePreferences(data: Partial<UserPreferences> & {
+  notification_prefs?: Partial<NotificationPrefs>;
+  regional_prefs?: Partial<RegionalPrefs>;
+}) {
+  return request('/api/users/me/preferences', {
+    method: 'PATCH',
+    data,
+  }) as Promise<{ success: boolean; data: UserPreferences }>;
 }
