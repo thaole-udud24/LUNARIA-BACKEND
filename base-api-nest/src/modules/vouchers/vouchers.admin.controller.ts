@@ -1,47 +1,91 @@
-import { Controller, Get, Patch, Param, Query, UseGuards, Body, Post } from '@nestjs/common';
+import {
+  Controller, Get, Post, Put, Delete, Patch,
+  Param, Query, Body, UseGuards,
+  UseInterceptors, UploadedFile, Res,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import { VouchersService } from './vouchers.service';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
 import { CreateVoucherDto } from './dto/create-voucher.dto';
 import { UpdateVoucherDto } from './dto/update-voucher.dto';
 import { ListVouchersDto } from './dto/list-vouchers.dto';
-
-const RolesDecorator = Roles as (...roles: string[]) => ClassDecorator;
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import 'multer';
 
 @Controller('admin/vouchers')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RolesDecorator('ADMIN')
+@Roles('ADMIN')
 export class VouchersAdminController {
   constructor(private readonly vouchersService: VouchersService) {}
 
   @Post()
-  async create(@Body() dto: CreateVoucherDto) {
+  create(@Body() dto: CreateVoucherDto) {
     return this.vouchersService.create(dto);
   }
 
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateVoucherDto) {
-    return this.vouchersService.update(id, dto);
-  }
-
-  @Patch(':id/activate')
-  async activate(@Param('id') id: string) {
-    return this.vouchersService.activate(id);
-  }
-
-  @Patch(':id/disable')
-  async disable(@Param('id') id: string) {
-    return this.vouchersService.disable(id);
-  }
-
   @Get()
-  async findAll(@Query() query: ListVouchersDto) {
+  findAll(@Query() query: ListVouchersDto) {
     return this.vouchersService.findAll(query);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string) {
     return this.vouchersService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateVoucherDto) {
+    return this.vouchersService.update(id, dto);
+  }
+
+  @Patch(':id/activate')
+  activate(@Param('id') id: string) {
+    return this.vouchersService.activate(id);
+  }
+
+  @Patch(':id/disable')
+  disable(@Param('id') id: string) {
+    return this.vouchersService.disable(id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.vouchersService.remove(id);
+  }
+
+  // ====== EXPORT ======
+  @Post('export')
+  async export(
+    @Body('fields') fields: string[],
+    @Body('filters') filters: any,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.vouchersService.exportExcel(
+      fields || ['voucherCode', 'voucherName', 'status', 'discountType', 'discountValue', 'startDate', 'endDate'],
+      filters,
+    );
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="Vouchers.xlsx"',
+    });
+    res.send(buffer);
+  }
+
+  // ====== IMPORT ======
+  @Post('import/preview')
+  @UseInterceptors(FileInterceptor('file'))
+  async preview(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('mapping') mappingStr: string,
+  ) {
+    const mapping = JSON.parse(mappingStr);
+    return this.vouchersService.previewImportData(file.buffer, mapping);
+  }
+
+  @Post('import/commit')
+  async commit(@Body('data') data: any[]) {
+    return this.vouchersService.commitImportData(data);
   }
 }

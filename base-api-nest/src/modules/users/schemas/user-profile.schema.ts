@@ -3,10 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type UserProfileDocument = UserProfile & Document;
 
-@Schema({
-  timestamps: true,
-  collection: 'user_profiles',
-})
+@Schema({ timestamps: true, collection: 'user_profiles' })
 export class UserProfile {
   @Prop({ type: Types.ObjectId, required: true, ref: 'User' })
   user_id!: Types.ObjectId;
@@ -22,6 +19,16 @@ export class UserProfile {
 
   @Prop({ type: String, default: null })
   avatar_url!: string;
+
+  @Prop({ type: String, default: null })
+  banner_url?: string;
+
+  // ✅ BỔ SUNG 2 TRƯỜNG MỚI ĐỂ LƯU DATA TỪ FRONTEND
+  @Prop({ type: String, default: '' })
+  bio?: string;
+
+  @Prop({ type: String, default: '' })
+  phone?: string;
 
   @Prop({ type: Types.ObjectId, default: null })
   default_phone_id!: Types.ObjectId;

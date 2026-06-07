@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SkinType, SkinTypeDocument } from './schemas/skin-type.schema';
 import { ExcelBaseService } from '../../shared/csv/excel.service';
 import { QueryBuilder } from '../../common/utils/pagination.util';
+
 @Injectable()
 export class SkinTypesService {
   constructor(
@@ -20,54 +21,115 @@ export class SkinTypesService {
       .replace(/-+/g, '-')
       .replace(/^-+|-+$/g, '');
   }
+
   async findAll() {
     return this.skinTypeModel.find({ isDeleted: false, isActive: true }).exec();
   }
-  async create(name: string, code: string) {
-    const slug = this.generateSlug(name);
-    const skinType = new this.skinTypeModel({ name, code: code.toUpperCase(), slug });
-    return skinType.save();
-  }
-  async update(id: string, name: string, code: string) {
-    const slug = this.generateSlug(name);
-    const updated = await this.skinTypeModel.findByIdAndUpdate(
-      id, { name, code: code.toUpperCase(), slug }, { new: true }
-    );
-    if (!updated) throw new NotFoundException('SkinType not found');
-    return updated;
-  }
-  async delete(id: string) {
-    return this.skinTypeModel.findByIdAndUpdate(id, { isDeleted: true });
-  }
+
   async findAllWithFilter(query: any) {
     const { filter, skip, limit, sort } = QueryBuilder.build(query, ['name', 'code']);
     filter.isDeleted = false;
     const [data, total] = await Promise.all([
       this.skinTypeModel.find(filter).sort(sort).skip(skip).limit(limit).exec(),
-      this.skinTypeModel.countDocuments(filter)
+      this.skinTypeModel.countDocuments(filter),
     ]);
     return { data, total, page: query.page || 1, limit };
   }
 
+  async create(name: string, code: string, description?: string) {
+    const slug = this.generateSlug(name);
+
+    const existingName = await this.skinTypeModel.findOne({ name, isDeleted: false });
+    if (existingName) throw new BadRequestException(`Tên loại da "${name}" đã tồn tại`);
+
+    const existingCode = await this.skinTypeModel.findOne({ code: code.toUpperCase(), isDeleted: false });
+    if (existingCode) throw new BadRequestException(`Mã loại da "${code.toUpperCase()}" đã tồn tại`);
+
+    const skinType = new this.skinTypeModel({
+      name,
+      code: code.toUpperCase(),
+      slug,
+      description: description || '',
+      isActive: true,
+      isDeleted: false,
+    });
+    return skinType.save();
+  }
+
+  async update(id: string, name: string, code: string, description?: string) {
+    const slug = this.generateSlug(name);
+
+    const existingName = await this.skinTypeModel.findOne({ name, isDeleted: false, _id: { $ne: id } });
+    if (existingName) throw new BadRequestException(`Tên loại da "${name}" đã tồn tại`);
+
+    const existingCode = await this.skinTypeModel.findOne({ code: code.toUpperCase(), isDeleted: false, _id: { $ne: id } });
+    if (existingCode) throw new BadRequestException(`Mã loại da "${code.toUpperCase()}" đã tồn tại`);
+
+    const updated = await this.skinTypeModel.findByIdAndUpdate(
+      id,
+      { name, code: code.toUpperCase(), slug, description: description || '' },
+      { new: true },
+    );
+    if (!updated) throw new NotFoundException('Không tìm thấy loại da');
+    return updated;
+  }
+
+  async updateStatus(id: string, isActive: boolean) {
+    const updated = await this.skinTypeModel.findByIdAndUpdate(
+      id,
+      { $set: { isActive } },
+      { new: true, runValidators: false },
+    );
+    if (!updated) throw new NotFoundException('Không tìm thấy loại da');
+    return updated;
+  }
+
+  async delete(id: string) {
+    const res = await this.skinTypeModel.findByIdAndUpdate(
+      id, { isDeleted: true }, { new: true }
+    );
+    if (!res) throw new NotFoundException('Không tìm thấy loại da');
+    return { message: 'Đã xóa loại da' };
+  }
+
   async exportExcel(fieldsToExport: string[], queryFilters: any) {
-    const { filter, sort } = QueryBuilder.build(queryFilters, ['name', 'code']);
+    const { filter, sort } = QueryBuilder.build(queryFilters || {}, ['name', 'code']);
     filter.isDeleted = false;
-    const data = await this.skinTypeModel.find(filter).select(fieldsToExport.join(' ')).sort(sort).lean().exec();
+    const data = await this.skinTypeModel
+      .find(filter)
+      .select(fieldsToExport.join(' '))
+      .sort(sort)
+      .lean()
+      .exec();
     return this.excelService.exportData(data, fieldsToExport);
   }
 
   async previewImportData(buffer: Buffer, mapping: Record<string, string>) {
-    return this.excelService.previewImport(buffer, mapping, ['name', 'code']);
+    return this.excelService.previewImport(
+      buffer,
+      mapping,
+      ['name', 'code'],
+      ['name', 'code'],
+    );
   }
 
   async commitImportData(validDataList: any[]) {
-    let successCount = 0;
+    const results = {
+      successCount: 0,
+      failCount: 0,
+      errors: [] as string[],
+    };
+
     for (const item of validDataList) {
       try {
-        await this.create(item.name, item.code);
-        successCount++;
-      } catch (error) {}
+        await this.create(item.name, item.code, item.description);
+        results.successCount++;
+      } catch (error: any) {
+        results.failCount++;
+        results.errors.push(`"${item.name}" (${item.code}): ${error.message}`);
+      }
     }
-    return { successCount };
+
+    return results;
   }
 }

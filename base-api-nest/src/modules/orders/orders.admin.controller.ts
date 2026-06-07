@@ -20,17 +20,18 @@ export class OrdersAdminController {
     return this.ordersService.getDashboardRevenue();
   }
 
+  // API Xuất báo cáo doanh thu (đã có sẵn)
   @Get('export/revenue-report')
   async exportRevenueReport(@Query() query: any, @Res() res: Response) {
     const reportData = await this.ordersService.getDashboardRevenue();
-
+    
     const dataToExport = reportData.data.topProducts.map((p: any) => ({
       'MÃ SKU': p.sku,
       'TÊN SẢN PHẨM': p.name,
       'LOẠI SẢN PHẨM': p.categoryName || 'Chưa phân loại',
       'SỐ LƯỢNG BÁN': p.sales,
       'DOANH THU GỘP': p.revenue,
-      'LỢI NHUẬN': p.profit,
+      'LỢI NHUẬN': p.profit
     }));
 
     const fieldsToExport = ['MÃ SKU', 'TÊN SẢN PHẨM', 'LOẠI SẢN PHẨM', 'SỐ LƯỢNG BÁN', 'DOANH THU GỘP', 'LỢI NHUẬN'];
@@ -41,26 +42,22 @@ export class OrdersAdminController {
     res.send(buffer);
   }
 
+  // API XUẤT DANH SÁCH ĐƠN HÀNG (BỔ SUNG MỚI)
   @Get('export')
   async exportOrders(@Query() query: any, @Res() res: Response) {
     const buffer = await this.ordersService.exportOrdersAdmin(query);
-
+    
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename="Danh_Sach_Don_Hang.xlsx"');
     res.send(buffer);
   }
 
-  @Get()
+  @Get() 
   async getOrders(@Query() query: any) {
     return this.ordersService.findAllAdmin(query);
   }
 
-  @Get(':id')
-  async getOrderDetail(@Param('id') id: string) {
-    return this.ordersService.findOneAdmin(id);
-  }
-
-  @Patch(':id/confirm-payment')
+  @Patch(':id/confirm-payment') 
   async confirmPayment(@Param('id') id: string) {
     return this.ordersService.confirmPaymentAdmin(id);
   }

@@ -19,11 +19,25 @@ export class ProductsService {
   ) {}
 
   private generateSlug(name: string): string {
-    return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').replace(/([^0-9a-z-\s])/g, '').replace(/(\s+)/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '') + '-' + Date.now();
+    return name.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[đĐ]/g, 'd')
+      .replace(/([^0-9a-z-\s])/g, '')
+      .replace(/(\s+)/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '') + '-' + Date.now();
   }
 
   private generateAutoSKU(categoryCode: string, name: string): string {
-    const acronym = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').split(' ').filter(w => w.length > 0).map(w => w[0]).join('').toUpperCase();
+    const acronym = name.normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[đĐ]/g, 'd')
+      .split(' ')
+      .filter(w => w.length > 0)
+      .map(w => w[0])
+      .join('')
+      .toUpperCase();
     const year = new Date().getFullYear().toString().slice(-2);
     const random = Math.floor(1000 + Math.random() * 9000);
     return `${categoryCode.toUpperCase()}-${acronym}${year}-${random}`;
@@ -38,19 +52,28 @@ export class ProductsService {
     if (existingProduct) throw new BadRequestException('SKU already exists, please try again');
 
     const slug = this.generateSlug(dto.name);
+    
+    // Tính toán lợi nhuận và set mặc định reservedQty cho các variants
     const variants = dto.variants?.map((v) => ({
       ...v,
       reservedQty: 0,
       profit: (v.priceSell || 0) - (v.priceImport || 0),
     })) || [];
 
+    // Map chuẩn Category ID và SkinType IDs
+    const skinTypeIds = dto.skinTypes?.filter(id => Types.ObjectId.isValid(id)).map(id => new Types.ObjectId(id)) || [];
+
     return new this.productModel({ 
       ...dto, 
       category: new Types.ObjectId(dto.category), 
+      skinTypes: skinTypeIds,
+      // Đảm bảo lấy đúng ảnh
+      mainImage: dto.mainImage,
+      galleryImages: dto.galleryImages || [],
       sku, 
       slug, 
       variants,
-      isActive: true,
+      isActive: dto.isActive !== undefined ? dto.isActive : true,
       isDeleted: false 
     }).save();
   }
@@ -62,10 +85,10 @@ export class ProductsService {
     if (!product) throw new NotFoundException('Product not found');
 
     try {
-      if (product.category && Types.ObjectId.isValid(product.category.toString()) && product.category.toString().length === 24) {
-        await product.populate({ path: 'category', select: 'name code slug', options: { strictPopulate: false } });
+      if (product.category && Types.ObjectId.isValid(product.category.toString())) {
+        await product.populate({ path: 'category', select: 'name code slug' });
       }
-      await product.populate({ path: 'skinTypes', select: 'name code', options: { strictPopulate: false } });
+      await product.populate({ path: 'skinTypes', select: 'name code' });
     } catch (err) {}
 
     return product;
@@ -80,10 +103,10 @@ export class ProductsService {
     if (!product) throw new NotFoundException('Product not found or hidden');
 
     try {
-      if (product.category && Types.ObjectId.isValid(product.category.toString()) && product.category.toString().length === 24) {
-        await product.populate({ path: 'category', select: 'name code slug', options: { strictPopulate: false } });
+      if (product.category && Types.ObjectId.isValid(product.category.toString())) {
+        await product.populate({ path: 'category', select: 'name code slug' });
       }
-      await product.populate({ path: 'skinTypes', select: 'name code', options: { strictPopulate: false } });
+      await product.populate({ path: 'skinTypes', select: 'name code' });
     } catch (err) {}
 
     const productObj = product.toObject();
@@ -106,14 +129,26 @@ export class ProductsService {
     const existing = await this.productModel.findById(id).exec();
     if (!existing || existing.isDeleted) throw new NotFoundException('Product not found');
 
-    if (dto.name && dto.name !== existing.name) (dto as any).slug = this.generateSlug(dto.name);
+    const updateData: any = { ...dto };
+
+    // Sinh slug mới nếu đổi tên
+    if (dto.name && dto.name !== existing.name) {
+      updateData.slug = this.generateSlug(dto.name);
+    }
     
+    // Convert Category ID
     if (dto.category) {
-      (dto as any).category = new Types.ObjectId(dto.category);
+      updateData.category = new Types.ObjectId(dto.category);
     }
 
+    // Convert SkinType IDs
+    if (dto.skinTypes) {
+      updateData.skinTypes = dto.skinTypes.filter(id => Types.ObjectId.isValid(id)).map(id => new Types.ObjectId(id));
+    }
+
+    // Xử lý giữ nguyên reservedQty của Variant cũ
     if (dto.variants) {
-      dto.variants = dto.variants.map((v: any) => {
+      updateData.variants = dto.variants.map((v: any) => {
         const oldVariant = existing.variants.find(ov => ov.variantName === v.variantName);
         return { 
           ...v, 
@@ -123,7 +158,12 @@ export class ProductsService {
       });
     }
 
-    const updated = await this.productModel.findByIdAndUpdate(id, { $set: dto }, { new: true }).exec();
+    const updated = await this.productModel.findByIdAndUpdate(
+      id, 
+      { $set: updateData }, 
+      { new: true }
+    ).exec();
+    
     if (!updated) throw new NotFoundException('Update failed');
     return updated;
   }
@@ -169,14 +209,17 @@ export class ProductsService {
       rawProducts.map(async (product) => {
         let popProduct: any = product;
         try {
-          if (product.category && Types.ObjectId.isValid(product.category.toString()) && product.category.toString().length === 24) {
+          if (product.category && Types.ObjectId.isValid(product.category.toString())) {
             popProduct = await product.populate([
-              { path: 'category', select: 'name code slug', options: { strictPopulate: false } },
-              { path: 'skinTypes', select: 'name code', options: { strictPopulate: false } }
+              { path: 'category', select: 'name code slug' },
+              { path: 'skinTypes', select: 'name code' }
             ]);
           }
         } catch (err) {}
+        
         const productObj = popProduct.toObject ? popProduct.toObject() : popProduct;
+        
+        // Tính giá đã áp dụng khuyến mãi
         productObj.variants = await Promise.all(
           productObj.variants.map(async (variant: any) => {
             const activePrice = await this.promotionsService.calculateActivePrice(productObj._id.toString(), variant.priceSell);
@@ -201,13 +244,19 @@ export class ProductsService {
     return { message: 'Product moved to trash' };
   }
 
-  async toggleStatus(id: string): Promise<ProductDocument> {
-    if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid Product ID');
-    const product = await this.productModel.findById(id);
-    if (!product) throw new NotFoundException('Product not found');
-    product.isActive = !product.isActive;
-    return product.save();
-  }
+    async toggleStatus(id: string): Promise<ProductDocument> {
+      if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid Product ID');
+      const product = await this.productModel.findById(id);
+      if (!product) throw new NotFoundException('Product not found');
+
+      const updated = await this.productModel.findByIdAndUpdate(
+        id,
+        { $set: { isActive: !product.isActive } },
+        { new: true, runValidators: false }, // ← bỏ qua validate khi toggle
+      );
+  return updated!;
+}
+  // ==== KHO HÀNG ====
 
   async holdStock(productId: string, variantName: string, quantity: number, session?: any): Promise<void> {
     const product = await this.productModel.findOne({ _id: productId, isDeleted: false, isActive: true }).session(session).exec();

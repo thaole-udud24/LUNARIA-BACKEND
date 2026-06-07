@@ -1,21 +1,23 @@
-import { IsDateString, IsIn, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class UpdateProfileDto {
-  @IsOptional()
   @IsString()
-  @MinLength(2)
-  @MaxLength(100)
+  @IsOptional()
   full_name?: string;
 
+  @IsString()
   @IsOptional()
-  @IsIn(['male', 'female', 'other'])
-  gender?: 'male' | 'female' | 'other';
+  gender?: string;
 
+  @IsString()
   @IsOptional()
-  @IsDateString()
-  date_of_birth?: string;
-
-  @IsOptional()
-  @IsUrl()
   avatar_url?: string;
+
+  @IsString()
+  @IsOptional()
+  bio?: string; // ✅ Đón dữ liệu tiểu sử
+
+  @IsString()
+  @IsOptional()
+  phone?: string; // ✅ Đón số điện thoại trực tiếp từ Form Settings
 }

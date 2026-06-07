@@ -6,10 +6,10 @@ export type UserDocument = HydratedDocument<User>;
 @Schema({ collection: 'users', timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class User {
   @Prop({ required: true, unique: true, index: true, lowercase: true, trim: true })
-  email: string;
+  email!: string;
 
   @Prop({ required: true })
-  password_hash: string;
+  password_hash!: string;
 
   @Prop() full_name?: string;
   @Prop() phone?: string;
@@ -30,7 +30,7 @@ export class User {
   addresses?: any[];
 
   @Prop({ enum: ['active', 'blocked'], default: 'active' })
-  status: 'active' | 'blocked';
+  status!: 'active' | 'blocked';
 
   @Prop({ default: false })
   email_verified?: boolean;

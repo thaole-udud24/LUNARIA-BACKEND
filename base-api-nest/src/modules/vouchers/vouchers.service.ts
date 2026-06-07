@@ -15,10 +15,14 @@ import {
   VOUCHER_CODE_REGEX,
   VoucherErrorMessage,
 } from 'src/common/constants/voucher.constant';
+import { ExcelBaseService } from '../../shared/csv/excel.service';
 
 @Injectable()
 export class VouchersService {
-  constructor(@InjectModel(Voucher.name) private voucherModel: Model<VoucherDocument>) {}
+  constructor(
+    @InjectModel(Voucher.name) private voucherModel: Model<VoucherDocument>,
+    private readonly excelService: ExcelBaseService, // ✅ Đưa vào đúng constructor
+  ) {}
 
   private normalizeCode(code: string) {
     return code?.trim().toUpperCase() ?? '';
@@ -104,7 +108,11 @@ export class VouchersService {
       throw new BadRequestException(VoucherErrorMessage.INVALID_FORMAT);
     }
 
-    if (updateVoucherDto.startDate && updateVoucherDto.endDate && updateVoucherDto.endDate < updateVoucherDto.startDate) {
+    if (
+      updateVoucherDto.startDate &&
+      updateVoucherDto.endDate &&
+      updateVoucherDto.endDate < updateVoucherDto.startDate
+    ) {
       throw new BadRequestException(VoucherErrorMessage.INVALID_DATE_RANGE);
     }
 
@@ -129,21 +137,27 @@ export class VouchersService {
       updatePayload.voucherCode = this.normalizeCode(updatePayload.voucherCode as string);
     }
 
-    const voucher = await this.voucherModel.findByIdAndUpdate(id, updatePayload, { new: true }).exec();
+    const voucher = await this.voucherModel
+      .findByIdAndUpdate(id, updatePayload, { new: true })
+      .exec();
     if (!voucher) throw new NotFoundException('Không tìm thấy voucher.');
     return voucher;
   }
 
   async activate(id: string) {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Mã voucher không hợp lệ.');
-    const voucher = await this.voucherModel.findByIdAndUpdate(id, { status: VoucherStatus.ACTIVE }, { new: true }).exec();
+    const voucher = await this.voucherModel
+      .findByIdAndUpdate(id, { status: VoucherStatus.ACTIVE }, { new: true })
+      .exec();
     if (!voucher) throw new NotFoundException('Không tìm thấy voucher.');
     return voucher;
   }
 
   async disable(id: string) {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Mã voucher không hợp lệ.');
-    const voucher = await this.voucherModel.findByIdAndUpdate(id, { status: VoucherStatus.DISABLED }, { new: true }).exec();
+    const voucher = await this.voucherModel
+      .findByIdAndUpdate(id, { status: VoucherStatus.DISABLED }, { new: true })
+      .exec();
     if (!voucher) throw new NotFoundException('Không tìm thấy voucher.');
     return voucher;
   }
@@ -177,10 +191,10 @@ export class VouchersService {
   async validateVoucher(applyVoucherDto: ApplyVoucherDto) {
     const voucherCode = this.normalizeCode(applyVoucherDto.voucherCode);
     const voucher = (await this.voucherModel.findOne({ voucherCode }).exec()) as VoucherDocument | null;
-    
+
     if (!voucher) throw new NotFoundException('Voucher không tồn tại.');
     if (voucher.status !== VoucherStatus.ACTIVE) throw new BadRequestException('Voucher hiện không khả dụng.');
-    
+
     const now = new Date();
     if (now < voucher.startDate) throw new BadRequestException('Voucher chưa bắt đầu.');
     if (now > voucher.endDate) {
@@ -205,16 +219,17 @@ export class VouchersService {
       if (!applyVoucherDto.productIds?.length) {
         throw new BadRequestException('Cần cung cấp danh sách sản phẩm để xác thực voucher.');
       }
-      const matched = applyVoucherDto.productIds.some(id => 
+      const matched = applyVoucherDto.productIds.some(id =>
         voucher.applicableProductIds?.some(productId => productId.toString() === id) ?? false
       );
       if (!matched) throw new BadRequestException('Không có sản phẩm nào trong giỏ phù hợp với voucher.');
     }
 
-    const eligibleTotal = voucher.applyScope === VoucherApplyScope.SPECIFIC_PRODUCTS
+    const eligibleTotal =
+      voucher.applyScope === VoucherApplyScope.SPECIFIC_PRODUCTS
         ? (applyVoucherDto.eligibleCartTotal ?? applyVoucherDto.cartTotal ?? 0)
         : (applyVoucherDto.cartTotal ?? 0);
-        
+
     const discountAmount = this.computeDiscount(voucher, applyVoucherDto.cartTotal ?? 0, eligibleTotal);
 
     return {
@@ -228,5 +243,53 @@ export class VouchersService {
       },
       discountAmount,
     };
+  }
+
+  // ✅ Đưa vào đúng trong class
+  async exportExcel(fields: string[], filters: any) {
+    const filter = this.buildFilter(filters || {});
+    const data = await this.voucherModel
+      .find(filter)
+      .select(fields.join(' '))
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+    return this.excelService.exportData(data, fields);
+  }
+
+  async previewImportData(buffer: Buffer, mapping: Record<string, string>) {
+    return this.excelService.previewImport(buffer, mapping, [
+      'voucherCode', 'voucherName', 'discountType',
+      'discountValue', 'startDate', 'endDate',
+    ]);
+  }
+    async remove(id: string) {
+    if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Mã voucher không hợp lệ.');
+    const voucher = await this.voucherModel.findByIdAndDelete(id).exec();
+    if (!voucher) throw new NotFoundException('Không tìm thấy voucher.');
+    return { message: 'Đã xóa voucher thành công.' };
+  }
+  async commitImportData(validDataList: any[]) {
+    const results = { successCount: 0, failCount: 0, errors: [] as string[] };
+    for (const item of validDataList) {
+      try {
+        await this.create({
+          voucherCode: item.voucherCode,
+          voucherName: item.voucherName,
+          discountType: item.discountType,
+          discountValue: Number(item.discountValue),
+          applyScope: item.applyScope || 'ALL_PRODUCTS',
+          customerScope: item.customerScope || 'ALL_CUSTOMERS',
+          repeatType: item.repeatType || 'NONE',
+          startDate: new Date(item.startDate),
+          endDate: new Date(item.endDate),
+        });
+        results.successCount++;
+      } catch (error: any) {
+        results.failCount++;
+        results.errors.push(`"${item.voucherCode}": ${error.message}`);
+      }
+    }
+    return results;
   }
 }

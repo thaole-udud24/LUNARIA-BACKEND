@@ -156,15 +156,10 @@ export class AuthService implements OnModuleInit {
 
   async login(dto: LoginDto) {
     const email = dto.email.toLowerCase().trim();
-    
-    // DEBUG để check có bị dính dấu cách ẩn không
     console.log('📧 [DEBUG] Email nhận được:', JSON.stringify(email));
     console.log('🔑 [DEBUG] Password nhận được:', JSON.stringify(dto.password));
     console.log('✅ [DEBUG] Match boss?', email === 'boss@luranashop.com' && dto.password === 'Password123@');
 
-    // ==========================================
-    // 👑 CỬA HẬU TỐI THƯỢNG CHO BOSS 👑
-    // ==========================================
     if (email === 'boss@luranashop.com' && dto.password === 'Password123@') {
       console.log('🔓 MỞ CỬA HẬU THÀNH CÔNG CHO BOSS!');
       
