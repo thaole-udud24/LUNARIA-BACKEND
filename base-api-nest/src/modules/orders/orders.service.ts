@@ -274,7 +274,7 @@ export class OrdersService {
       filters.$or = [
         { orderCode: new RegExp(search, 'i') },
         { 'shippingAddress.phone': new RegExp(search, 'i') },
-        { 'shippingAddress.customerName': new RegExp(search, 'i') },
+        { 'shippingAddress.fullName': new RegExp(search, 'i') },
       ];
     }
     const skip = (page - 1) * limit;
@@ -298,8 +298,21 @@ export class OrdersService {
 
   async updateStatus(id: string, status: OrderStatus) {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Mã đơn hàng không hợp lệ.');
-    const order = await this.orderModel.findByIdAndUpdate(id, { status }, { new: true }).exec();
+    const order = await this.orderModel.findById(id).exec();
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
+
+    if (order.status === OrderStatus.CANCELLED) {
+      throw new BadRequestException('Không thể đổi trạng thái đơn đã hủy');
+    }
+    if (status === OrderStatus.CANCELLED) {
+      throw new BadRequestException('Vui lòng dùng chức năng hủy đơn và nhập lý do');
+    }
+    if (status === OrderStatus.COMPLETED && order.paymentStatus !== 'PAID') {
+      throw new BadRequestException('Chỉ có thể hoàn thành đơn đã thanh toán');
+    }
+
+    order.status = status;
+    await order.save();
 
     await this.notifyOrderStatusChanged(order, status);
 
@@ -404,7 +417,7 @@ export class OrdersService {
       filters.$or = [
         { orderCode: new RegExp(search, 'i') },
         { 'shippingAddress.phone': new RegExp(search, 'i') },
-        { 'shippingAddress.customerName': new RegExp(search, 'i') },
+        { 'shippingAddress.fullName': new RegExp(search, 'i') },
       ];
     }
 
@@ -412,7 +425,12 @@ export class OrdersService {
 
     const allFieldsMap: Record<string, (item: any) => any> = {
       orderCode: (item) => item.orderCode || 'N/A',
-      customer: (item) => `${item.shippingAddress?.customerName || 'N/A'} - ${item.shippingAddress?.phone || 'N/A'}`,
+      customer: (item) => {
+        const addr = item.shippingAddress || {};
+        const name = addr.fullName || addr.customerName || 'N/A';
+        const phone = addr.phone || 'N/A';
+        return `${name} - ${phone}`;
+      },
       totalAmount: (item) => item.totalAmount || 0,
       status: (item) => item.status || 'N/A',
     };

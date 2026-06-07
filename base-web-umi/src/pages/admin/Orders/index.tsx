@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { message, Modal, Input, Statistic, Row, Col, Select } from 'antd';
+import { message, Modal, Input, Statistic, Row, Col, Select, Tooltip } from 'antd';
+import { SyncOutlined } from '@ant-design/icons';
 import { useLocation } from 'umi';
 import {
   getAdminOrders,
@@ -9,7 +10,8 @@ import {
 } from '@/services/DonHang/orders.api';
 import { getDashboardData } from '@/services/Admin/dashboard.api';
 import type { AdminOrder } from '@/services/DonHang/types';
-import { formatExportParams, unwrapDashboardOverview } from '@/utils/adminApi';
+import { formatExportParams, unwrapDashboardOverview, unwrapListResponse } from '@/utils/adminApi';
+import { normalizeAdminOrders } from '@/utils/orderAddress';
 import TableToolbar from '@/components/admin/TableToolbar';
 import OrderTable from './components/OrderTable';
 import ExportModal from '@/components/admin/ExportModal';
@@ -76,8 +78,9 @@ export default function AdminOrders() {
         search,
         ...(statusFilter ? { status: statusFilter } : {}),
       });
-      setOrders(res.data);
-      setTotal(res.total);
+      const { list, total: totalCount } = unwrapListResponse<AdminOrder>(res);
+      setOrders(normalizeAdminOrders(list));
+      setTotal(totalCount);
       setLastUpdated(new Date());
       if (showMsg) message.success('Đã cập nhật dữ liệu mới nhất!');
     } catch {
@@ -153,7 +156,9 @@ export default function AdminOrders() {
     try {
       setExportLoading(true);
       message.loading({ content: 'Đang trích xuất dữ liệu...', key: 'exportOrder' });
-      const blob = await exportOrdersAdmin(formatExportParams(search, values));
+      const blob = await exportOrdersAdmin(
+        formatExportParams(search, values, { status: statusFilter || undefined }),
+      );
       const url = window.URL.createObjectURL(new Blob([blob]));
       const link = document.createElement('a');
       link.href = url;
@@ -187,8 +192,11 @@ export default function AdminOrders() {
           </div>
         </div>
 
-        <div style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+        <div className={styles.metaRow}>
           Cập nhật lúc: {lastUpdated.toLocaleTimeString('vi-VN')}
+          <Tooltip title="Làm mới">
+            <SyncOutlined spin={loading} className={styles.refreshIcon} onClick={() => { fetchOrders(true); fetchKpi(); }} />
+          </Tooltip>
         </div>
       </div>
 
@@ -201,14 +209,14 @@ export default function AdminOrders() {
         </Col>
         <Col xs={24} sm={8}>
           <div className={styles.statCard}>
-            <Statistic title="Doanh thu đơn đang xử lý" value={kpiStats.processingRevenue} formatter={(val) => formatCurrency(Number(val))} valueStyle={{ color: '#10b981', fontSize: 28, fontWeight: 800 }} />
-            <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 12 }}>Tiềm năng từ đơn đã xử lý</div>
+            <Statistic title="Doanh thu đơn xử lý (đã TT)" value={kpiStats.processingRevenue} formatter={(val) => formatCurrency(Number(val))} valueStyle={{ color: '#10b981', fontSize: 28, fontWeight: 800 }} />
+            <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 12 }}>CONFIRMED + PROCESSING · đã thanh toán</div>
           </div>
         </Col>
         <Col xs={24} sm={8}>
           <div className={styles.statCard}>
-            <Statistic title="Đơn đã hoàn thành" value={kpiStats.deliveredCount} suffix="đơn" valueStyle={{ color: '#0f172a', fontSize: 28, fontWeight: 800 }} />
-            <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 12 }}>Tổng đơn giao thành công</div>
+            <Statistic title="Đơn hoàn thành" value={kpiStats.deliveredCount} suffix="đơn" valueStyle={{ color: '#0f172a', fontSize: 28, fontWeight: 800 }} />
+            <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 12 }}>Trạng thái COMPLETED</div>
           </div>
         </Col>
       </Row>

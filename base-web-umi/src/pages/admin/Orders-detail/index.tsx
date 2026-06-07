@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, history } from 'umi';
-import { message, Button, Modal, Input, Select, Space, Tag } from 'antd';
+import { message, Button, Modal, Input, Select, Space, Tag, Alert } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import {
   getAdminOrderById,
@@ -9,6 +9,8 @@ import {
   updateOrderStatusAdmin,
 } from '@/services/DonHang/orders.api';
 import type { AdminOrder } from '@/services/DonHang/types';
+import { unwrapApiData } from '@/utils/adminApi';
+import { formatShippingAddress, getPaymentMethodLabel, normalizeAdminOrder } from '@/utils/orderAddress';
 import CustomerInfo from './components/CustomerInfo';
 import OrderItemsTable from './components/OrderItemsTable';
 import OrderTimeline from './components/OrderTimeline';
@@ -27,6 +29,7 @@ const STATUS_LABEL: Record<string, string> = {
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<AdminOrder | null>(null);
+  const [customerEmail, setCustomerEmail] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -37,7 +40,16 @@ export default function OrderDetail() {
     setLoading(true);
     try {
       const res: any = await getAdminOrderById(id);
-      setOrder(res.data || res);
+      const raw = unwrapApiData<any>(res);
+      const normalized = normalizeAdminOrder(raw);
+      setOrder(normalized);
+
+      const userRef = raw?.userId;
+      if (userRef && typeof userRef === 'object') {
+        setCustomerEmail(userRef.email || userRef.fullName || '');
+      } else {
+        setCustomerEmail('');
+      }
     } catch {
       message.error('Không thể tải thông tin đơn hàng!');
       setOrder(null);
@@ -99,7 +111,7 @@ export default function OrderDetail() {
       message.success('Đã cập nhật trạng thái đơn');
       await loadOrder();
     } catch (err: any) {
-      message.error(err?.data?.message || 'Không cập nhật được trạng thái');
+      message.error(err?.data?.message || err?.message || 'Không cập nhật được trạng thái');
     } finally {
       setActionLoading(false);
     }
@@ -111,6 +123,8 @@ export default function OrderDetail() {
   const canConfirm = order.paymentStatus !== 'PAID' && order.status !== 'CANCELLED';
   const canCancel = order.status !== 'CANCELLED' && order.status !== 'COMPLETED';
   const canUpdateStatus = order.status !== 'CANCELLED';
+  const shipping = formatShippingAddress(order.shippingAddress);
+  const { qrUrl, paymentTimeout, appliedVoucher } = order;
 
   return (
     <div className={styles.detailContainer}>
@@ -131,6 +145,10 @@ export default function OrderDetail() {
         </div>
       </div>
 
+      {order.status === 'CANCELLED' && order.cancelReason && (
+        <Alert type="error" showIcon message="Lý do hủy đơn" description={order.cancelReason} />
+      )}
+
       <div className={styles.actionBar}>
         <Space wrap>
           {canConfirm && (
@@ -148,7 +166,7 @@ export default function OrderDetail() {
                 { value: 'PENDING', label: 'Chờ xác nhận' },
                 { value: 'CONFIRMED', label: 'Đã xác nhận' },
                 { value: 'PROCESSING', label: 'Đang xử lý' },
-                { value: 'COMPLETED', label: 'Hoàn thành' },
+                { value: 'COMPLETED', label: 'Hoàn thành', disabled: order.paymentStatus !== 'PAID' },
               ]}
             />
           )}
@@ -176,12 +194,27 @@ export default function OrderDetail() {
         <div className={styles.sideCol}>
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Thông tin giao hàng</h3>
-            <CustomerInfo address={order.shippingAddress} note={order.note} />
+            <CustomerInfo address={shipping} note={order.note} email={customerEmail} />
           </div>
 
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Thanh toán</h3>
-            <PaymentSummary order={order} />
+            <PaymentSummary
+              order={order}
+              paymentMethodLabel={getPaymentMethodLabel(order.paymentMethod)}
+              appliedVoucher={appliedVoucher}
+            />
+            {order.paymentStatus !== 'PAID' && qrUrl && (
+              <div className={styles.qrBlock}>
+                <p className={styles.qrLabel}>Mã QR thanh toán</p>
+                <img src={qrUrl} alt="QR thanh toán" className={styles.qrImage} />
+                {paymentTimeout && (
+                  <p className={styles.qrHint}>
+                    Hết hạn thanh toán: {new Date(paymentTimeout).toLocaleString('vi-VN')}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

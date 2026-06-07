@@ -45,8 +45,8 @@ export default function OrderTable({
     {
       title: 'Khách hàng', key: 'customer',
       render: (_, record) => {
-        const name = record.shippingAddress?.customerName || (record as any).customerName || 'Khách chưa cập nhật tên';
-        const phone = record.shippingAddress?.phone || (record as any).phoneNumber || 'Chưa có SĐT';
+        const name = record.shippingAddress?.customerName || 'Khách chưa cập nhật tên';
+        const phone = record.shippingAddress?.phone || 'Chưa có SĐT';
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '14px' }}>{name}</div>
@@ -74,9 +74,9 @@ export default function OrderTable({
       render: (status: string) => {
         const statusMap: Record<string, { bg: string; color: string; text: string }> = {
           PENDING: { bg: '#e0f2fe', color: '#0ea5e9', text: 'Chờ xác nhận' },
+          CONFIRMED: { bg: '#dbeafe', color: '#2563eb', text: 'Đã xác nhận' },
           PROCESSING: { bg: '#fef08a', color: '#ca8a04', text: 'Đang xử lý' },
-          DELIVERED: { bg: '#dcfce7', color: '#22c55e', text: 'Đã giao' },
-          COMPLETED: { bg: '#cffafe', color: '#06b6d4', text: 'Hoàn thành' },
+          COMPLETED: { bg: '#dcfce7', color: '#22c55e', text: 'Hoàn thành' },
           CANCELLED: { bg: '#ffe4e6', color: '#e11d48', text: 'Đã hủy' },
         };
         const st = statusMap[status] || { bg: '#f1f5f9', color: '#64748b', text: status };
@@ -86,7 +86,7 @@ export default function OrderTable({
     {
       title: 'Thao tác', key: 'actions',
       render: (_, record) => {
-        const isOrderFinalized = ['DELIVERED', 'COMPLETED', 'CANCELLED'].includes(record.status);
+        const isOrderFinalized = ['COMPLETED', 'CANCELLED'].includes(record.status);
 
         return (
           <Space size="small">

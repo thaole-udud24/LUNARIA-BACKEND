@@ -44,5 +44,5 @@ export default function OrderItemsTable({ items }: { items: OrderItem[] }) {
     },
   ];
 
-  return <DataTable columns={columns} dataSource={items} pagination={false} rowKey="productId" />;
+  return <DataTable columns={columns} dataSource={items} pagination={false} rowKey={(record, index) => `${record.productId}-${record.variantName}-${index}`} />;
 }

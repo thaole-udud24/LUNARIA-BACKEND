@@ -15,7 +15,7 @@ export interface OrderShippingAddress {
 export interface AdminOrder {
   _id: string;
   orderCode: string;
-  userId: string;
+  userId: string | { _id?: string; email?: string; fullName?: string };
   items: OrderItem[];
   originalTotal: number;
   shippingFee: number;
@@ -23,9 +23,12 @@ export interface AdminOrder {
   totalAmount: number;
   shippingAddress: OrderShippingAddress;
   paymentMethod: string;
-  status: string; 
+  status: string;
   paymentStatus: 'UNPAID' | 'PAID';
   cancelReason?: string;
+  qrUrl?: string;
+  paymentTimeout?: string;
+  appliedVoucher?: string | null;
   createdAt: string;
   note?: string;
 }

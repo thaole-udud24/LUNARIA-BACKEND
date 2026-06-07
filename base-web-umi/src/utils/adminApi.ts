@@ -49,7 +49,12 @@ export const unwrapDashboardOverview = <T>(res: unknown): T | null => {
 /** @deprecated dùng resolveMediaUrl từ @/utils/apiUrl */
 export { resolveMediaUrl } from '@/utils/apiUrl';
 
-export const formatExportParams = (search: string, fields: string[]) => ({
+export const formatExportParams = (
+  search: string,
+  fields: string[],
+  extra?: Record<string, string | undefined>,
+) => ({
   search: search || undefined,
   exportOptions: fields.join(','),
+  ...(extra || {}),
 });
