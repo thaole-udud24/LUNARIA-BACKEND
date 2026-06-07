@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Order, OrderDocument } from '../../orders/schemas/order.schema';
+import { Product, ProductDocument } from '../../catalog/schemas/product.schema';
 import { User, UserDocument } from '../../auth/schemas/user.schema';
 import { OrderStatus } from 'src/common/constants/order-status.constant';
 import { Role } from 'src/common/constants/roles.constant';
@@ -12,8 +13,36 @@ type ChartBucket = { label: string; salesQuantity: number; revenue: number };
 export class DashboardService {
   constructor(
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
+    @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
+
+  /** Lấy mainImage từ bảng products — populate items.productId không hoạt động vì items là Array thường */
+  private async getProductMainImageMap(productIds: string[]) {
+    const uniqueIds = [
+      ...new Set(productIds.filter((id) => Types.ObjectId.isValid(id))),
+    ];
+    if (!uniqueIds.length) return new Map<string, string>();
+
+    const products = await this.productModel
+      .find({ _id: { $in: uniqueIds.map((id) => new Types.ObjectId(id)) } })
+      .select('mainImage')
+      .lean()
+      .exec();
+
+    return new Map(products.map((p) => [p._id.toString(), p.mainImage || '']));
+  }
+
+  private resolveOrderItemProductId(productId: unknown): string {
+    if (!productId) return '';
+    if (typeof productId === 'string') return productId;
+    if (typeof productId === 'object') {
+      const ref = productId as { _id?: unknown; toString?: () => string };
+      if (ref._id != null) return String(ref._id);
+      if (typeof ref.toString === 'function') return ref.toString();
+    }
+    return String(productId);
+  }
 
   private sumPaidRevenue(orders: Array<{ totalAmount?: number; paymentStatus?: string }>) {
     return orders
@@ -152,7 +181,7 @@ export class DashboardService {
         .find({ status: { $ne: OrderStatus.CANCELLED } })
         .sort({ createdAt: -1 })
         .limit(5)
-        .populate('items.productId', 'mainImage')
+        .select('orderCode status totalAmount createdAt items')
         .lean()
         .exec(),
       this.orderModel
@@ -194,13 +223,17 @@ export class DashboardService {
       ]),
     ]);
 
+    const recentProductIds = recentOrdersRaw.map((order) => {
+      const firstItem = (order as any).items?.[0];
+      return this.resolveOrderItemProductId(firstItem?.productId);
+    });
+    const mainImageMap = await this.getProductMainImageMap(recentProductIds);
+
     const recentOrders = recentOrdersRaw.map((order) => {
       const orderDoc = order as any;
       const firstItem = orderDoc.items?.[0] as any;
-      const productRef = firstItem?.productId as any;
-      const imageUrl =
-        (typeof productRef === 'object' && productRef?.mainImage) ||
-        '/images/placeholder-product.png';
+      const productId = this.resolveOrderItemProductId(firstItem?.productId);
+      const imageUrl = mainImageMap.get(productId) || '';
 
       return {
         id: orderDoc._id.toString(),
@@ -242,7 +275,7 @@ export class DashboardService {
     const bestSellers = bestSellerAgg.map((item) => ({
       id: item._id?.toString() || item.name,
       name: item.name || item.product?.name || 'Sản phẩm',
-      imageUrl: item.product?.mainImage || '/images/placeholder-product.png',
+      imageUrl: item.product?.mainImage || '',
       sales: item.sales || 0,
     }));
 

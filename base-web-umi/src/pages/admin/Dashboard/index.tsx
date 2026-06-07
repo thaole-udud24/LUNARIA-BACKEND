@@ -78,7 +78,12 @@ export default function Dashboard() {
       </div>
 
       <div className={styles.bottomRow}>
-        <RecentOrders orders={data.recentOrders} />
+        <RecentOrders
+          orders={data.recentOrders?.map((order) => ({
+            ...order,
+            imageUrl: resolveMediaUrl(order.imageUrl),
+          }))}
+        />
         <div className={styles.chartGroup}>
           <RevenueChart
             revenue={data.revenue}
