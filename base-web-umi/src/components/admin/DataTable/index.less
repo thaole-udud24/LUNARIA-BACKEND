@@ -96,17 +96,23 @@
       color: #ffffff !important;
     }
 
+    .ant-pagination-item a,
+    .ant-pagination-options .ant-select-selection-item {
+      color: var(--admin-text) !important;
+    }
+
     .ant-pagination-prev .ant-pagination-item-link,
     .ant-pagination-next .ant-pagination-item-link {
       border-radius: 8px;
       border: 1px solid var(--admin-border, #f3f4f6);
       transition: all 0.3s ease;
+      color: var(--admin-text-muted) !important;
     }
 
     .ant-pagination-prev:hover .ant-pagination-item-link,
     .ant-pagination-next:hover .ant-pagination-item-link {
       border-color: var(--admin-primary, #ff9a7a);
-      color: var(--admin-primary, #ff9a7a);
+      color: var(--admin-primary, #ff9a7a) !important;
     }
   }
 }

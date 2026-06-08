@@ -1,5 +1,6 @@
 import DataTable from '@/components/admin/DataTable';
 import type { OrderItem } from '@/services/DonHang/types';
+import { adminTableStyles as t } from '@/utils/adminTableStyles';
 
 export default function OrderItemsTable({ items }: { items: OrderItem[] }) {
   const columns = [
@@ -9,10 +10,10 @@ export default function OrderItemsTable({ items }: { items: OrderItem[] }) {
       key: 'name',
       render: (text: string, record: OrderItem) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ fontWeight: 600, color: '#1F2937', fontSize: '14px' }}>{text}</div>
-          <span style={{ 
-            fontSize: '12px', background: '#F3E5DF', color: '#6B7280', 
-            padding: '2px 8px', borderRadius: '6px', alignSelf: 'flex-start', fontWeight: 500
+          <div style={t.title}>{text}</div>
+          <span style={{
+            fontSize: 12, background: 'var(--admin-primary-soft)', color: 'var(--admin-text-muted)',
+            padding: '2px 8px', borderRadius: 6, alignSelf: 'flex-start', fontWeight: 500,
           }}>
             {record.variantName}
           </span>
@@ -23,21 +24,21 @@ export default function OrderItemsTable({ items }: { items: OrderItem[] }) {
       title: 'Đơn giá',
       dataIndex: 'priceSell',
       key: 'priceSell',
-      render: (price: number) => <span style={{ color: '#475569', fontWeight: 500 }}>{price.toLocaleString('vi-VN')} đ</span>,
+      render: (price: number) => <span style={t.name}>{price.toLocaleString('vi-VN')} đ</span>,
     },
     {
       title: 'Số lượng',
       dataIndex: 'quantity',
       key: 'quantity',
       align: 'center' as const,
-      render: (qty: number) => <span style={{ fontWeight: 600, color: '#1F2937' }}>{qty}</span>
+      render: (qty: number) => <span style={t.code}>{qty}</span>
     },
     {
       title: 'Thành tiền',
       key: 'total',
       align: 'right' as const,
       render: (_: any, record: OrderItem) => (
-        <strong style={{ color: '#FFA78A', fontSize: '15px' }}>
+        <strong style={t.price}>
           {(record.priceSell * record.quantity).toLocaleString('vi-VN')} đ
         </strong>
       ),

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 import { Drawer, Tabs, Avatar, Tag, Descriptions, Table, Button, Space, Divider, Typography, Spin, Modal, message } from 'antd';
 import {
   UserOutlined, PhoneOutlined, HomeOutlined, StopOutlined, MailOutlined,
@@ -7,6 +7,7 @@ import {
 import { history } from 'umi';
 import { getAdminUserDetail, updateAdminUserStatus } from '@/services/TaiKhoan/users.api';
 import { resolveMediaUrl, unwrapApiData } from '@/utils/adminApi';
+import { adminTableStyles as tbl } from '@/utils/adminTableStyles';
 
 const { Title, Text } = Typography;
 const VIP_THRESHOLD = 5_000_000;
@@ -121,13 +122,13 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
       title: 'Ngày đặt',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (text: string) => <Text style={{ color: '#64748b' }}>{new Date(text).toLocaleDateString('vi-VN')}</Text>,
+      render: (text: string) => <Text style={tbl.date}>{new Date(text).toLocaleDateString('vi-VN')}</Text>,
     },
     {
       title: 'Trị giá',
       dataIndex: 'totalAmount',
       key: 'totalAmount',
-      render: (val: number) => <Text strong style={{ color: '#10b981' }}>{formatCurrency(val)}</Text>,
+      render: (val: number) => <Text strong style={tbl.success}>{formatCurrency(val)}</Text>,
     },
     {
       title: 'Trạng thái',
@@ -143,14 +144,30 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
   const phones: Record<string, unknown>[] = data?.contacts?.phones || [];
   const addresses: Record<string, unknown>[] = data?.contacts?.addresses || [];
 
+  const panelStyle: CSSProperties = {
+    background: 'var(--admin-surface)',
+    padding: 24,
+    borderRadius: 16,
+    boxShadow: 'var(--admin-shadow-sm)',
+    border: '1px solid var(--admin-border)',
+  };
+
+  const cardStyle: CSSProperties = {
+    background: 'var(--admin-surface)',
+    padding: 20,
+    borderRadius: 16,
+    border: '1px solid var(--admin-border)',
+    position: 'relative',
+  };
+
   return (
     <Drawer
-      title={<span style={{ fontWeight: 800, fontSize: 20, color: '#0f172a' }}>Hồ sơ Khách hàng 360°</span>}
+      title={<span style={{ fontWeight: 800, fontSize: 20, color: 'var(--admin-text-strong)' }}>Hồ sơ Khách hàng 360°</span>}
       placement="right"
       width={drawerWidth}
       onClose={onClose}
       visible={visible}
-      bodyStyle={{ padding: 0, background: '#f8fafc' }}
+      bodyStyle={{ padding: 0, background: 'var(--admin-bg-subtle)' }}
       footer={
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Button
@@ -166,7 +183,7 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
             <Button
               type="primary"
               icon={<MailOutlined />}
-              style={{ borderRadius: 8, background: 'linear-gradient(135deg, #a7c7e7, #b0e0e6)', color: '#0f172a', border: 'none', height: 42, fontWeight: 600 }}
+              style={{ borderRadius: 8, background: 'var(--admin-primary-soft)', color: 'var(--admin-text-strong)', border: '1px solid var(--admin-border)', height: 42, fontWeight: 600 }}
               href={data?.account?.email ? `mailto:${data.account.email}` : undefined}
               disabled={!data?.account?.email}
             >
@@ -182,11 +199,11 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
         </div>
       ) : (
         <>
-          <div style={{ padding: '32px 24px', background: 'linear-gradient(135deg, #ffffff 0%, #fffbfc 100%)', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: 24, alignItems: 'center' }}>
-            <Avatar src={resolveMediaUrl(data.profile.avatar)} size={100} icon={<UserOutlined />} style={{ border: '4px solid #fff', boxShadow: '0 10px 20px rgba(167, 199, 231, 0.3)' }} />
+          <div style={{ padding: '32px 24px', background: 'var(--admin-gradient-topbar)', borderBottom: '1px solid var(--admin-border)', display: 'flex', gap: 24, alignItems: 'center' }}>
+            <Avatar src={resolveMediaUrl(data.profile.avatar)} size={100} icon={<UserOutlined />} style={{ border: '4px solid var(--admin-surface)', boxShadow: 'var(--admin-shadow-md)' }} />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
-                <Title level={3} style={{ margin: 0, fontWeight: 800, color: '#0f172a' }}>{data.profile.fullName || data.account.email}</Title>
+                <Title level={3} style={{ margin: 0, fontWeight: 800, color: 'var(--admin-text-strong)' }}>{data.profile.fullName || data.account.email}</Title>
                 {data.metrics.totalSpent > VIP_THRESHOLD && (
                   <Tag color="gold" icon={<StarFilled />} style={{ borderRadius: 12, border: 'none', background: '#fef08a', color: '#854d0e', fontWeight: 600 }}>VIP</Tag>
                 )}
@@ -194,27 +211,27 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
                   {isBlocked ? 'Đã khóa' : 'Hoạt động'}
                 </Tag>
               </div>
-              <Text style={{ fontSize: 15, color: '#64748b', fontWeight: 500 }}><MailOutlined style={{ marginRight: 6 }} />{data.account.email}</Text>
+              <Text style={{ fontSize: 15, color: 'var(--admin-text-muted)', fontWeight: 500 }}><MailOutlined style={{ marginRight: 6 }} />{data.account.email}</Text>
 
               <div style={{ display: 'flex', gap: 24, marginTop: 16 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Tổng chi tiêu</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: '#10b981' }}>{formatCurrency(data.metrics.totalSpent)}</div>
+                  <div style={{ fontSize: 12, color: 'var(--admin-text-subtle)', textTransform: 'uppercase', fontWeight: 700 }}>Tổng chi tiêu</div>
+                  <div style={tbl.success}>{formatCurrency(data.metrics.totalSpent)}</div>
                 </div>
                 <Divider type="vertical" style={{ height: 40 }} />
                 <div>
-                  <div style={{ fontSize: 12, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Số đơn hàng</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{data.metrics.totalOrders} <span style={{ fontSize: 14, fontWeight: 500, color: '#64748b' }}>đơn</span></div>
+                  <div style={{ fontSize: 12, color: 'var(--admin-text-subtle)', textTransform: 'uppercase', fontWeight: 700 }}>Số đơn hàng</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--admin-text-strong)' }}>{data.metrics.totalOrders} <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--admin-text-muted)' }}>đơn</span></div>
                 </div>
               </div>
             </div>
           </div>
 
           <div style={{ padding: '0 24px' }}>
-            <Tabs defaultActiveKey="1" tabBarStyle={{ fontWeight: 600, color: '#64748b' }}>
+            <Tabs defaultActiveKey="1" tabBarStyle={{ fontWeight: 600, color: 'var(--admin-text-muted)' }}>
               <Tabs.TabPane tab="Tổng quan" key="1">
-                <div style={{ background: '#fff', padding: 24, borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.02)', marginTop: 8 }}>
-                  <Descriptions column={1} labelStyle={{ color: '#94a3b8', width: 140, fontWeight: 600 }} contentStyle={{ fontWeight: 600, color: '#0f172a' }}>
+                <div style={{ ...panelStyle, marginTop: 8 }}>
+                  <Descriptions column={1} labelStyle={{ color: 'var(--admin-text-subtle)', width: 140, fontWeight: 600 }} contentStyle={{ fontWeight: 600, color: 'var(--admin-text-strong)' }}>
                     <Descriptions.Item label="ID Hệ thống"><Text copyable>{String(data.account.id)}</Text></Descriptions.Item>
                     <Descriptions.Item label="Ngày tham gia">{new Date(data.account.createdAt || Date.now()).toLocaleString('vi-VN')}</Descriptions.Item>
                     <Descriptions.Item label="Trạng thái">
@@ -232,28 +249,27 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
 
               <Tabs.TabPane tab="Sổ địa chỉ & SĐT" key="2">
                 <Space direction="vertical" size="middle" style={{ width: '100%', marginTop: 8 }}>
-                  <Text strong style={{ color: '#475569', fontSize: 15 }}>Số điện thoại</Text>
+                  <Text strong style={{ ...tbl.title, fontSize: 15 }}>Số điện thoại</Text>
                   {phones.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: 16, color: '#94a3b8', background: '#fff', borderRadius: 12 }}>Chưa có số điện thoại</div>
+                    <div style={{ textAlign: 'center', padding: 16, color: 'var(--admin-text-subtle)', background: 'var(--admin-surface)', borderRadius: 12, border: '1px solid var(--admin-border)' }}>Chưa có số điện thoại</div>
                   ) : (
                     phones.map((phone) => (
                       <div
                         key={String(phone._id)}
                         style={{
-                          background: '#fff', padding: 20, borderRadius: 16,
-                          border: isDefaultFlag(phone) ? '2px solid #ffb6b9' : '1px solid #f1f5f9',
-                          position: 'relative',
+                          ...cardStyle,
+                          border: isDefaultFlag(phone) ? '2px solid var(--admin-primary)' : '1px solid var(--admin-border)',
                         }}
                       >
                         {isDefaultFlag(phone) && (
                           <Tag color="magenta" style={{ position: 'absolute', top: 20, right: 16, borderRadius: 10, border: 'none', fontWeight: 600 }}>Mặc định</Tag>
                         )}
-                        <div style={{ fontWeight: 800, fontSize: 16, color: '#0f172a' }}>
-                          <PhoneOutlined style={{ marginRight: 8, color: '#ff8c69' }} />
+                        <div style={{ ...tbl.title, fontSize: 16 }}>
+                          <PhoneOutlined style={{ marginRight: 8, color: 'var(--admin-primary)' }} />
                           {String(phone.full_phone_e164 || phone.national_number || '—')}
                         </div>
                         {phone.phone_type && (
-                          <div style={{ color: '#64748b', marginTop: 6, fontSize: 13 }}>
+                          <div style={{ ...tbl.muted, marginTop: 6, fontSize: 13 }}>
                             Loại: {String(phone.phone_type)}
                           </div>
                         )}
@@ -261,9 +277,9 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
                     ))
                   )}
 
-                  <Text strong style={{ color: '#475569', fontSize: 15, marginTop: 8 }}>Địa chỉ giao hàng</Text>
+                  <Text strong style={{ ...tbl.title, fontSize: 15, marginTop: 8 }}>Địa chỉ giao hàng</Text>
                   {addresses.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: 20, color: '#94a3b8' }}>Khách hàng chưa thêm địa chỉ nào</div>
+                    <div style={{ textAlign: 'center', padding: 20, color: 'var(--admin-text-subtle)' }}>Khách hàng chưa thêm địa chỉ nào</div>
                   ) : (
                     addresses.map((addr) => {
                       const formatted = formatAddress(addr);
@@ -271,21 +287,20 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
                         <div
                           key={String(addr._id)}
                           style={{
-                            background: '#fff', padding: 20, borderRadius: 16,
-                            border: isDefaultFlag(addr) ? '2px solid #ffb6b9' : '1px solid #f1f5f9',
-                            position: 'relative',
+                            ...cardStyle,
+                            border: isDefaultFlag(addr) ? '2px solid var(--admin-primary)' : '1px solid var(--admin-border)',
                           }}
                         >
                           {isDefaultFlag(addr) && (
                             <Tag color="magenta" style={{ position: 'absolute', top: 20, right: 16, borderRadius: 10, border: 'none', fontWeight: 600 }}>Mặc định</Tag>
                           )}
-                          <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8, color: '#0f172a' }}>
-                            <HomeOutlined style={{ marginRight: 8, color: '#ff8c69' }} />{formatted.name}
+                          <div style={{ ...tbl.title, fontSize: 16, marginBottom: 8 }}>
+                            <HomeOutlined style={{ marginRight: 8, color: 'var(--admin-primary)' }} />{formatted.name}
                           </div>
-                          <div style={{ color: '#475569', marginBottom: 4, fontWeight: 500 }}>
+                          <div style={{ ...tbl.name, marginBottom: 4 }}>
                             <PhoneOutlined style={{ marginRight: 8 }} />{formatted.phone}
                           </div>
-                          <div style={{ color: '#64748b', fontWeight: 500 }}>{formatted.fullAddress}</div>
+                          <div style={tbl.muted}>{formatted.fullAddress}</div>
                         </div>
                       );
                     })
@@ -296,7 +311,7 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
               <Tabs.TabPane tab="Lịch sử mua hàng" key="3">
                 <div style={{ marginTop: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                    <Text strong style={{ color: '#475569', fontSize: 15 }}>Đơn hàng gần đây</Text>
+                    <Text strong style={{ ...tbl.title, fontSize: 15 }}>Đơn hàng gần đây</Text>
                   </div>
                   <Table
                     columns={orderColumns}
@@ -305,7 +320,7 @@ export default function UserDetailDrawer({ visible, onClose, userId, onUserUpdat
                     pagination={false}
                     size="middle"
                     locale={{ emptyText: 'Chưa có đơn hàng nào' }}
-                    style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}
+                    style={{ background: 'var(--admin-surface)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--admin-shadow-sm)', border: '1px solid var(--admin-border)' }}
                   />
                 </div>
               </Tabs.TabPane>

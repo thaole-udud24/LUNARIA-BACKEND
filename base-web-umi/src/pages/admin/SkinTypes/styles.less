@@ -41,10 +41,10 @@
 }
 
 .topBar, .tableWrapper {
-  background: @surface;
+  background: var(--admin-surface);
   border-radius: 24px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), 0 4px 6px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow-md);
 }
 
 .tableWrapper { padding: 24px; }
@@ -54,7 +54,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 28px 32px;
-  background: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
+  background: var(--admin-gradient-topbar);
   flex-wrap: wrap;
   gap: 20px;
 }
@@ -75,8 +75,8 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: @text-secondary;
-  .active { color: @text-primary; font-weight: 600; }
+  color: var(--admin-text-muted);
+  .active { color: var(--admin-text-strong); font-weight: 600; }
 }
 
 // Nút Gradient dùng chung

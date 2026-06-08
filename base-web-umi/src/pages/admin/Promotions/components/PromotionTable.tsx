@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import type { Promotion } from '@/types/promotion';
 import DataTable from '@/components/admin/DataTable';
+import { adminTableStyles as t } from '@/utils/adminTableStyles';
 
 const STATUS_COLOR: Record<string, string> = { DRAFT: 'default', ACTIVE: 'success', DISABLED: 'warning', EXPIRED: 'error' };
 const STATUS_LABEL: Record<string, string> = { DRAFT: 'Nháp', ACTIVE: 'Đang chạy', DISABLED: 'Đã tắt', EXPIRED: 'Hết hạn' };
@@ -24,7 +25,7 @@ interface Props {
 export default function PromotionTable(props: Props) {
   const columns: ColumnsType<Promotion> = [
     { title: 'STT', width: 60, render: (_: any, __: any, index: number) => (props.page - 1) * props.limit + index + 1 },
-    { title: 'Tên chương trình', dataIndex: 'name', render: (text) => <strong style={{ color: '#1F2937' }}>{text}</strong> },
+    { title: 'Tên chương trình', dataIndex: 'name', render: (text) => <strong style={t.code}>{text}</strong> },
     {
       title: 'Loại giảm',
       render: (_, r) => r.discountType === 'PERCENTAGE'
@@ -40,7 +41,7 @@ export default function PromotionTable(props: Props) {
     {
       title: 'Thời gian',
       render: (_, r) => (
-        <div style={{ fontSize: 12 }}>
+        <div style={{ fontSize: 12, color: 'var(--admin-text-muted)' }}>
           <div>Từ: {dayjs(r.startDate).format('DD/MM/YYYY HH:mm')}</div>
           <div>Đến: {dayjs(r.endDate).format('DD/MM/YYYY HH:mm')}</div>
         </div>
@@ -66,7 +67,7 @@ export default function PromotionTable(props: Props) {
               </Menu.Item>
             </Menu>
           } trigger={['click']} placement="bottomRight">
-            <div style={{ padding: 8, cursor: 'pointer', color: '#6B7280' }}><MenuOutlined /></div>
+            <div style={t.action}><MenuOutlined /></div>
           </Dropdown>
         );
       },

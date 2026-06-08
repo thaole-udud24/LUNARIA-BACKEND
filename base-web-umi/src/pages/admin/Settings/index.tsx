@@ -346,8 +346,8 @@ export default function AdminSettingsPage() {
   };
 
   const accountStatusLabel = accountInfo?.status === 'blocked'
-    ? { title: 'Tài khoản bị khóa', desc: 'Liên hệ quản trị viên để được hỗ trợ', color: '#991b1b', bg: '#fef2f2', icon: '#ef4444' }
-    : { title: 'Tài khoản hợp lệ', desc: 'Tài khoản đang hoạt động bình thường', color: '#166534', bg: '#f0fdf4', icon: '#22c55e' };
+    ? { title: 'Tài khoản bị khóa', desc: 'Liên hệ quản trị viên để được hỗ trợ', color: 'var(--admin-danger)', bg: 'var(--admin-danger-soft)', icon: 'var(--admin-danger)' }
+    : { title: 'Tài khoản hợp lệ', desc: 'Tài khoản đang hoạt động bình thường', color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', icon: '#22c55e' };
 
   const avatarSrc = resolveMediaUrlWithFallback(userProfile?.avatar_url, defaultAvatar);
   const bannerSrc = resolveMediaUrlWithFallback(userProfile?.banner_url, defaultBanner);
@@ -414,23 +414,23 @@ export default function AdminSettingsPage() {
                 <div className={styles.settingCard}>
                   <h2 className={styles.cardTitle}>Thông tin tóm tắt</h2>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f3e5df', paddingBottom: '12px' }}>
-                      <span style={{ color: '#6B7280', fontWeight: 500 }}>Họ tên</span>
-                      <span style={{ color: '#1F2937', fontWeight: 600 }}>{userProfile?.full_name || accountInfo?.name || '—'}</span>
+                    <div className={styles.infoRow}>
+                      <span className={styles.infoLabel}>Họ tên</span>
+                      <span className={styles.infoValue}>{userProfile?.full_name || accountInfo?.name || '—'}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f3e5df', paddingBottom: '12px' }}>
-                      <span style={{ color: '#6B7280', fontWeight: 500 }}>Email</span>
-                      <span style={{ color: '#1F2937', fontWeight: 600 }}>{accountInfo?.email || currentUser?.email || '—'}</span>
+                    <div className={styles.infoRow}>
+                      <span className={styles.infoLabel}>Email</span>
+                      <span className={styles.infoValue}>{accountInfo?.email || currentUser?.email || '—'}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f3e5df', paddingBottom: '12px' }}>
-                      <span style={{ color: '#6B7280', fontWeight: 500 }}>Role / Quyền hạn</span>
-                      <span style={{ color: '#1F2937', fontWeight: 600 }}>
+                    <div className={styles.infoRow}>
+                      <span className={styles.infoLabel}>Role / Quyền hạn</span>
+                      <span className={styles.infoValue}>
                         {accountInfo?.roles?.map((role: string) => <Tag color="orange" key={role}>{role}</Tag>) || <Tag color="orange">ADMIN</Tag>}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '4px' }}>
-                      <span style={{ color: '#6B7280', fontWeight: 500 }}>Ngày tham gia hệ thống</span>
-                      <span style={{ color: '#1F2937', fontWeight: 600 }}>
+                    <div className={styles.infoRowLast}>
+                      <span className={styles.infoLabel}>Ngày tham gia hệ thống</span>
+                      <span className={styles.infoValue}>
                         {accountInfo?.createdAt ? dayjs(accountInfo.createdAt).format('DD/MM/YYYY') : '—'}
                       </span>
                     </div>
@@ -448,7 +448,7 @@ export default function AdminSettingsPage() {
                       <p style={{ margin: 0, color: accountStatusLabel.color, fontSize: '13px', opacity: 0.85 }}>{accountStatusLabel.desc}</p>
                     </div>
                   </div>
-                  <div style={{ background: '#fff8f6', borderLeft: '4px solid #FFA78A', padding: '16px', borderRadius: '0 12px 12px 0', fontStyle: 'italic', color: '#4B5563', whiteSpace: 'pre-wrap' }}>
+                  <div className={styles.bioQuote}>
                     "{userProfile?.bio || 'Chưa cập nhật tiểu sử giới thiệu bản thân.'}"
                   </div>
                 </div>
@@ -487,9 +487,9 @@ export default function AdminSettingsPage() {
                         <Select.Option value="unknown">Bảo mật</Select.Option>
                       </Select>
                     </Form.Item>
-                    <div style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '32px' }}>
-                      <span style={{ fontWeight: 500, color: '#475569' }}>Địa chỉ đã lưu:</span> 
-                      <span style={{ float: 'right', fontWeight: 600, color: '#0f172a' }}>{userAddresses?.length || 0} mục</span>
+                    <div className={styles.addressSummary}>
+                      <span className={styles.infoLabel}>Địa chỉ đã lưu:</span>
+                      <span className={styles.infoValue} style={{ float: 'right' }}>{userAddresses?.length || 0} mục</span>
                     </div>
                   </div>
                 </Col>
@@ -529,27 +529,27 @@ export default function AdminSettingsPage() {
               <Col xs={24} lg={12}>
                 <div className={styles.settingCard}>
                   <h2 className={styles.cardTitle}>Xác thực 2 lớp</h2>
-                  <p style={{ color: '#6B7280', marginTop: '-16px', marginBottom: '24px' }}>Tính năng đang phát triển — sẽ có trong bản cập nhật tiếp theo.</p>
+                  <p className={styles.mutedText} style={{ marginTop: '-16px', marginBottom: '24px' }}>Tính năng đang phát triển — sẽ có trong bản cập nhật tiếp theo.</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', border: '1px solid #f3e5df', borderRadius: '12px', opacity: 0.7 }}>
+                    <div className={styles.featureRow}>
                       <Space size={16}>
-                        <div style={{ fontSize: '24px', color: '#FFA78A' }}><SafetyCertificateOutlined /></div>
+                        <div style={{ fontSize: '24px', color: 'var(--admin-primary)' }}><SafetyCertificateOutlined /></div>
                         <div>
-                          <div style={{ fontWeight: 600, color: '#1F2937' }}>Ứng dụng xác thực</div>
-                          <div style={{ fontSize: '12px', color: '#6B7280' }}>Google Authenticator, Authy</div>
+                          <div className={styles.featureTitle}>Ứng dụng xác thực</div>
+                          <div className={styles.featureDesc}>Google Authenticator, Authy</div>
                         </div>
                       </Space>
                       <Tag color="default" style={{ borderRadius: '12px', padding: '2px 10px' }}>Sắp ra mắt</Tag>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', border: '1px solid #e5e7eb', borderRadius: '12px', opacity: 0.7 }}>
+                    <div className={styles.featureRow}>
                       <Space size={16}>
-                        <div style={{ fontSize: '24px', color: '#9CA3AF' }}><MobileOutlined /></div>
+                        <div style={{ fontSize: '24px', color: 'var(--admin-text-subtle)' }}><MobileOutlined /></div>
                         <div>
-                          <div style={{ fontWeight: 600, color: '#1F2937' }}>Khôi phục qua SMS</div>
-                          <div style={{ fontSize: '12px', color: '#6B7280' }}>Số điện thoại khôi phục</div>
+                          <div className={styles.featureTitle}>Khôi phục qua SMS</div>
+                          <div className={styles.featureDesc}>Số điện thoại khôi phục</div>
                         </div>
                       </Space>
-                      <Button type="text" disabled style={{ color: '#94a3b8', fontWeight: 600 }}>Sắp ra mắt</Button>
+                      <Button type="text" disabled style={{ color: 'var(--admin-text-subtle)', fontWeight: 600 }}>Sắp ra mắt</Button>
                     </div>
                   </div>
                 </div>
@@ -560,11 +560,11 @@ export default function AdminSettingsPage() {
           <TabPane tab={<span><BellOutlined />Thông báo</span>} key="4">
             <Row gutter={[32, 32]}>
               <Col xs={24} lg={8}>
-                <div className={styles.settingCard} style={{ background: '#fff8f6', border: 'none' }}>
-                  <div style={{ fontSize: '32px', color: '#FFA78A', marginBottom: '16px' }}><BellOutlined /></div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0' }}>Cấu hình nhận thông báo</h3>
-                  <p style={{ color: '#6B7280', fontSize: '13px', lineHeight: '1.6' }}>Kiểm soát cách thức và thời điểm bạn nhận cảnh báo.</p>
-                  <div style={{ background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid #f3e5df', fontSize: '12px', color: '#64748b', lineHeight: 1.6 }}>
+                <div className={`${styles.settingCard} ${styles.settingCardAccent}`}>
+                  <div style={{ fontSize: '32px', color: 'var(--admin-primary)', marginBottom: '16px' }}><BellOutlined /></div>
+                  <h3 className={styles.sectionHeadingLg}>Cấu hình nhận thông báo</h3>
+                  <p className={styles.mutedText} style={{ fontSize: '13px', lineHeight: '1.6', marginBottom: 16 }}>Kiểm soát cách thức và thời điểm bạn nhận cảnh báo.</p>
+                  <div className={styles.notifTip}>
                     Cảnh báo đơn hàng mới/hủy sẽ hiển thị trong Trung tâm thông báo admin. Email và push trình duyệt sẽ được bổ sung sau.
                   </div>
                 </div>
@@ -572,22 +572,22 @@ export default function AdminSettingsPage() {
 
               <Col xs={24} lg={16}>
                 <div className={styles.settingCard}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1F2937', marginBottom: '16px' }}>Kênh nhận thông báo</h3>
+                  <h3 className={styles.sectionHeading}>Kênh nhận thông báo</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Space><MailOutlined style={{ color: '#6B7280' }} /> <span>Gửi thư về Email cá nhân</span></Space>
+                    <div className={styles.switchRow}>
+                      <Space><MailOutlined style={{ color: 'var(--admin-text-muted)' }} /> <span>Gửi thư về Email cá nhân</span></Space>
                       <Switch checked={notifPrefs.emailAlerts} loading={savingPrefs} onChange={(v) => handleNotifChange('emailAlerts', v)} />
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Space><BellOutlined style={{ color: '#6B7280' }} /> <span>Thông báo đẩy trình duyệt (Push)</span></Space>
+                    <div className={styles.switchRow}>
+                      <Space><BellOutlined style={{ color: 'var(--admin-text-muted)' }} /> <span>Thông báo đẩy trình duyệt (Push)</span></Space>
                       <Switch checked={notifPrefs.pushAlerts} loading={savingPrefs} onChange={(v) => handleNotifChange('pushAlerts', v)} />
                     </div>
                   </div>
                   <Divider style={{ margin: '24px 0' }} />
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1F2937', marginBottom: '16px' }}>Sự kiện đơn hàng</h3>
+                  <h3 className={styles.sectionHeading}>Sự kiện đơn hàng</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>Có đơn hàng mới cần xử lý</span><Switch checked={notifPrefs.newOrderAlerts} loading={savingPrefs} onChange={(v) => handleNotifChange('newOrderAlerts', v)} /></div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>Khách hàng yêu cầu hủy đơn</span><Switch checked={notifPrefs.cancelOrderAlerts} loading={savingPrefs} onChange={(v) => handleNotifChange('cancelOrderAlerts', v)} /></div>
+                    <div className={styles.switchRow}><span>Có đơn hàng mới cần xử lý</span><Switch checked={notifPrefs.newOrderAlerts} loading={savingPrefs} onChange={(v) => handleNotifChange('newOrderAlerts', v)} /></div>
+                    <div className={styles.switchRow}><span>Khách hàng yêu cầu hủy đơn</span><Switch checked={notifPrefs.cancelOrderAlerts} loading={savingPrefs} onChange={(v) => handleNotifChange('cancelOrderAlerts', v)} /></div>
                   </div>
                 </div>
               </Col>
@@ -674,7 +674,7 @@ export default function AdminSettingsPage() {
 
               <Col xs={24} lg={8}>
                 <div className={styles.settingCard}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#1F2937', marginBottom: '24px' }}>Định dạng vùng</h3>
+                  <h3 className={styles.themeSubTitle} style={{ marginBottom: '24px' }}>Định dạng vùng</h3>
                   <Form layout="vertical">
                     <Form.Item label="Múi giờ hệ thống">
                       <Select

@@ -1,6 +1,7 @@
 import { Avatar, Tag, Button, Tooltip, Table, Space } from 'antd';
 import { EyeOutlined, UserOutlined } from '@ant-design/icons';
 import { resolveMediaUrl } from '@/utils/adminApi';
+import { adminTableStyles as t } from '@/utils/adminTableStyles';
 import type { AdminUserListItem } from '@/services/TaiKhoan/users.api';
 
 interface UserTableProps {
@@ -30,13 +31,13 @@ export default function UserTable({ users, loading, page, limit, total, setPage,
             src={resolveMediaUrl(record.avatar)}
             icon={<UserOutlined />}
             size={48}
-            style={{ border: '2px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0 }}
+            style={{ border: '2px solid var(--admin-surface)', boxShadow: 'var(--admin-shadow-sm)', flexShrink: 0 }}
           />
           <div>
-            <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 15 }}>
+            <div style={{ fontWeight: 700, color: 'var(--admin-text-strong)', fontSize: 15 }}>
               {record.name || record.email?.split('@')[0] || 'Khách hàng'}
             </div>
-            <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>{record.email}</div>
+            <div style={{ fontSize: 13, color: 'var(--admin-text-muted)', marginTop: 2 }}>{record.email}</div>
           </div>
         </div>
       ),
@@ -60,10 +61,10 @@ export default function UserTable({ users, loading, page, limit, total, setPage,
       key: 'stats',
       render: (_: unknown, record: AdminUserListItem) => (
         <div>
-          <div style={{ fontWeight: 800, color: '#10b981', fontSize: 15 }}>
+          <div style={t.success}>
             {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(record.totalSpent || 0)}
           </div>
-          <div style={{ fontSize: 13, color: '#64748b', marginTop: 2, fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: 'var(--admin-text-muted)', marginTop: 2, fontWeight: 500 }}>
             {record.totalOrders || 0} đơn hàng
           </div>
         </div>
@@ -73,7 +74,7 @@ export default function UserTable({ users, loading, page, limit, total, setPage,
       title: 'Ngày tham gia',
       key: 'createdAt',
       render: (_: unknown, record: AdminUserListItem) => (
-        <span style={{ color: '#475569', fontWeight: 600, fontSize: 14 }}>
+        <span style={{ color: 'var(--admin-text-muted)', fontWeight: 600, fontSize: 14 }}>
           {record.createdAt ? new Date(record.createdAt).toLocaleDateString('vi-VN') : getDateFromId(record._id)}
         </span>
       ),
@@ -90,7 +91,7 @@ export default function UserTable({ users, loading, page, limit, total, setPage,
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               width: 36, height: 36, borderRadius: 10,
-              background: '#f0f8ff', border: 'none', color: '#00a2ff',
+              background: 'var(--admin-primary-soft)', border: '1px solid var(--admin-border)', color: 'var(--admin-primary)',
               boxShadow: 'none', fontSize: 18,
             }}
           />
@@ -113,7 +114,7 @@ export default function UserTable({ users, loading, page, limit, total, setPage,
         showSizeChanger: true,
       }}
       scroll={{ x: 'max-content' }}
-      style={{ background: '#fff', borderRadius: 16 }}
+      style={{ background: 'var(--admin-surface)', borderRadius: 16 }}
     />
   );
 }

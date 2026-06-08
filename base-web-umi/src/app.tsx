@@ -3,6 +3,7 @@ import '@/styles/global.less';
 import '@/styles/admin-tokens.less';
 import '@/styles/admin.less';
 import '@/styles/admin-theme.less';
+import '@/styles/admin-page-surfaces.less';
 import '@/styles/admin-responsive.less';
 import { getMe } from '@/services/TaiKhoan/users.api';
 import { setupLuranaToast } from '@/utils/luranaToast';

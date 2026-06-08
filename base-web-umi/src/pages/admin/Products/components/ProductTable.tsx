@@ -5,6 +5,7 @@ import type { ProductType } from '@/services/SanPham/types';
 import { resolveMediaUrl } from '@/utils/adminApi';
 import DataTable from '@/components/admin/DataTable';
 import StatusTag from '@/components/admin/StatusTag';
+import { adminTableStyles as t } from '@/utils/adminTableStyles';
 
 const PLACEHOLDER_IMG =
   'data:image/svg+xml,' +
@@ -63,23 +64,15 @@ export default function ProductTable({
               height: 44,
               borderRadius: 8,
               objectFit: 'cover',
-              border: '1px solid #F3E5DF',
+              border: '1px solid var(--admin-border-strong)',
               flexShrink: 0,
             }}
           />
           <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            <strong
-              style={{
-                color: '#1F2937',
-                fontSize: 14,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
+            <strong style={{ ...t.title, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {text}
             </strong>
-            <span style={{ color: '#6B7280', fontSize: 12 }}>SKU: {record.sku}</span>
+            <span style={t.sku}>SKU: {record.sku}</span>
           </div>
         </div>
       ),
@@ -88,7 +81,7 @@ export default function ProductTable({
       title: 'Danh mục',
       width: 140,
       render: (_, record) => (
-        <span style={{ color: '#4b5563', fontWeight: 500 }}>
+        <span style={t.name}>
           {record.category?.name || 'Chưa phân loại'}
         </span>
       ),
@@ -98,7 +91,7 @@ export default function ProductTable({
       align: 'right',
       width: 160,
       render: (_, record) => (
-        <strong style={{ color: '#FFA78A', fontSize: 14, whiteSpace: 'nowrap' }}>
+        <strong style={t.price}>
           {formatSellPrice(record.variants)}
         </strong>
       ),
@@ -111,7 +104,7 @@ export default function ProductTable({
         const stock =
           record.variants?.reduce((sum, v) => sum + (v.stockQty || 0), 0) || 0;
         return (
-          <span style={{ fontWeight: 600, color: stock > 0 ? '#10b981' : '#ef4444' }}>
+          <span style={{ fontWeight: 600, color: stock > 0 ? 'var(--admin-success, #10b981)' : 'var(--admin-danger)' }}>
             {stock}
           </span>
         );
@@ -159,7 +152,7 @@ export default function ProductTable({
             trigger={['click']}
             placement="bottomRight"
           >
-            <div style={{ padding: 8, cursor: 'pointer', color: '#6B7280' }}>
+            <div style={t.action}>
               <MenuOutlined />
             </div>
           </Dropdown>

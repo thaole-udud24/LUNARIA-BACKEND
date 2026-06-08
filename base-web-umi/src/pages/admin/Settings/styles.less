@@ -41,15 +41,14 @@
 }
 
 .topBar {
-  background: @surface;
+  background: var(--admin-gradient-topbar, linear-gradient(135deg, #ffffff 0%, #fffbfc 100%));
   border-radius: 24px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), 0 4px 6px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--admin-border, rgba(0, 0, 0, 0.06));
+  box-shadow: var(--admin-shadow-md, 0 10px 30px rgba(15, 23, 42, 0.08));
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 28px 32px;
-  background: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
   flex-wrap: wrap;
   gap: 20px;
 }
@@ -70,8 +69,16 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: @text-secondary;
-  .active { color: @text-primary; font-weight: 600; }
+  color: var(--admin-text-muted, @text-secondary);
+
+  .separator {
+    color: var(--admin-text-subtle, @text-secondary);
+  }
+
+  .active {
+    color: var(--admin-text-strong, @text-primary);
+    font-weight: 600;
+  }
 }
 
 .gradientBtn {
@@ -104,11 +111,12 @@
 
 .headerContainer {
   position: relative;
-  background: @surface;
+  background: var(--admin-surface, @surface);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-  padding-bottom: 24px; // Chừa khoảng trống bên dưới cho phần Avatar lồi ra ngoài
+  box-shadow: var(--admin-shadow-md, 0 10px 30px rgba(15, 23, 42, 0.08));
+  padding-bottom: 24px;
+  border: 1px solid var(--admin-border, rgba(0, 0, 0, 0.06));
 }
 
 .bannerZone {
@@ -162,7 +170,7 @@
   height: 150px;
   border-radius: 50%;
   padding: 4px;
-  background: @surface;
+  background: var(--admin-surface, @surface);
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   flex-shrink: 0;
 
@@ -201,13 +209,13 @@
 .fbUserName {
   font-size: 28px;
   font-weight: 700;
-  color: @text-primary;
+  color: var(--admin-text-strong, @text-primary);
   margin: 0 0 4px 0;
 }
 
 .fbUserSub {
   font-size: 14px;
-  color: @text-secondary;
+  color: var(--admin-text-muted, @text-secondary);
   margin: 0;
   font-weight: 500;
 }
@@ -220,15 +228,15 @@
   :global {
     .ant-tabs-nav {
       margin-bottom: 24px !important;
-      &::before { border-bottom-color: @border !important; }
+      &::before { border-bottom-color: var(--admin-border-strong, @border) !important; }
     }
     .ant-tabs-tab {
       padding: 16px 0 !important;
       margin-right: 40px !important;
       font-size: 16px !important;
-      color: @text-secondary !important;
-      
-      &:hover { color: @text-primary !important; }
+      color: var(--admin-text-muted, @text-secondary) !important;
+
+      &:hover { color: var(--admin-text-strong, @text-primary) !important; }
     }
     .ant-tabs-tab-active .ant-tabs-tab-btn {
       color: @primary !important; 
@@ -243,41 +251,129 @@
 }
 
 .settingCard {
-  background: @surface;
+  background: var(--admin-surface, @surface);
   border-radius: 20px;
-  border: 1px solid rgba(0,0,0,0.04);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--admin-border, rgba(0, 0, 0, 0.04));
+  box-shadow: var(--admin-shadow-md, 0 10px 30px rgba(15, 23, 42, 0.04));
   padding: 32px;
   height: 100%;
+  color: var(--admin-text, @text-primary);
 
   .cardTitle {
     font-size: 20px;
     font-weight: 700;
-    color: @text-primary;
+    color: var(--admin-text-strong, @text-primary);
     margin-bottom: 24px;
   }
 }
 
+.settingCardAccent {
+  background: var(--admin-bg-subtle, @bg) !important;
+  border: 1px solid var(--admin-border, transparent) !important;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--admin-border-strong, @border);
+  padding-bottom: 12px;
+}
+
+.infoRowLast {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 4px;
+}
+
+.infoLabel {
+  color: var(--admin-text-muted, @text-secondary);
+  font-weight: 500;
+}
+
+.infoValue {
+  color: var(--admin-text-strong, @text-primary);
+  font-weight: 600;
+}
+
+.bioQuote {
+  background: var(--admin-bg-subtle, @bg);
+  border-left: 4px solid var(--admin-primary, @primary);
+  padding: 16px;
+  border-radius: 0 12px 12px 0;
+  font-style: italic;
+  color: var(--admin-text-muted, @text-secondary);
+  white-space: pre-wrap;
+}
+
+.addressSummary {
+  padding: 12px 16px;
+  background: var(--admin-surface-soft, #f8fafc);
+  border-radius: 8px;
+  border: 1px solid var(--admin-border-strong, #e2e8f0);
+  margin-top: 32px;
+}
+
+.featureRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid var(--admin-border-strong, @border);
+  border-radius: 12px;
+  opacity: 0.85;
+}
+
+.featureTitle {
+  font-weight: 600;
+  color: var(--admin-text-strong, @text-primary);
+}
+
+.featureDesc {
+  font-size: 12px;
+  color: var(--admin-text-muted, @text-secondary);
+}
+
+.sectionHeading {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--admin-text-strong, @text-primary);
+  margin-bottom: 16px;
+}
+
+.sectionHeadingLg {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--admin-text-strong, @text-primary);
+  margin: 0 0 8px 0;
+}
+
+.mutedText {
+  color: var(--admin-text-muted, @text-secondary);
+}
+
+.notifTip {
+  background: var(--admin-surface, @surface);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border-strong, @border);
+  font-size: 12px;
+  color: var(--admin-text-muted, @text-secondary);
+  line-height: 1.6;
+}
+
+.switchRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--admin-text, @text-primary);
+}
+
 :global {
   .ant-form-item-label > label {
-    color: @text-secondary !important;
+    color: var(--admin-text-muted, @text-secondary) !important;
     font-size: 14px !important;
     font-weight: 500 !important;
   }
-  .ant-input, .ant-input-password, .ant-select-selector {
-    border-radius: 12px !important;
-    border: 1px solid #E5E7EB !important;
-    padding: 10px 16px !important;
-    font-size: 15px !important;
-    background: #FAFAFA !important;
-    
-    &:hover, &:focus, &:focus-within {
-      border-color: @primary !important; 
-      background: #FFFFFF !important;
-      box-shadow: 0 0 0 2px rgba(255, 167, 138, 0.1) !important;
-    }
-  }
-  .ant-select-selector { padding: 4px 16px !important; }
 }
 
 .actionFooter {
@@ -291,7 +387,9 @@
     height: 42px !important;
     padding: 0 24px !important;
     font-weight: 600;
-    color: @text-primary;
+    color: var(--admin-text-strong, @text-primary);
+    background: var(--admin-surface-soft, transparent);
+    border-color: var(--admin-border-strong, #e5e7eb);
   }
 }
 

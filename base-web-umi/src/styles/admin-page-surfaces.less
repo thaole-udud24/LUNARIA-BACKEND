@@ -1,0 +1,128 @@
+// Bổ sung token cho trang admin — CSS Modules hash class nên admin-theme.less (.statCard) không khớp
+@import './admin-tokens.less';
+
+.admin-layout {
+  [class*='topBar'],
+  [class*='statCard'],
+  [class*='tableWrapper'],
+  [class*='filterCard'],
+  [class*='detailCard'],
+  [class*='reportCard'],
+  [class*='trendBox'],
+  [class*='donutBox'],
+  [class*='chartCard'] {
+    background: var(--admin-surface) !important;
+    border-color: var(--admin-border) !important;
+    box-shadow: var(--admin-shadow-md) !important;
+  }
+
+  [class*='topBar'] {
+    background: var(--admin-gradient-topbar) !important;
+  }
+
+  [class*='breadcrumb'] {
+    color: var(--admin-text-muted) !important;
+
+    [class*='separator'] {
+      color: var(--admin-text-subtle) !important;
+    }
+
+    [class*='active'] {
+      color: var(--admin-text-strong) !important;
+    }
+  }
+
+  [class*='metaRow'] {
+    color: var(--admin-text-subtle) !important;
+  }
+
+  [class*='statSubText'],
+  [class*='filterLabel'] {
+    color: var(--admin-text-muted) !important;
+  }
+
+  [class*='statCard'] {
+    :global {
+      .ant-statistic-title {
+        color: var(--admin-text-muted) !important;
+      }
+
+      .ant-statistic-content,
+      .ant-statistic-content-value,
+      .ant-statistic-content-prefix,
+      .ant-statistic-content-suffix {
+        color: var(--admin-text-strong) !important;
+      }
+    }
+  }
+
+  [class*='searchInput'] {
+    :global {
+      .ant-input {
+        background: var(--admin-input-bg) !important;
+        border-color: var(--admin-input-border) !important;
+        color: var(--admin-text) !important;
+      }
+    }
+  }
+}
+
+html[data-admin-theme='dark'] .admin-layout {
+  [class*='cardOne'],
+  [class*='cardTwo'],
+  [class*='cardThree'],
+  [class*='cardFour'] {
+    background: var(--admin-surface) !important;
+    border-color: var(--admin-border) !important;
+
+    [class*='title'],
+    [class*='valueRow'],
+    [class*='currency'] {
+      color: var(--admin-text-strong) !important;
+    }
+
+    [class*='trendBadge'] {
+      color: var(--admin-primary) !important;
+      background: var(--admin-primary-soft) !important;
+    }
+
+    [class*='iconWrap'] svg {
+      color: var(--admin-text-strong) !important;
+    }
+  }
+
+  [class*='grid'][class*='FinancialCards'],
+  [class*='FinancialCards'] [class*='grid'] {
+    color: var(--admin-text);
+  }
+
+  [class*='settingCard'],
+  [class*='headerContainer'],
+  [class*='themeOption'] {
+    background: var(--admin-surface) !important;
+    border-color: var(--admin-border) !important;
+    color: var(--admin-text) !important;
+  }
+
+  [class*='cardTitle'],
+  [class*='fbUserName'],
+  [class*='infoValue'],
+  [class*='featureTitle'],
+  [class*='sectionHeading'],
+  [class*='sectionHeadingLg'] {
+    color: var(--admin-text-strong) !important;
+  }
+
+  [class*='infoLabel'],
+  [class*='featureDesc'],
+  [class*='mutedText'],
+  [class*='fbUserSub'] {
+    color: var(--admin-text-muted) !important;
+  }
+
+  [class*='promotion-type-card'],
+  [class*='voucherCard'] {
+    background: var(--admin-surface) !important;
+    border-color: var(--admin-border) !important;
+  }
+}

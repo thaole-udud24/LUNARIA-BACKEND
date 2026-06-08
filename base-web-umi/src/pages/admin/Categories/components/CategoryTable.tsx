@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { CategoryType } from '@/types/catalog';
 import DataTable from '@/components/admin/DataTable';
 import StatusTag from '@/components/admin/StatusTag';
+import { adminTableStyles as t } from '@/utils/adminTableStyles';
 
 interface CategoryTableProps {
   loading: boolean;
@@ -32,18 +33,18 @@ export default function CategoryTable({
       title: 'Mã loại',
       dataIndex: 'code',
       width: 150,
-      render: (text) => <strong style={{ color: '#1F2937' }}>{text}</strong>,
+      render: (text) => <strong style={t.code}>{text}</strong>,
     },
     {
       title: 'Tên loại sản phẩm',
       dataIndex: 'name',
-      render: (text) => <span style={{ fontWeight: 500, color: '#4b5563' }}>{text}</span>,
+      render: (text) => <span style={t.name}>{text}</span>,
     },
     {
       title: 'Mô tả',
       dataIndex: 'description',
       ellipsis: true,
-      render: (text) => <span style={{ color: '#6B7280' }}>{text || '---'}</span>,
+      render: (text) => <span style={t.desc}>{text || '---'}</span>,
     },
     {
       title: 'Trạng thái',
@@ -85,7 +86,7 @@ export default function CategoryTable({
           trigger={['click']}
           placement="bottomRight"
         >
-          <div style={{ padding: 8, cursor: 'pointer', color: '#6B7280' }}>
+          <div style={t.action}>
             <MenuOutlined />
           </div>
         </Dropdown>

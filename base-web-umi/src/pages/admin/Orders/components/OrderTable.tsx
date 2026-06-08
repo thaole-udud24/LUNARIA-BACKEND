@@ -6,6 +6,7 @@ import moment from 'moment';
 import type { AdminOrder } from '@/services/DonHang/types';
 
 import DataTable from '@/components/admin/DataTable';
+import { adminTableStyles as t } from '@/utils/adminTableStyles';
 
 interface OrderTableProps {
   orders: AdminOrder[];
@@ -31,16 +32,16 @@ export default function OrderTable({
   const actionBtnStyle = (color: string, disabled: boolean = false): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     width: '32px', height: '32px', borderRadius: '6px',
-    background: disabled ? '#f8fafc' : '#eef2f6',
-    color: disabled ? '#cbd5e1' : color,
+    background: disabled ? 'var(--admin-surface-soft)' : 'var(--admin-surface-elevated)',
+    color: disabled ? 'var(--admin-text-subtle)' : color,
     cursor: disabled ? 'not-allowed' : 'pointer',
-    transition: 'all 0.2s', border: 'none',
+    transition: 'all 0.2s', border: '1px solid var(--admin-border)',
   });
 
   const columns: ColumnsType<AdminOrder> = [
     {
       title: 'Mã Đơn', dataIndex: 'orderCode', key: 'orderCode',
-      render: (text: string) => <strong style={{ color: '#ff8c69', letterSpacing: '0.5px' }}>{text}</strong>,
+      render: (text: string) => <strong style={t.primaryCode}>{text}</strong>,
     },
     {
       title: 'Khách hàng', key: 'customer',
@@ -49,19 +50,19 @@ export default function OrderTable({
         const phone = record.shippingAddress?.phone || 'Chưa có SĐT';
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '14px' }}>{name}</div>
-            <div style={{ fontSize: '13px', color: '#94a3b8' }}>{phone}</div>
+            <div style={t.title}>{name}</div>
+            <div style={t.phone}>{phone}</div>
           </div>
         );
       },
     },
     {
       title: 'Ngày đặt', dataIndex: 'createdAt', key: 'createdAt',
-      render: (date: string) => <span style={{ color: '#64748b', fontSize: '14px' }}>{moment(date).format('HH:mm - DD/MM/YYYY')}</span>,
+      render: (date: string) => <span style={t.date}>{moment(date).format('HH:mm - DD/MM/YYYY')}</span>,
     },
     {
       title: 'Tổng tiền', dataIndex: 'totalAmount', key: 'totalAmount',
-      render: (amount: number) => <strong style={{ color: '#0f172a', fontSize: '14px' }}>{amount?.toLocaleString('vi-VN')} đ</strong>,
+      render: (amount: number) => <strong style={t.amount}>{amount?.toLocaleString('vi-VN')} đ</strong>,
     },
     {
       title: 'Thanh toán', dataIndex: 'paymentStatus', key: 'paymentStatus',

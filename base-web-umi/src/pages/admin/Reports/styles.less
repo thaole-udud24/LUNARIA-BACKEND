@@ -47,19 +47,15 @@
 .topBar,
 .trendBox,
 .donutBox {
-  background: #ffffff;
+  background: var(--admin-surface);
   border-radius: 24px;
-  border: 1px solid rgba(0, 0, 0, 0.06); /* Viền xám siêu nhạt để tách form */
-  box-shadow: 
-    0 10px 30px rgba(15, 23, 42, 0.08), 
-    0 4px 6px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow-md);
   transition: all 0.35s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 
-      0 20px 40px rgba(15, 23, 42, 0.12),
-      0 8px 12px rgba(15, 23, 42, 0.06);
+    box-shadow: var(--admin-shadow-lg);
   }
 }
 
@@ -68,7 +64,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 28px 32px;
-  background: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
+  background: var(--admin-gradient-topbar);
 }
 
 .pageHeader {
@@ -94,10 +90,10 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--admin-text-muted);
 
-  .separator { color: #cbd5e1; }
-  .active { color: #0f172a; font-weight: 600; }
+  .separator { color: var(--admin-text-subtle); }
+  .active { color: var(--admin-text-strong); font-weight: 600; }
 }
 
 .metaRow {
@@ -105,7 +101,7 @@
   align-items: center;
   gap: 10px;
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--admin-text-subtle);
   font-weight: 500;
 }
 
@@ -239,26 +235,45 @@
 :global {
   .ant-picker {
     border-radius: 14px !important;
-    border: 1px solid #edf2f7 !important;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
+    border: 1px solid var(--admin-input-border) !important;
+    background: var(--admin-input-bg) !important;
+    box-shadow: var(--admin-shadow-sm) !important;
     transition: 0.3s !important;
+    color: var(--admin-text) !important;
   }
+
+  .ant-picker-input > input {
+    color: var(--admin-text) !important;
+  }
+
+  .ant-picker-suffix,
+  .ant-picker-separator {
+    color: var(--admin-text-muted) !important;
+  }
+
   .ant-picker:hover {
-    border-color: #ff9f7d !important;
-    box-shadow: 0 8px 20px rgba(255, 160, 122, 0.1) !important;
+    border-color: var(--admin-primary) !important;
+    box-shadow: 0 8px 20px var(--admin-primary-soft) !important;
   }
 
   .ant-select-selector {
     height: 48px !important;
     border-radius: 14px !important;
-    border: 1px solid #edf2f7 !important;
+    border: 1px solid var(--admin-input-border) !important;
+    background: var(--admin-input-bg) !important;
+    color: var(--admin-text) !important;
     display: flex !important;
     align-items: center !important;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
+    box-shadow: var(--admin-shadow-sm) !important;
   }
+
+  .ant-select-selection-item {
+    color: var(--admin-text) !important;
+  }
+
   .ant-select:hover .ant-select-selector {
-    border-color: #ff9f7d !important;
-    box-shadow: 0 8px 20px rgba(255, 160, 122, 0.1) !important;
+    border-color: var(--admin-primary) !important;
+    box-shadow: 0 8px 20px var(--admin-primary-soft) !important;
   }
 }
 // Tương thích hiển thị trên các kích thước màn hình nhỏ (Responsive)

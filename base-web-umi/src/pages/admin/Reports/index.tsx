@@ -165,7 +165,7 @@ export default function Reports() {
             onChange={setSelectedCategory}
             options={categories}
             className={styles.selectResponsive}
-            suffixIcon={<FilterOutlined style={{ color: '#94a3b8' }} />}
+            suffixIcon={<FilterOutlined style={{ color: 'var(--admin-text-subtle)' }} />}
           />
 
           <button type="button" className={styles.exportBtn} onClick={() => setIsExportModalOpen(true)}>

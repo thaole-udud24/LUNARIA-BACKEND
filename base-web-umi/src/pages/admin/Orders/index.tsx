@@ -204,19 +204,19 @@ export default function AdminOrders() {
         <Col xs={24} sm={8}>
           <div className={styles.statCard}>
             <Statistic title="Đơn chờ xác nhận" value={kpiStats.pendingCount} suffix="đơn" valueStyle={{ color: '#ff6b81', fontSize: 28, fontWeight: 800 }} />
-            <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 12 }}>Toàn hệ thống</div>
+            <div style={{ color: 'var(--admin-text-subtle)', fontSize: 13, marginTop: 12 }}>Toàn hệ thống</div>
           </div>
         </Col>
         <Col xs={24} sm={8}>
           <div className={styles.statCard}>
             <Statistic title="Doanh thu đơn xử lý (đã TT)" value={kpiStats.processingRevenue} formatter={(val) => formatCurrency(Number(val))} valueStyle={{ color: '#10b981', fontSize: 28, fontWeight: 800 }} />
-            <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 12 }}>CONFIRMED + PROCESSING · đã thanh toán</div>
+            <div style={{ color: 'var(--admin-text-subtle)', fontSize: 13, marginTop: 12 }}>CONFIRMED + PROCESSING · đã thanh toán</div>
           </div>
         </Col>
         <Col xs={24} sm={8}>
           <div className={styles.statCard}>
-            <Statistic title="Đơn hoàn thành" value={kpiStats.deliveredCount} suffix="đơn" valueStyle={{ color: '#0f172a', fontSize: 28, fontWeight: 800 }} />
-            <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 12 }}>Trạng thái COMPLETED</div>
+            <Statistic title="Đơn hoàn thành" value={kpiStats.deliveredCount} suffix="đơn" valueStyle={{ color: 'var(--admin-text-strong)', fontSize: 28, fontWeight: 800 }} />
+            <div style={{ color: 'var(--admin-text-subtle)', fontSize: 13, marginTop: 12 }}>Trạng thái COMPLETED</div>
           </div>
         </Col>
       </Row>
@@ -266,7 +266,7 @@ export default function AdminOrders() {
         okButtonProps={{ danger: true, style: { borderRadius: 10, height: 40 } }}
         cancelButtonProps={{ style: { borderRadius: 10, height: 40 } }}
       >
-        <div style={{ marginBottom: 12, color: '#475569' }}>Nhập lý do hủy đơn:</div>
+        <div style={{ marginBottom: 12, color: 'var(--admin-text-muted)' }}>Nhập lý do hủy đơn:</div>
         <Input.TextArea rows={4} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} style={{ borderRadius: 10 }} />
       </Modal>
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import DataTable from '@/components/admin/DataTable';
 import { resolveMediaUrl } from '@/utils/adminApi';
+import { adminTableStyles as t } from '@/utils/adminTableStyles';
 import styles from './DetailTable.less';
 
 interface DetailTableProps {
@@ -30,28 +31,28 @@ export default function DetailTable({ products = [], vouchers = [] }: DetailTabl
       title: 'LOẠI SẢN PHẨM',
       dataIndex: 'categoryName',
       key: 'categoryName',
-      render: (text: string) => <span style={{ color: '#4b5563' }}>{text || 'Chưa phân loại'}</span>,
+      render: (text: string) => <span style={t.name}>{text || 'Chưa phân loại'}</span>,
     },
     {
       title: 'SỐ LƯỢNG BÁN',
       dataIndex: 'sales',
       key: 'sales',
       align: 'right' as const,
-      render: (text: number) => <span style={{ color: '#4b5563' }}>{text?.toLocaleString()}</span>,
+      render: (text: number) => <span style={t.muted}>{text?.toLocaleString()}</span>,
     },
     {
       title: 'DOANH THU',
       dataIndex: 'revenue',
       key: 'revenue',
       align: 'right' as const,
-      render: (val: number) => <span style={{ color: '#4b5563' }}>{val?.toLocaleString('vi-VN')} đ</span>,
+      render: (val: number) => <span style={t.muted}>{val?.toLocaleString('vi-VN')} đ</span>,
     },
     {
       title: 'LỢI NHUẬN',
       dataIndex: 'profit',
       key: 'profit',
       align: 'right' as const,
-      render: (val: number) => <strong style={{ color: '#1f2937' }}>{val?.toLocaleString('vi-VN')} đ</strong>,
+      render: (val: number) => <strong style={t.amount}>{val?.toLocaleString('vi-VN')} đ</strong>,
     },
   ];
 
@@ -61,7 +62,7 @@ export default function DetailTable({ products = [], vouchers = [] }: DetailTabl
       key: 'info',
       render: (_: any, record: any) => (
         <div>
-          <strong style={{ color: '#ff9a7a', fontSize: '15px' }}>{record.code}</strong>
+          <strong style={t.primaryCode}>{record.code}</strong>
           <div className={styles.sku} style={{ marginTop: '4px' }}>{record.name}</div>
         </div>
       ),
@@ -71,21 +72,21 @@ export default function DetailTable({ products = [], vouchers = [] }: DetailTabl
       dataIndex: 'usageCount',
       key: 'usageCount',
       align: 'center' as const,
-      render: (text: number) => <span style={{ color: '#4b5563' }}>{text?.toLocaleString()}</span>,
+      render: (text: number) => <span style={t.muted}>{text?.toLocaleString()}</span>,
     },
     {
       title: 'TỔNG TIỀN ĐÃ GIẢM',
       dataIndex: 'totalDiscount',
       key: 'totalDiscount',
       align: 'right' as const,
-      render: (val: number) => <span style={{ color: '#4b5563' }}>{val?.toLocaleString('vi-VN')} đ</span>,
+      render: (val: number) => <span style={t.muted}>{val?.toLocaleString('vi-VN')} đ</span>,
     },
     {
       title: 'DOANH THU KÍCH CẦU',
       dataIndex: 'generatedRevenue',
       key: 'generatedRevenue',
       align: 'right' as const,
-      render: (val: number) => <strong style={{ color: '#1f2937' }}>{val?.toLocaleString('vi-VN')} đ</strong>,
+      render: (val: number) => <strong style={t.amount}>{val?.toLocaleString('vi-VN')} đ</strong>,
     },
   ];
 

@@ -179,7 +179,7 @@ export default function AdminUsers() {
       <Row gutter={[24, 24]}>
         <Col xs={24} sm={8}>
           <div className={styles.statCard}>
-            <Statistic title="Tổng Khách hàng" value={stats.totalCustomers} suffix="người" valueStyle={{ color: '#0f172a', fontSize: 28, fontWeight: 800 }} />
+            <Statistic title="Tổng Khách hàng" value={stats.totalCustomers} suffix="người" valueStyle={{ color: 'var(--admin-text-strong)', fontSize: 28, fontWeight: 800 }} />
             <div className={styles.statSubText}>Đã đăng ký hệ thống</div>
           </div>
         </Col>
